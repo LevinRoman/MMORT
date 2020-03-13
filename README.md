@@ -16,7 +16,8 @@ git clone https://github.com/LevinRoman/MMORT
 cd MMORT
 ```
 
-#### To run the experiments script (here alpha, beta, gamma, delta_mean and delta_max are radiobiological parameters described in the paper):
+#### To run the experiments script 
+(here alpha, beta, gamma, delta_mean and delta_max are radiobiological parameters described in the paper):
 ```
 cd MMORT
 python experiments.py --alpha 0.35 --beta 0.175 --gamma 0.35 --delta_mean 0.07 delta_max 0.175
