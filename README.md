@@ -26,7 +26,7 @@ python experiments.py --alpha 0.35 --beta 0.175 --gamma 0.35 --delta_mean 0.07 d
 ## Project structure
 * `mmort`: Main directory with the scripts
   * `optimization_tools.py`: script for fluence map u optimization
-  * `experiments.py`: main script for running the multi-modality optimization
+  * `experiments.py`: main script for running the multi-modality optimization to find the optimal fractionation schedule as well as fluence maps for each radiation modality
 
 ## License
 
