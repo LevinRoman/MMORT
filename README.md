@@ -1,7 +1,6 @@
 <!--- README template from https://github.com/Neighborhood-Traffic-Flow/neighborhoodtrafficflow -->
 
 # Multi-Modality Optimal Radiation Therapy (MMORT)
-[![GitHub license](https://img.shields.io/github/license/MMORT/)](./LICENSE)
 
 This repository contains the code for the paper [A Proof of Principle: Multi-Modality Radiotherapy Optimization](https://arxiv.org/abs/1911.05182).
 We developed non-convex bilevel optimization framework for combining different radiation modalities in optimal treatment planning for radiation therapy cancer patients.
