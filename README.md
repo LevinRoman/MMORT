@@ -2,7 +2,7 @@
 
 # Multi-Modality Optimal Radiation Therapy (MMORT)
 
-This repository contains the code for the paper [A Proof of Principle: Multi-Modality Radiotherapy Optimization](https://arxiv.org/abs/1911.05182).
+This repository contains code for the paper [A Proof of Principle: Multi-Modality Radiotherapy Optimization](https://arxiv.org/abs/1911.05182).
 We developed a non-convex bilevel optimization framework for combining different radiation modalities in optimal treatment planning for radiation therapy cancer patients.
 Multi-modality radiation therapy is not used in current clinical practice and this work strives to reinforce the growing interest in this idea by developing methods 
 for the multi-modality treatment planning and providing a proof of concept as well as some real patient experiments (the latter is ongoing work).
