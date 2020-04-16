@@ -1,3 +1,4 @@
 Questions:
 1. Double check the constraints RHS. So far: in the imput .mat file we have total dose (some UNKNOWN number of Photon fractions) and
 we divide it by total_N for the current treatment plan (wrong? or correct way to find dose per fraction C?)
+2. We had a different way to compute the C RHS before. Redo that?
