@@ -426,7 +426,7 @@ def u_update(eta_0, eta, w_0, w, eta_T_H_stacked, premultiplied_lhs = None, nnls
 #     w =scipy.sparse.linalg.spsolve_triangular(RT, A_ls_t_b, lower = True) 
 #     x = scipy.sparse.linalg.spsolve_triangular(R, w, lower = False)   
 #     u_next = x    
-    u_next = scipy.optimize.lsq_linear(eta_T_H_stacked, b_ls, bounds = (0, np.inf), tol=1e-4, lsmr_tol=1e-1, max_iter=nnls_max_iter, verbose=1).x   
+    u_next = scipy.optimize.lsq_linear(eta_T_H_stacked, b_ls, bounds = (0, np.inf), tol=1e-3, lsmr_tol=1e-1, max_iter=nnls_max_iter, verbose=1).x   
 #     u = scipy.optimize.lsq_linear(premultiplied_lhs, premultiplied_rhs, bounds = (0, np.inf), tol=1e-5).x 
     return u_next
 
