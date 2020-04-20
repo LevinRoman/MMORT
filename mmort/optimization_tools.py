@@ -713,10 +713,10 @@ def solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, 
     
     """
 
-    Raise('NotImplementedError: only adjusted the arguments.')
+    # Raise('NotImplementedError: only adjusted the arguments.')
     #Need to incorporate L_lhs into stacked and appropriate w_lin updates, u_update and eta_lin increments
     #precompute the expensive operation:
-    eta_T_H_stacked = scipy.sparse.vstack([T.multiply(1/np.sqrt(2*eta_0))] + [H[i].multiply(1/np.sqrt(2*eta[i])) for i in range(len(H))])
+    eta_T_H_L_stacked = scipy.sparse.vstack([T.multiply(1/np.sqrt(2*eta_0))] + [H[i].multiply(1/np.sqrt(2*eta[i])) for i in range(len(H))] + [L_lhs.multiply(1/np.sqrt(2*eta_lin))])
     #!!!!
 #     premultiplied_lhs = eta_T_H_stacked.T.dot(eta_T_H_stacked).toarray()
     #!!!!
@@ -731,9 +731,11 @@ def solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, 
         u_prev = np.copy(u)
         w_0 = w_0_update(eta_0, u, T, alpha, B) 
         w = w_update(u, H, gamma, D, C) 
+        w_lin = w_lin_update(u, Lin_lhs, Lin_rhs)
 #         u = u_update(eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=50)
         #!!!!
-        u = u_update(eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=30)
+        # u = u_update(eta_0, eta, w_0, w, eta_T_H_L_stacked, nnls_max_iter=30)
+        u = u_update(eta_0, eta, eta_lin, w_0, w, w_lin, eta_T_H_L_stacked, premultiplied_lhs = None, nnls_max_iter=30)
         #!!!!
         count += 1 
         if count == 10:
@@ -744,15 +746,16 @@ def solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, 
         
         cur_obj = obj_u_opt_N_fixed(u, T, alpha, B)
         obj_history.append(cur_obj)
-        cur_relaxed_obj = relaxed_obj_u_opt_N_fixed(u, w_0, w, eta_0, eta, T, H, alpha, B)
+        cur_relaxed_obj = relaxed_obj_u_opt_N_fixed(u, w_0, w, w_lin, eta_0, eta, eta_lin, T, H, L_lhs, alpha, B)
+        # relaxed_obj_u_opt_N_fixed(u, w_0, w, eta_0, eta, T, H, alpha, B)
         relaxed_obj_history.append(cur_relaxed_obj)    
         
         stop = time.time()
         duration = stop-start
         
         if count%1 == 0 and verbose: 
-            stopping_criterium = np.abs((relaxed_obj_history[-2] - relaxed_obj_history[-1])/relaxed_obj_history[-2])
-            print('    iter = {}, stopping criterium:{}, OBJ {}'.format(count, stopping_criterium, cur_obj))
+            stopping_criterion = np.abs((relaxed_obj_history[-2] - relaxed_obj_history[-1])/relaxed_obj_history[-2])
+            print('    iter = {}, stopping criterion:{}, OBJ {}'.format(count, stopping_criterion, cur_obj))
             print('    This iteration took: {}'.format(duration))
     return u, obj_history, relaxed_obj_history
 
@@ -814,42 +817,52 @@ def solver_auto_param(u_init, T, H, alpha, gamma, B, D, C, eta_step = 0.5, ftol 
     
     eta_0 =  (1/(2*np.max(B)))*0.5 #Initialize eta_0
     eta = np.array([eta_0/len(H)]*len(H))*2 
+    eta_lin = 0.1
     
-    u, obj_history, relaxed_obj_history = solver(u_init, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = 300, verbose = verbose)
+    u, obj_history, relaxed_obj_history = solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
+    # solver(u_init, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = 300, verbose = verbose)
     auto_param_obj_history.append(obj_history)
     auto_param_relaxed_obj_history.append(relaxed_obj_history)
     cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
+    cnstr_linear = linear_constraint(u, Lin_lhs, Lin_rhs, tol = 0.05)
     
     print('Enforcing Feasibility')
     count = 0
     num_violated = -1
-    while (cnstr['Relaxed'].sum()-len(H)):
+    while (len(H) - cnstr['Relaxed'].sum() + (1 - int(cnstr_linear))):
         count += 1
         num_violated_prev = np.copy(num_violated)
-        num_violated = cnstr['Relaxed'].sum() - len(H)
+        num_violated = len(H) - cnstr['Relaxed'].sum() + (1 - int(cnstr_linear))
         
-        print('Iter ', count, '# of violated constr:', cnstr['Relaxed'].sum()-len(H))
+        print('Iter ', count, '# of violated constr:', len(H) - cnstr['Relaxed'].sum() + (1 - int(cnstr_linear)))
         eta[cnstr['Relaxed'] == False] *= eta_step
+        if not cnstr_linear:
+            eta_lin *= eta_step
         
         if num_violated == num_violated_prev:
             print('Increase enforcement')
             eta[cnstr['Relaxed'] == False] *= eta_step
+            #potentially, could add eta_lin here, but unnecessary
             
-        u, obj_history, relaxed_obj_history = solver(u, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
+        u, obj_history, relaxed_obj_history = solver(u, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
+        # solver(u, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
         auto_param_obj_history.append(obj_history)
         auto_param_relaxed_obj_history.append(relaxed_obj_history)
         cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
+        cnstr_linear = linear_constraint(u, Lin_lhs, Lin_rhs, tol = 0.05)
         
     print('Enforcing Optimality')
     count = 0
-    while not (cnstr['Relaxed'].sum()-len(H)): #If nothing is violated -- enforce optimality!
+    while not (len(H) - cnstr['Relaxed'].sum() + (1 - int(cnstr_linear))):
+    # (cnstr['Relaxed'].sum()-len(H)): #If nothing is violated -- enforce optimality!
         count += 1
         print('Opt Iter', count)
         obj_prev = obj_u_opt_N_fixed(u, T, alpha, B)
         u_prev = np.copy(u)
         eta_0 *= eta_step
     
-        u, obj_history, relaxed_obj_history = solver(u, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
+        # u, obj_history, relaxed_obj_history = solver(u, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
+        u, obj_history, relaxed_obj_history = solver(u, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
         auto_param_obj_history.append(obj_history)
         auto_param_relaxed_obj_history.append(relaxed_obj_history)
         
@@ -859,14 +872,17 @@ def solver_auto_param(u_init, T, H, alpha, gamma, B, D, C, eta_step = 0.5, ftol 
             break
             
         cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
-        print('# of violated constr:', cnstr['Relaxed'].sum()-len(H))
+        cnstr_linear = linear_constraint(u, Lin_lhs, Lin_rhs, tol = 0.05)
+        print('# of violated constr:', len(H) - cnstr['Relaxed'].sum() + (1 - int(cnstr_linear)))
         
     print('Finding the correct solution:')
     u = u_prev
     eta_0 = eta_0/eta_step
     
     cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
-    print('# of violated constr:', cnstr['Relaxed'].sum()-len(H))
+    cnstr_linear = linear_constraint(u, Lin_lhs, Lin_rhs, tol = 0.05)
+    print('# of violated constr:', len(H) - cnstr['Relaxed'].sum() + (1 - int(cnstr_linear)))
+    # print('# of violated constr:', cnstr['Relaxed'].sum()-len(H))
     print("OBJJJJJ:", obj_u_opt_N_fixed(u, T, alpha, B))
-    return u, eta_0, eta, auto_param_obj_history, auto_param_relaxed_obj_history
+    return u, eta_0, eta, eta_lin, auto_param_obj_history, auto_param_relaxed_obj_history
 
