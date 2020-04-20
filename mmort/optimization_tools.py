@@ -142,7 +142,7 @@ def obj_u_opt_N_fixed(u, T, alpha, B):
     x = T.dot(u)
     return alpha.T.dot(x) - x.T.dot(B*x)
 
-def relaxed_obj_u_opt_N_fixed(u, w_0, w, eta_0, eta, T, H, alpha, B):
+def relaxed_obj_u_opt_N_fixed(u, w_0, w, w_lin, eta_0, eta, eta_lin, T, H, L_lhs, alpha, B):
     """Relaxed objective function without tumor doubling and with N in coefficients.
     Based on the paper "Proof of Principle: Multi-Modality Radiotherapy Optimization",
     section 3.2.1
@@ -155,17 +155,23 @@ def relaxed_obj_u_opt_N_fixed(u, w_0, w, eta_0, eta, T, H, alpha, B):
         Auxilary dose distribution, optimal for the tumor
     w : List of np.arrays of shape (None,)
         Auxilary dose distributions feasible for OARs
+    w_lin : np.array of shape (None,)
+        Linear constraints auxilary variable
     eta_0 : float
         Penalty parameter for the tumor
     eta : np.array of shape (None,)
         Array of OAR penalty parameters
-    T : Sparse array of shape(None, None)
+    eta_lin : float
+        Penalty parameter for the linear constraints
+    T : Sparse array of shape (None, None)
         Block-diagonal tumor dose-deposition matrix 
         block_diag(T_1, ... , T_M) where T_i is the sparse dose deposition matrix for i-th modality
     H : List of sparse arrays of shape(None, None)
         List of block-diagonal OAR dose-deposition matrix block_diag(H_1, ... , H_M) 
         where H_i is the sparse dose deposition matrix for i-th modality 
         (each element of the list corresponds to a generalized OAR)
+    L_lhs : Sparse array of shape (None, None)
+        Linear constraints lhs matrix
     alpha : np.array of shape (None,)
         The linear block coefficient array of the tumor BE 
         (with N_m included as coefficients)
@@ -182,8 +188,10 @@ def relaxed_obj_u_opt_N_fixed(u, w_0, w, eta_0, eta, T, H, alpha, B):
     """
     tumor_dose = T.dot(u)
     OAR_doses = [Hi.dot(u) for Hi in H]
+    linear = L_lhs.dot(u)
     relaxed_obj = alpha.T.dot(w_0) - w_0.T.dot(B*w_0) + (1/(2*eta_0))*(np.linalg.norm(
-        w_0-tumor_dose))**2 + np.sum([(1/(2*eta[i]))*(np.linalg.norm(w[i]-OAR_doses[i]))**2 for i in range(len(H))])
+        w_0-tumor_dose))**2 + np.sum([(1/(2*eta[i]))*(np.linalg.norm(w[i]-OAR_doses[i]))**2 for i in range(len(H))]) + (1/(2*eta_lin))*(np.linalg.norm(
+        w_lin-linear))**2
     return relaxed_obj
 
 #############################################################################################
@@ -282,6 +290,8 @@ def constraint(u, H, gamma, D, C, tol, verbose = 0):
         print('   Relaxed constraint within {}% tol satisfied: {}'.format(tol*100, soft))
     return soft, 100*(constr_val - C)/C, constr_val, C
 
+
+
 def constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0):
     """Check the constraint violation for given u, fixed N
 
@@ -319,6 +329,24 @@ def constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0):
     return constraints
 
 
+def linear_constraint(u, Lin_lhs, Lin_rhs, tol = 0.05):
+    """Check the additional linear constraint on u
+
+    Parameters
+    ----------
+    u : np.array of shape(None,)
+        Beamlet radiation distribution 
+    Lin_lhs : np.array of shape(None, u.shape[0])
+        Stacked lhs of the constraints
+    Lin_rhs : np.array of shape(None,)
+        Stacked rhs of the constraints
+      
+    Returns
+    -------
+    bool
+        Indicator of constraints satisfaction within tol
+    """
+    return np.all(Lin_lhs.dot(u) <= Lin_rhs)
 
 #update in u:
 #The following is an attempt to incorporate smoothing
@@ -363,7 +391,7 @@ def constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0):
 
 
 
-def u_update(eta_0, eta, w_0, w, eta_T_H_stacked, premultiplied_lhs = None, nnls_max_iter=50):  
+def u_update(eta_0, eta, eta_lin, w_0, w, w_lin, eta_T_H_L_stacked, premultiplied_lhs = None, nnls_max_iter=50):  
     # PREMULTIPLIED LHS IS AN EXTRA ARGUMENT! Set it to None and add solver!    
     """Compute the sparse least squares update for u per section 3.2.1 of the paper 
     The rhs of the ls problem needs to be recomputed every time since w_0 and w are variables   
@@ -375,12 +403,17 @@ def u_update(eta_0, eta, w_0, w, eta_T_H_stacked, premultiplied_lhs = None, nnls
         Penalty parameter for the tumor 
     eta : np.array of shape (None,) 
         Array of OAR penalty parameters 
+    eta_lin : float
+        Penalty for linear constraints on u
     w_0 : np.array of shape (None,) 
         Auxilary dose distribution, optimal for the tumor   
     w : List of np.arrays of shape (None,)  
         Auxilary dose distributions feasible for OARs   
-    eta_T_H_stacked : Sparse array of shape (None, None)    
-        Stacked dose deposition matrices, premultiplied by penalty parameters, needs to be precomputed in the solver,   
+    w_lin : np.array of shape (None,)
+        Linear constraints auxilary variable
+    eta_T_H_L_stacked : Sparse array of shape (None, None)    
+        Stacked dose deposition matrices and linear constraints lhs,
+         premultiplied by penalty parameters, needs to be precomputed in the solver,   
         o.w. expensive to do at every iteration, lhs of the least squares update    
     premultiplied_lhs : Dense array of shape (None, None)   
         A.T@A for the nnls, old solver  
@@ -412,8 +445,9 @@ def u_update(eta_0, eta, w_0, w, eta_T_H_stacked, premultiplied_lhs = None, nnls
 #     eta_w = np.expand_dims(1/np.sqrt(2*eta),1)*np.array(w)    
 #     print(eta_w.shape)    
 #     b_ls = np.concatenate([(1/np.sqrt(2*eta_0))*w_0, eta_w.flatten()], axis = 0)  
+    #Use correct broadcasting?
     w_concat = np.concatenate((1/np.sqrt(2*eta))*np.array(w+[[]])[:-1], axis = 0) #[:-1] Added as a hack to keep it one-dim array of objects    
-    b_ls = np.concatenate([(1/np.sqrt(2*eta_0))*w_0, w_concat], axis = 0)   
+    b_ls = np.concatenate([(1/np.sqrt(2*eta_0))*w_0, w_concat, (1/np.sqrt(2*eta_lin))*w_lin], axis = 0)   
 #     print(np.sum(eta_w.flatten() != w_concat))    
 #     premultiplied_time_start = time.time()    
 #     premultiplied_lhs = eta_T_H_stacked.T.dot(eta_T_H_stacked).toarray()  
@@ -426,7 +460,7 @@ def u_update(eta_0, eta, w_0, w, eta_T_H_stacked, premultiplied_lhs = None, nnls
 #     w =scipy.sparse.linalg.spsolve_triangular(RT, A_ls_t_b, lower = True) 
 #     x = scipy.sparse.linalg.spsolve_triangular(R, w, lower = False)   
 #     u_next = x    
-    u_next = scipy.optimize.lsq_linear(eta_T_H_stacked, b_ls, bounds = (0, np.inf), tol=1e-3, lsmr_tol=1e-1, max_iter=nnls_max_iter, verbose=1).x   
+    u_next = scipy.optimize.lsq_linear(eta_T_H_L_stacked, b_ls, bounds = (0, np.inf), tol=1e-3, lsmr_tol=1e-1, max_iter=nnls_max_iter, verbose=1).x   
 #     u = scipy.optimize.lsq_linear(premultiplied_lhs, premultiplied_rhs, bounds = (0, np.inf), tol=1e-5).x 
     return u_next
 
@@ -489,25 +523,49 @@ def w_update(u, H, gamma, D, C):
     w_next = [proj(H[i].dot(u), gamma[i], D[i], C[i]) for i in range(len(H))]
     return w_next
 
-#Update for w_smoothing
-def w_s_update(u, S):
-    """Computes the updates for the proxy of the derivative of u for smoothing
+def w_lin_update(u, Lin_lhs, Lin_rhs):
+    """Computes the update for the auxilary tumor dose distribution w_0 based on the current u
 
     Parameters
     ----------
-    u : np.array of shape (None,)
-        Beamlet radiation distribution u
-    S : np.array of shape (None, None)   
+    u : np.array of shape(None,)
+        Beamlet radiation distribution 
+    Lin_lhs : np.array of shape(None, u.shape[0])
+        Stacked lhs of the constraints
+    Lin_rhs : np.array of shape(None,)
+        Stacked rhs of the constraints
+   
     Returns
     -------
-    w_next : list of np.array of shape (None,)
-        updates for generalized OAR auxilary dose distributions
+    np.array of shape (None,)
+        update for the auxilary fluence map w_lin
 
     
     """
-    w_next = S.dot(u)
-    w_next[w_next>0] = 0
-    return w_next
+    w_lin_next = Lin_lhs.dot(u) 
+    violation_indices = w_lin_next - Lin_rhs > 0
+    w_lin_next[violation_indices] = Lin_rhs[violation_indices]
+    return w_lin_next
+
+# #Update for w_smoothing
+# def w_s_update(u, S):
+#     """Computes the updates for the proxy of the derivative of u for smoothing
+
+#     Parameters
+#     ----------
+#     u : np.array of shape (None,)
+#         Beamlet radiation distribution u
+#     S : np.array of shape (None, None)   
+#     Returns
+#     -------
+#     w_next : list of np.array of shape (None,)
+#         updates for generalized OAR auxilary dose distributions
+
+    
+#     """
+#     w_next = S.dot(u)
+#     w_next[w_next>0] = 0
+#     return w_next
 
 
 
@@ -603,7 +661,7 @@ def w_s_update(u, S):
 #     return u, obj_history, relaxed_obj_history
 
 
-def solver(u_init, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = 5000, verbose = 0):
+def solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = 5000, verbose = 0):
     """Returns the optimal u for the relaxed problem in section 3.2.1 of the paper
 
     Parameters
@@ -614,12 +672,18 @@ def solver(u_init, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_ite
         Penalty parameter for the tumor
     eta : np.array of shape (None,)
         Array of OAR penalty parameters
+    eta_lin : float
+        Penalty for linear constraints on u
     T : Sparse array of shape(None, None)
         Block-diagonal tumor dose-deposition matrix block_diag(T_1, ... , T_M) 
         where T_i is the sparse dose deposition matrix for i-th modality
     H : List of sparse arrays of shape(None, None)
         List of block-diagonal generalized OAR dose-deposition matrices block_diag(H_1, ... , H_M) 
         where H_i is the sparse dose deposition matrix for i-th modality for a given OAR
+    Lin_lhs : np.array of shape(None, u.shape[0])
+        Stacked lhs of the constraints
+    Lin_rhs : np.array of shape(None,)
+        Stacked rhs of the constraints
     alpha : np.array of shape (None,)
         Linear block coefficient array of the tumor BE 
         (with N_m included as coefficients)
@@ -648,6 +712,9 @@ def solver(u_init, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_ite
         The optimal u for the relaxed problem in section 3.2.1 of the paper
     
     """
+
+    Raise('NotImplementedError: only adjusted the arguments.')
+    #Need to incorporate L_lhs into stacked and appropriate w_lin updates, u_update and eta_lin increments
     #precompute the expensive operation:
     eta_T_H_stacked = scipy.sparse.vstack([T.multiply(1/np.sqrt(2*eta_0))] + [H[i].multiply(1/np.sqrt(2*eta[i])) for i in range(len(H))])
     #!!!!
