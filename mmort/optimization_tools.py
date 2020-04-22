@@ -761,7 +761,7 @@ def solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, 
 
 #Automatic choice of etas:
 
-def solver_auto_param(u_init, T, H, alpha, gamma, B, D, C, eta_step = 0.5, ftol = 1e-3, max_iter = 300, verbose = 0):
+def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_step = 0.5, ftol = 1e-3, max_iter = 300, verbose = 0):
     """Returns the optimal u for the relaxed problem in section 3.2.1 of the paper
     with the automated parameter selection
 
