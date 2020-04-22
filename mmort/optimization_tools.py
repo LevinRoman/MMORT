@@ -824,7 +824,7 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
     auto_param_obj_history.append(obj_history)
     auto_param_relaxed_obj_history.append(relaxed_obj_history)
     cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
-    cnstr_linear = linear_constraint(u, Lin_lhs, Lin_rhs, tol = 0.05)
+    cnstr_linear = linear_constraint(u, L_lhs, L_rhs, tol = 0.05)
     
     print('Enforcing Feasibility')
     count = 0
@@ -849,7 +849,7 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
         auto_param_obj_history.append(obj_history)
         auto_param_relaxed_obj_history.append(relaxed_obj_history)
         cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
-        cnstr_linear = linear_constraint(u, Lin_lhs, Lin_rhs, tol = 0.05)
+        cnstr_linear = linear_constraint(u, L_lhs, L_rhs, tol = 0.05)
         
     print('Enforcing Optimality')
     count = 0
@@ -872,7 +872,7 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
             break
             
         cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
-        cnstr_linear = linear_constraint(u, Lin_lhs, Lin_rhs, tol = 0.05)
+        cnstr_linear = linear_constraint(u, L_lhs, L_rhs, tol = 0.05)
         print('# of violated constr:', len(H) - cnstr['Relaxed'].sum() + (1 - int(cnstr_linear)))
         
     print('Finding the correct solution:')
@@ -880,7 +880,7 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
     eta_0 = eta_0/eta_step
     
     cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
-    cnstr_linear = linear_constraint(u, Lin_lhs, Lin_rhs, tol = 0.05)
+    cnstr_linear = linear_constraint(u, L_lhs, L_rhs, tol = 0.05)
     print('# of violated constr:', len(H) - cnstr['Relaxed'].sum() + (1 - int(cnstr_linear)))
     # print('# of violated constr:', cnstr['Relaxed'].sum()-len(H))
     print("OBJJJJJ:", obj_u_opt_N_fixed(u, T, alpha, B))
