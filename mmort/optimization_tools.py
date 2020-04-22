@@ -731,7 +731,7 @@ def solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, 
         u_prev = np.copy(u)
         w_0 = w_0_update(eta_0, u, T, alpha, B) 
         w = w_update(u, H, gamma, D, C) 
-        w_lin = w_lin_update(u, Lin_lhs, Lin_rhs)
+        w_lin = w_lin_update(u, L_lhs, L_rhs)
 #         u = u_update(eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=50)
         #!!!!
         # u = u_update(eta_0, eta, w_0, w, eta_T_H_L_stacked, nnls_max_iter=30)
