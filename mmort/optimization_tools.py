@@ -161,8 +161,8 @@ def relaxed_obj_u_opt_N_fixed(u, w_0, w, w_lin, eta_0, eta, eta_lin, T, H, L_lhs
         Penalty parameter for the tumor
     eta : np.array of shape (None,)
         Array of OAR penalty parameters
-    eta_lin : float
-        Penalty parameter for the linear constraints
+    eta_lin : np.array
+        Penalty parameters for the linear constraints
     T : Sparse array of shape (None, None)
         Block-diagonal tumor dose-deposition matrix 
         block_diag(T_1, ... , T_M) where T_i is the sparse dose deposition matrix for i-th modality
@@ -190,8 +190,8 @@ def relaxed_obj_u_opt_N_fixed(u, w_0, w, w_lin, eta_0, eta, eta_lin, T, H, L_lhs
     OAR_doses = [Hi.dot(u) for Hi in H]
     linear = L_lhs.dot(u)
     relaxed_obj = alpha.T.dot(w_0) - w_0.T.dot(B*w_0) + (1/(2*eta_0))*(np.linalg.norm(
-        w_0-tumor_dose))**2 + np.sum([(1/(2*eta[i]))*(np.linalg.norm(w[i]-OAR_doses[i]))**2 for i in range(len(H))]) + (1/(2*eta_lin))*(np.linalg.norm(
-        w_lin-linear))**2
+        w_0-tumor_dose))**2 + np.sum([(1/(2*eta[i]))*(np.linalg.norm(w[i]-OAR_doses[i]))**2 for i in range(len(H))]) + (np.linalg.norm(
+        (np.sqrt(1/(2*eta_lin)))*(w_lin-linear)))**2
     return relaxed_obj
 
 #############################################################################################
@@ -346,7 +346,7 @@ def linear_constraint(u, Lin_lhs, Lin_rhs, tol = 0.05):
     bool
         Indicator of constraints satisfaction within tol
     """
-    return np.all(Lin_lhs.dot(u) <= Lin_rhs)
+    return Lin_lhs.dot(u) <= Lin_rhs
 
 #update in u:
 #The following is an attempt to incorporate smoothing
@@ -672,8 +672,8 @@ def solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, 
         Penalty parameter for the tumor
     eta : np.array of shape (None,)
         Array of OAR penalty parameters
-    eta_lin : float
-        Penalty for linear constraints on u
+    eta_lin : np.array
+        Penalties for linear constraints on u
     T : Sparse array of shape(None, None)
         Block-diagonal tumor dose-deposition matrix block_diag(T_1, ... , T_M) 
         where T_i is the sparse dose deposition matrix for i-th modality
@@ -716,7 +716,8 @@ def solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, 
     # Raise('NotImplementedError: only adjusted the arguments.')
     #Need to incorporate L_lhs into stacked and appropriate w_lin updates, u_update and eta_lin increments
     #precompute the expensive operation:
-    eta_T_H_L_stacked = scipy.sparse.vstack([T.multiply(1/np.sqrt(2*eta_0))] + [H[i].multiply(1/np.sqrt(2*eta[i])) for i in range(len(H))] + [L_lhs.multiply(1/np.sqrt(2*eta_lin))])
+    lin_penalties = 1/np.sqrt(2*eta_lin)
+    eta_T_H_L_stacked = scipy.sparse.vstack([T.multiply(1/np.sqrt(2*eta_0))] + [H[i].multiply(1/np.sqrt(2*eta[i])) for i in range(len(H))] + [L_lhs.multiply(lin_penalties[:,None])])
     #!!!!
 #     premultiplied_lhs = eta_T_H_stacked.T.dot(eta_T_H_stacked).toarray()
     #!!!!
@@ -821,7 +822,7 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
     
     eta_0 =  (1/(2*np.max(B)))*0.5 #Initialize eta_0
     eta = np.array([eta_0/len(H)]*len(H))*2 
-    eta_lin = 0.1
+    eta_lin = np.ones(L_lhs.shape[0])*0.1
     
     u, obj_history, relaxed_obj_history = solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
     # solver(u_init, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = 300, verbose = verbose)
@@ -833,23 +834,24 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
     print('Enforcing Feasibility')
     count = 0
     num_violated = -1
-    while (len(H) - cnstr['Relaxed'].sum() + (1 - int(cnstr_linear))):
+    while (len(H) - cnstr['Relaxed'].sum() + (L_lhs.shape[0] - np.sum(cnstr_linear))):
         count += 1
         num_violated_prev = np.copy(num_violated)
         num_violated_oar = len(H) - cnstr['Relaxed'].sum()
-        num_violated_lin = (1 - int(cnstr_linear))
-        num_violated = len(H) - cnstr['Relaxed'].sum() + (1 - int(cnstr_linear))
+        num_violated_lin = L_lhs.shape[0] - np.sum(cnstr_linear)#(1 - int(cnstr_linear))
+        num_violated = len(H) - cnstr['Relaxed'].sum() + (L_lhs.shape[0] - np.sum(cnstr_linear))#(1 - int(cnstr_linear))
         
-        print('Iter ', count, '# of violated constr:', len(H) - cnstr['Relaxed'].sum() + (1 - int(cnstr_linear)))
-        print('         Linear constraints on u violation:', 1 - int(cnstr_linear))
+        print('Iter ', count, '# of violated constr:', len(H) - cnstr['Relaxed'].sum() + (L_lhs.shape[0] - np.sum(cnstr_linear)))
+        print('         Linear constraints on u violation:', L_lhs.shape[0] - np.sum(cnstr_linear))
         eta[cnstr['Relaxed'] == False] *= eta_step
-        if not cnstr_linear:
-            eta_lin *= eta_step
+        eta_lin[cnstr_linear == False] *= eta_step
+            # eta_lin *= eta_step
         
         if num_violated == num_violated_prev:
             print('Increase enforcement')
             if num_violated_lin > 0:
-                eta_lin *= eta_step
+                eta_lin[cnstr_linear == False] *= eta_step
+                #eta_lin *= eta_step
             if num_violated_oar > 0:
                 eta[cnstr['Relaxed'] == False] *= eta_step
             #potentially, could add eta_lin here, but unnecessary
@@ -863,7 +865,7 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
         
     print('Enforcing Optimality')
     count = 0
-    while not (len(H) - cnstr['Relaxed'].sum() + (1 - int(cnstr_linear))):
+    while not (len(H) - cnstr['Relaxed'].sum() + (L_lhs.shape[0] - np.sum(cnstr_linear))):
     # (cnstr['Relaxed'].sum()-len(H)): #If nothing is violated -- enforce optimality!
         count += 1
         print('Opt Iter', count)
@@ -883,7 +885,7 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
             
         cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
         cnstr_linear = linear_constraint(u, L_lhs, L_rhs, tol = 0.05)
-        print('# of violated constr:', len(H) - cnstr['Relaxed'].sum() + (1 - int(cnstr_linear)))
+        print('# of violated constr:', len(H) - cnstr['Relaxed'].sum() + (L_lhs.shape[0] - np.sum(cnstr_linear)))#(1 - int(cnstr_linear)))
         
     print('Finding the correct solution:')
     u = u_prev
