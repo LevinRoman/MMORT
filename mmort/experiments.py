@@ -125,7 +125,7 @@ def construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data, modali
             
     #Construct the dose-deposition matrices for our generalized OARs!
     #The code assumes that every OAR has max or mean dose constraint!
-    cur_OAR_index = num_voxels[0]
+    cur_OAR_index = 0#num_voxels[0]
     OAR_indeces = []
     print('getting through {} matrices'.format(len(generalized_num_voxels)))
     for i in range(len(generalized_num_voxels)-1):
