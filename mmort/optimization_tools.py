@@ -811,6 +811,10 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
         Objective histories
     auto_param_relaxed_obj_history : list of lists
         Relaxed objective histories
+
+    Notes
+    -----
+    Consider having a vector of eta_lin for linear constraints on u so that it is less restrictive
     """
     auto_param_obj_history = []
     auto_param_relaxed_obj_history = []
@@ -835,6 +839,7 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
         num_violated = len(H) - cnstr['Relaxed'].sum() + (1 - int(cnstr_linear))
         
         print('Iter ', count, '# of violated constr:', len(H) - cnstr['Relaxed'].sum() + (1 - int(cnstr_linear)))
+        print('         Linear constraints on u violation:', 1 - int(cnstr_linear))
         eta[cnstr['Relaxed'] == False] *= eta_step
         if not cnstr_linear:
             eta_lin *= eta_step
