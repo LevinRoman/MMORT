@@ -836,6 +836,8 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
     while (len(H) - cnstr['Relaxed'].sum() + (1 - int(cnstr_linear))):
         count += 1
         num_violated_prev = np.copy(num_violated)
+        num_violated_oar = len(H) - cnstr['Relaxed'].sum()
+        num_violated_lin = (1 - int(cnstr_linear))
         num_violated = len(H) - cnstr['Relaxed'].sum() + (1 - int(cnstr_linear))
         
         print('Iter ', count, '# of violated constr:', len(H) - cnstr['Relaxed'].sum() + (1 - int(cnstr_linear)))
@@ -846,7 +848,10 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
         
         if num_violated == num_violated_prev:
             print('Increase enforcement')
-            eta[cnstr['Relaxed'] == False] *= eta_step
+            if num_violated_lin > 0:
+                eta_lin *= eta_step
+            if num_violated_oar > 0:
+                eta[cnstr['Relaxed'] == False] *= eta_step
             #potentially, could add eta_lin here, but unnecessary
             
         u, obj_history, relaxed_obj_history = solver(u, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
