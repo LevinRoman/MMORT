@@ -661,7 +661,7 @@ def w_lin_update(u, Lin_lhs, Lin_rhs):
 #     return u, obj_history, relaxed_obj_history
 
 
-def solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = 5000, verbose = 0):
+def solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = 5000, verbose = 0, nnls_max_iter=30):
     """Returns the optimal u for the relaxed problem in section 3.2.1 of the paper
 
     Parameters
@@ -705,6 +705,8 @@ def solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, 
     verbose : 0 or 1
         0 for no printing
         1 for printing
+    nnls_max_iter : int
+        Max number for u update nnls
    
     Returns
     -------
@@ -736,7 +738,7 @@ def solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, 
 #         u = u_update(eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=50)
         #!!!!
         # u = u_update(eta_0, eta, w_0, w, eta_T_H_L_stacked, nnls_max_iter=30)
-        u = u_update(eta_0, eta, eta_lin, w_0, w, w_lin, eta_T_H_L_stacked, premultiplied_lhs = None, nnls_max_iter=30)
+        u = u_update(eta_0, eta, eta_lin, w_0, w, w_lin, eta_T_H_L_stacked, premultiplied_lhs = None, nnls_max_iter=nnls_max_iter)
         #!!!!
         count += 1 
         if count == 10:
@@ -762,7 +764,7 @@ def solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, 
 
 #Automatic choice of etas:
 
-def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_step = 0.5, ftol = 1e-3, max_iter = 300, verbose = 0):
+def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_step = 0.5, ftol = 1e-3, max_iter = 300, verbose = 0, nnls_max_iter=30):
     """Returns the optimal u for the relaxed problem in section 3.2.1 of the paper
     with the automated parameter selection
 
@@ -824,7 +826,7 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
     eta = np.array([eta_0/len(H)]*len(H))*2 
     eta_lin = np.ones(L_lhs.shape[0])*0.1
     
-    u, obj_history, relaxed_obj_history = solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
+    u, obj_history, relaxed_obj_history = solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose, nnls_max_iter=nnls_max_iter)
     # solver(u_init, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = 300, verbose = verbose)
     auto_param_obj_history.append(obj_history)
     auto_param_relaxed_obj_history.append(relaxed_obj_history)
@@ -856,7 +858,7 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
                 eta[cnstr['Relaxed'] == False] *= eta_step
             #potentially, could add eta_lin here, but unnecessary
             
-        u, obj_history, relaxed_obj_history = solver(u, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
+        u, obj_history, relaxed_obj_history = solver(u, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose, nnls_max_iter=nnls_max_iter)
         # solver(u, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
         auto_param_obj_history.append(obj_history)
         auto_param_relaxed_obj_history.append(relaxed_obj_history)
@@ -874,7 +876,7 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
         eta_0 *= eta_step
     
         # u, obj_history, relaxed_obj_history = solver(u, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
-        u, obj_history, relaxed_obj_history = solver(u, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
+        u, obj_history, relaxed_obj_history = solver(u, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose, nnls_max_iter=nnls_max_iter)
         auto_param_obj_history.append(obj_history)
         auto_param_relaxed_obj_history.append(relaxed_obj_history)
         
