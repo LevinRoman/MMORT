@@ -460,7 +460,7 @@ def u_update(eta_0, eta, eta_lin, w_0, w, w_lin, eta_T_H_L_stacked, premultiplie
 #     w =scipy.sparse.linalg.spsolve_triangular(RT, A_ls_t_b, lower = True) 
 #     x = scipy.sparse.linalg.spsolve_triangular(R, w, lower = False)   
 #     u_next = x    
-    u_next = scipy.optimize.lsq_linear(eta_T_H_L_stacked, b_ls, bounds = (0, np.inf), tol=1e-4, lsmr_tol=1e-4, max_iter=nnls_max_iter, verbose=1).x   
+    u_next = scipy.optimize.lsq_linear(eta_T_H_L_stacked, b_ls, bounds = (0, np.inf), tol=1e-3, lsmr_tol=1e-3, max_iter=nnls_max_iter, verbose=1).x   
 #     u = scipy.optimize.lsq_linear(premultiplied_lhs, premultiplied_rhs, bounds = (0, np.inf), tol=1e-5).x 
     return u_next
 
@@ -767,7 +767,7 @@ def solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, 
 
 #Automatic choice of etas:
 
-def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_step = 0.5, ftol = 1e-3, max_iter = 300, verbose = 0, nnls_max_iter=30):
+def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_step = 0.5, eta_step_tumor = 0.99, ftol = 1e-3, max_iter = 300, verbose = 0, nnls_max_iter=30):
     """Returns the optimal u for the relaxed problem in section 3.2.1 of the paper
     with the automated parameter selection
 
@@ -797,6 +797,8 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
         Constraints to satisfy
     eta_step : float
         Reduction rate for the penalty parameters
+    eta_step_tumor : float
+        Reduction rate for the optimality penalty
     ftol : float
         Relative reduction in the objective value for the stopping criterium in the inner fixed-parameter solver
     max_iter : int
@@ -826,7 +828,7 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
     auto_param_relaxed_obj_history = []
     
     eta_0 =  (1/(2*np.max(B)))*0.5 #Initialize eta_0
-    eta = np.array([eta_0/len(H)]*len(H))*0.5 
+    eta = np.array([eta_0/len(H)]*len(H))*0.9
     eta_lin = np.ones(L_lhs.shape[0])*0.01
     
     u, w_0, w, w_lin, obj_history, relaxed_obj_history = solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose, nnls_max_iter=nnls_max_iter)
@@ -850,18 +852,18 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
         print('         Linear constraints on u violation:', L_lhs.shape[0] - np.sum(cnstr_linear))
         eta[cnstr['Relaxed'] == False] *= eta_step
         eta_lin[cnstr_linear == False] *= eta_step
-        eta_0 *= eta_step*2
+        # eta_0 *= eta_step*2
             # eta_lin *= eta_step
         
         if num_violated == num_violated_prev:
             print('Increase enforcement')
             if num_violated_lin > 0:
                 eta_lin[cnstr_linear == False] *= eta_step
-                eta_0 *= eta_step*2
+                # eta_0 *= eta_step*2
                 #eta_lin *= eta_step
             if num_violated_oar > 0:
                 eta[cnstr['Relaxed'] == False] *= eta_step
-                eta_0 *= eta_step*2
+                # eta_0 *= eta_step*2
             
         u, w_0, w, w_lin, obj_history, relaxed_obj_history = solver(u, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose, nnls_max_iter=nnls_max_iter)
         # solver(u, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
@@ -878,8 +880,7 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
         print('Opt Iter', count)
         obj_prev = obj_u_opt_N_fixed(u, T, alpha, B)
         u_prev = np.copy(u)
-        eta_0 *= eta_step/10
-    
+        eta_0 *= eta_step_tumor
         # u, w_0, w, w_lin, obj_history, relaxed_obj_history = solver(u, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
         u, w_0, w, w_lin, obj_history, relaxed_obj_history = solver(u, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter//2, verbose = verbose, nnls_max_iter=nnls_max_iter)
         auto_param_obj_history.append(obj_history)
@@ -896,7 +897,7 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
         
     print('Finding the correct solution:')
     u = u_prev
-    eta_0 = eta_0/eta_step
+    eta_0 = eta_0/eta_step_tumor
     
     cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
     cnstr_linear = linear_constraint(u, L_lhs, L_rhs, tol = 0.05)
