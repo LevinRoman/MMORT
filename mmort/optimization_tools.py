@@ -658,7 +658,7 @@ def w_lin_update(u, Lin_lhs, Lin_rhs):
 #             stopping_criterium = np.abs((relaxed_obj_history[-2] - relaxed_obj_history[-1])/relaxed_obj_history[-2])
 #             print('    iter = {}, stopping criterium:{}, OBJ {}'.format(count, stopping_criterium, cur_obj))
 #             print('    This iteration took: {}'.format(duration))
-#     return u, obj_history, relaxed_obj_history
+#     return u, w_0, w, w_lin, obj_history, relaxed_obj_history
 
 
 def solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = 5000, verbose = 0, nnls_max_iter=30):
@@ -760,7 +760,7 @@ def solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, 
             stopping_criterion = np.abs((relaxed_obj_history[-2] - relaxed_obj_history[-1])/relaxed_obj_history[-2])
             print('    iter = {}, stopping criterion:{}, OBJ {}'.format(count, stopping_criterion, cur_obj))
             print('    This iteration took: {}'.format(duration))
-    return u, obj_history, relaxed_obj_history
+    return u, w_0, w, w_lin, obj_history, relaxed_obj_history
 
 #Automatic choice of etas:
 
@@ -826,7 +826,7 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
     eta = np.array([eta_0/len(H)]*len(H))*2 
     eta_lin = np.ones(L_lhs.shape[0])*0.1
     
-    u, obj_history, relaxed_obj_history = solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose, nnls_max_iter=nnls_max_iter)
+    u, w_0, w, w_lin, obj_history, relaxed_obj_history = solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose, nnls_max_iter=nnls_max_iter)
     # solver(u_init, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = 300, verbose = verbose)
     auto_param_obj_history.append(obj_history)
     auto_param_relaxed_obj_history.append(relaxed_obj_history)
@@ -859,7 +859,7 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
                 eta[cnstr['Relaxed'] == False] *= eta_step
             #potentially, could add eta_lin here, but unnecessary
             
-        u, obj_history, relaxed_obj_history = solver(u, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose, nnls_max_iter=nnls_max_iter)
+        u, w_0, w, w_lin, obj_history, relaxed_obj_history = solver(u, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose, nnls_max_iter=nnls_max_iter)
         # solver(u, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
         auto_param_obj_history.append(obj_history)
         auto_param_relaxed_obj_history.append(relaxed_obj_history)
@@ -874,10 +874,10 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
         print('Opt Iter', count)
         obj_prev = obj_u_opt_N_fixed(u, T, alpha, B)
         u_prev = np.copy(u)
-        eta_0 *= eta_step
+        eta_0 *= eta_step/10
     
-        # u, obj_history, relaxed_obj_history = solver(u, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
-        u, obj_history, relaxed_obj_history = solver(u, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose, nnls_max_iter=nnls_max_iter)
+        # u, w_0, w, w_lin, obj_history, relaxed_obj_history = solver(u, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
+        u, w_0, w, w_lin, obj_history, relaxed_obj_history = solver(u, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter//2, verbose = verbose, nnls_max_iter=nnls_max_iter)
         auto_param_obj_history.append(obj_history)
         auto_param_relaxed_obj_history.append(relaxed_obj_history)
         
@@ -899,5 +899,5 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
     print('# of violated constr:', len(H) - cnstr['Relaxed'].sum() + (L_lhs.shape[0] - np.sum(cnstr_linear)))
     # print('# of violated constr:', cnstr['Relaxed'].sum()-len(H))
     print("OBJJJJJ:", obj_u_opt_N_fixed(u, T, alpha, B))
-    return u, eta_0, eta, eta_lin, auto_param_obj_history, auto_param_relaxed_obj_history
+    return u, w_0, w, w_lin, eta_0, eta, eta_lin, auto_param_obj_history, auto_param_relaxed_obj_history
 
