@@ -743,9 +743,12 @@ def solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, 
         count += 1 
         if count == 10:
             u_inf = np.copy(u)
+            w_0_inf = w_0[:]
+            w_inf = w[:]
+            w_lin_inf = w_lin[:]
         if count > 10 and np.abs(cur_obj) > 1e+15: #HANDLE THIS BETTER!!!
             print('INFINITY! RETURNING u at the 10-th iteration to enter the feasibility loop')
-            return u_inf, obj_history, relaxed_obj_history
+            return u_inf,  w_0_inf, w_inf, w_lin_inf, obj_history, relaxed_obj_history
         
         cur_obj = obj_u_opt_N_fixed(u, T, alpha, B)
         obj_history.append(cur_obj)
@@ -854,10 +857,11 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
             print('Increase enforcement')
             if num_violated_lin > 0:
                 eta_lin[cnstr_linear == False] *= eta_step
+                eta_0 *= eta_step*2
                 #eta_lin *= eta_step
             if num_violated_oar > 0:
                 eta[cnstr['Relaxed'] == False] *= eta_step
-            #potentially, could add eta_lin here, but unnecessary
+                eta_0 *= eta_step*2
             
         u, w_0, w, w_lin, obj_history, relaxed_obj_history = solver(u, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose, nnls_max_iter=nnls_max_iter)
         # solver(u, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
