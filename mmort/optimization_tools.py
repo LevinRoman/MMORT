@@ -826,8 +826,8 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
     auto_param_relaxed_obj_history = []
     
     eta_0 =  (1/(2*np.max(B)))*0.5 #Initialize eta_0
-    eta = np.array([eta_0/len(H)]*len(H))*2 
-    eta_lin = np.ones(L_lhs.shape[0])*0.1
+    eta = np.array([eta_0/len(H)]*len(H))*0.5 
+    eta_lin = np.ones(L_lhs.shape[0])*0.01
     
     u, w_0, w, w_lin, obj_history, relaxed_obj_history = solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose, nnls_max_iter=nnls_max_iter)
     # solver(u_init, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = 300, verbose = verbose)
