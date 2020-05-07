@@ -847,6 +847,7 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
         print('         Linear constraints on u violation:', L_lhs.shape[0] - np.sum(cnstr_linear))
         eta[cnstr['Relaxed'] == False] *= eta_step
         eta_lin[cnstr_linear == False] *= eta_step
+        eta_0 *= eta_step*2
             # eta_lin *= eta_step
         
         if num_violated == num_violated_prev:
