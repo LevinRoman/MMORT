@@ -887,9 +887,9 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
         auto_param_relaxed_obj_history.append(relaxed_obj_history)
         
         obj_new = obj_u_opt_N_fixed(u, T, alpha, B)
-        if (abs(obj_new - obj_prev)/abs(obj_prev) <= 1e-4) or (obj_new > obj_prev): #two consequent iters, two times bc on iter 2 it stops anyway
-            print('No improvement, exiting')
-            break
+        # if (abs(obj_new - obj_prev)/abs(obj_prev) <= 1e-4) or (obj_new > obj_prev): #two consequent iters, two times bc on iter 2 it stops anyway
+            # print('No improvement, exiting')
+            # break
             
         cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
         cnstr_linear = linear_constraint(u, L_lhs, L_rhs, tol = 0.05)
