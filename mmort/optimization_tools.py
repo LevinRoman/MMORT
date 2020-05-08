@@ -881,6 +881,10 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
         obj_prev = obj_u_opt_N_fixed(u, T, alpha, B)
         u_prev = np.copy(u)
         eta_0 *= eta_step_tumor
+        print('Current eta_0:', eta_0)
+        if (2*eta_0)**2 <= 1e-80:
+            print('zero reached')
+            break
         # u, w_0, w, w_lin, obj_history, relaxed_obj_history = solver(u, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
         u, w_0, w, w_lin, obj_history, relaxed_obj_history = solver(u, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter//2, verbose = verbose, nnls_max_iter=nnls_max_iter)
         auto_param_obj_history.append(obj_history)
@@ -891,6 +895,9 @@ def solver_auto_param(u_init, T, H, L_lhs, L_rhs, alpha, gamma, B, D, C, eta_ste
             print('No improvement, increase enforcement')
             eta_step_tumor *= 0.1
             eta_0 *= eta_step_tumor
+            if (2*eta_0)**2 <= 1e-80:
+                print('zero reached')
+                break
             # break
             
         cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
