@@ -391,7 +391,7 @@ def linear_constraint(u, Lin_lhs, Lin_rhs, tol = 0.05):
 
 
 
-def u_update(eta_0, eta, eta_lin, w_0, w, w_lin, eta_T_H_L_stacked, premultiplied_lhs = None, nnls_max_iter=50):  
+def u_update(eta_0, eta, eta_lin, w_0, w, w_lin, eta_T_H_L_stacked, premultiplied_lhs, R, nnls_max_iter=50):  
     # PREMULTIPLIED LHS IS AN EXTRA ARGUMENT! Set it to None and add solver!    
     """Compute the sparse least squares update for u per section 3.2.1 of the paper 
     The rhs of the ls problem needs to be recomputed every time since w_0 and w are variables   
@@ -460,7 +460,10 @@ def u_update(eta_0, eta, eta_lin, w_0, w, w_lin, eta_T_H_L_stacked, premultiplie
 #     w =scipy.sparse.linalg.spsolve_triangular(RT, A_ls_t_b, lower = True) 
 #     x = scipy.sparse.linalg.spsolve_triangular(R, w, lower = False)   
 #     u_next = x    
-    u_next = scipy.optimize.lsq_linear(eta_T_H_L_stacked, b_ls, bounds = (0, np.inf), tol=1e-3, lsmr_tol=1e-3, max_iter=nnls_max_iter, verbose=1).x   
+    chol_w_rhs = eta_T_H_L_stacked.T.dot(b_ls)
+    chol_w = scipy.linalg.solve_triangular(R.T, chol_w_rhs, lower = True)
+    u_next = scipy.linalg.solve_triangular(R, chol_w)
+    # u_next = scipy.optimize.lsq_linear(eta_T_H_L_stacked, b_ls, bounds = (0, np.inf), tol=1e-3, lsmr_tol=1e-3, max_iter=nnls_max_iter, verbose=1).x   
 #     u = scipy.optimize.lsq_linear(premultiplied_lhs, premultiplied_rhs, bounds = (0, np.inf), tol=1e-5).x 
     return u_next
 
@@ -721,7 +724,8 @@ def solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, 
     lin_penalties = 1/np.sqrt(2*eta_lin)
     eta_T_H_L_stacked = scipy.sparse.vstack([T.multiply(1/np.sqrt(2*eta_0))] + [H[i].multiply(1/np.sqrt(2*eta[i])) for i in range(len(H))] + [L_lhs.multiply(lin_penalties[:,None])])
     #!!!!
-#     premultiplied_lhs = eta_T_H_stacked.T.dot(eta_T_H_stacked).toarray()
+    premultiplied_lhs = eta_T_H_L_stacked.T.dot(eta_T_H_L_stacked).toarray()
+    R = np.linalg.cholesky(premultiplied_lhs).T
     #!!!!
     u_prev = u_init + 1
     u = u_init
@@ -738,7 +742,7 @@ def solver(u_init, eta_0, eta, eta_lin, T, H, L_lhs, L_rhs, alpha, gamma, B, D, 
 #         u = u_update(eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=50)
         #!!!!
         # u = u_update(eta_0, eta, w_0, w, eta_T_H_L_stacked, nnls_max_iter=30)
-        u = u_update(eta_0, eta, eta_lin, w_0, w, w_lin, eta_T_H_L_stacked, premultiplied_lhs = None, nnls_max_iter=nnls_max_iter)
+        u = u_update(eta_0, eta, eta_lin, w_0, w, w_lin, eta_T_H_L_stacked, premultiplied_lhs = premultiplied_lhs, R = R)
         #!!!!
         count += 1 
         if count == 10:
