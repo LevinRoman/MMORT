@@ -57,7 +57,6 @@ def construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data, modali
     --------
         TODO: possibly add a way to handle different tumor voxel number for different modalities
         NOTE: Could make this independent of N to not reconstruct every time, probably won't save much time
-        Change: Changed the generalized_num_voxels to generalized_organ_voxels where I use array indexing using OAR voxels
 
     """
     #First, choose only active modalities, that is, for N!=0, throw away zeros
@@ -90,10 +89,7 @@ def construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data, modali
     gamma = []
     D = []
     C = []
-#     generalized_num_voxels = [num_voxels[0]]
-    #[:-1] because we don't wabt the last isolated voxel
-    organ_indices = np.split(np.arange(data['Aphoton'].shape[0]), np.cumsum(np.squeeze(data['num_voxels'])))[:-1]
-    generalized_organ_voxels = []
+    generalized_num_voxels = [num_voxels[0]]
     OAR_constr_types = np.squeeze(data['OAR_constraint_types'])
     OAR_constr_values = np.squeeze(data['OAR_constraint_values'])
     def BE_constr(d, lin, quad):
@@ -111,38 +107,34 @@ def construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data, modali
                 quad = Delta[constr_type][0]*total_N                
                 constr = BE_constr(d, lin, quad)
                 C.append(constr)
-#                 generalized_num_voxels.append(1) #1-voxel OAR
-                generalized_organ_voxels.append([organ_indices[constr_type+1][voxel]])# +1 because Target is also in organ_indices, append list of 1-voxel OAR
+                generalized_num_voxels.append(1) #1-voxel OAR
         if OAR_constr_types[constr_type].strip() == 'mean_dose':
             gamma.append(np.repeat(Gamma[constr_type], num_voxels[1:][constr_type]) 
                          * np.repeat(N, num_voxels[1:][constr_type]))
             D.append(np.repeat(Delta[constr_type], num_voxels[1:][constr_type]) 
                          * np.repeat(N, num_voxels[1:][constr_type]))
             
-            total_N = 45 # 45 fractions of Photons is the conventional clinical practice #np.sum(N)
+            total_N = 45 # 45 fractions of Photons is the default #np.sum(N)
             d = np.squeeze(OAR_constr_values[constr_type])/total_N
             lin = Gamma[constr_type][0]*total_N
             quad = Delta[constr_type][0]*total_N                
             constr = BE_constr(d, lin, quad)
-            C.append(constr*num_voxels[1:][constr_type]) #multiply by the number of voxels to get the sum
+            C.append(constr*num_voxels[1:][constr_type])
 #             C.append(OAR_constr_values[constr_type]*num_voxels[1:][constr_type])
-            generalized_organ_voxels.append(organ_indices[constr_type+1])
-#             generalized_num_voxels.append(num_voxels[1:][constr_type])
+            generalized_num_voxels.append(num_voxels[1:][constr_type])
             
     #Construct the dose-deposition matrices for our generalized OARs!
-    cur_OAR_index = 0
+    #The code assumes that every OAR has max or mean dose constraint!
+    cur_OAR_index = 0#num_voxels[0]
     OAR_indeces = []
-    print('getting through {} matrices'.format(len(generalized_organ_voxels)))
-#     for i in range(len(generalized_num_voxels)-1):
-#         cur_OAR_index += generalized_num_voxels[i]
-#         left = cur_OAR_index 
-#         right = cur_OAR_index+generalized_num_voxels[i+1]
-#         OAR_indeces.append((left,right))
-    #Since we are taking the corresponding voxels, DVCs should just be ignored...
-    H_list = [[scipy.sparse.csr_matrix(data[modality][generalized_organ]) for generalized_organ in generalized_organ_voxels] 
+    print('getting through {} matrices'.format(len(generalized_num_voxels)))
+    for i in range(len(generalized_num_voxels)-1):
+        cur_OAR_index += generalized_num_voxels[i]
+        left = cur_OAR_index 
+        right = cur_OAR_index+generalized_num_voxels[i+1]
+        OAR_indeces.append((left,right))
+    H_list = [[scipy.sparse.csr_matrix(data[modality][OAR[0]:OAR[1]]) for OAR in OAR_indeces] 
           for modality in modality_names]
-#     H_list = [[scipy.sparse.csr_matrix(data[modality][OAR[0]:OAR[1]]) for OAR in OAR_indeces] 
-#           for modality in modality_names]
     #The dose deposition matrices:
     T = scipy.sparse.block_diag(T_list)
     H = [scipy.sparse.block_diag(Hi) for Hi in zip(*H_list)]
