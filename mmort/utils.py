@@ -75,3 +75,33 @@ def construct_smoothing_matrix(beams, eps = 5):
 #     S = scipy.linalg.block_diag(S_array)
     return S
 
+import os
+import csv
+
+
+def save_output_from_dict(out_dir, state, file_name):    # Read input information
+    args = []
+    values = []
+    for arg, value in state.items():
+        args.append(arg)
+        values.append(value)
+        # Check for file
+    if not os.path.isdir(out_dir):
+        os.makedirs(out_dir)
+
+    fname = os.path.join(out_dir, file_name)
+    fieldnames = [arg for arg in args]
+    # Read or write header
+    try:
+        with open(fname, 'r') as f:
+            reader = csv.reader(f, delimiter='\t')
+            header = [line for line in reader][0]
+    except:
+        with open(fname, 'w') as f:
+            writer = csv.DictWriter(f, delimiter='\t', fieldnames=fieldnames)
+            writer.writeheader()
+            # Add row for this experiment
+    with open(fname, 'a') as f:
+        writer = csv.DictWriter(f, delimiter='\t', fieldnames=fieldnames)
+        writer.writerow({arg: value for (arg, value) in zip(args, values)})
+    print('\nResults saved to '+fname+'.')

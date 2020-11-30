@@ -834,13 +834,23 @@ def solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, 
         
         if count%1 == 0 and verbose: 
             stopping_criterium = np.abs((relaxed_obj_history[-2] - relaxed_obj_history[-1])/relaxed_obj_history[-2])
-            print('    iter = {}, stopping criterium:{}, OBJ {}'.format(count, stopping_criterium, cur_obj))
+            print('    iter = {}, stopping criterion:{}, OBJ {}'.format(count, stopping_criterium, cur_obj))
             print('    This iteration took: {}'.format(duration))
     return u, obj_history, relaxed_obj_history
 
+def check_photon_target_smoothness(target_photon_matrix, u_mult_smoothed, max_min_ratio = 2):
+    """max_min_ratio -- the amount of difference we allow between max and min tumor dose"""
+    target_dose = target_photon_matrix.dot(u_mult_smoothed[:target_photon_matrix.shape[1]])
+    print('SMOOTHING, max/min ratio in the target dose:', np.max(target_dose)/np.min(target_dose))
+    if np.max(target_dose)/np.min(target_dose) <= max_min_ratio:
+        return True
+    else:
+        return False
+
+    
 #Automatic choice of etas:
 
-def solver_auto_param(u_init, S, StS, lambda_smoothing, T, H, alpha, gamma, B, D, C, eta_step = 0.5, ftol = 1e-3, max_iter = 300, eta_0 = None, eta = None, verbose = 0):
+def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, T, H, alpha, gamma, B, D, C, eta_step = 0.5, ftol = 1e-3, max_iter = 300, eta_0 = None, eta = None, verbose = 0):
     """Returns the optimal u for the relaxed problem in section 3.2.1 of the paper
     with the automated parameter selection
 
@@ -898,15 +908,16 @@ def solver_auto_param(u_init, S, StS, lambda_smoothing, T, H, alpha, gamma, B, D
     if eta is None:
         eta = np.array([eta_0/len(H)]*len(H))*2#*0.01#np.array([eta_0/len(H)]*len(H))*2 
     
-    u, obj_history, relaxed_obj_history = solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = 300, verbose = verbose)
+    u, obj_history, relaxed_obj_history = solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = max_iter, verbose = verbose)
     auto_param_obj_history.append(obj_history)
     auto_param_relaxed_obj_history.append(relaxed_obj_history)
     cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
+    photon_target_smoothness = check_photon_target_smoothness(target_photon_matrix, u)
     
     print('Enforcing Feasibility')
     count = 0
     num_violated = -1
-    while (cnstr['Relaxed'].sum()-len(H)):
+    while (cnstr['Relaxed'].sum()-len(H)) or (not photon_target_smoothness):
         count += 1
         num_violated_prev = np.copy(num_violated)
         num_violated = cnstr['Relaxed'].sum() - len(H)
@@ -914,14 +925,22 @@ def solver_auto_param(u_init, S, StS, lambda_smoothing, T, H, alpha, gamma, B, D
         print('Iter ', count, '# of violated constr:', cnstr['Relaxed'].sum()-len(H))
         eta[cnstr['Relaxed'] == False] *= eta_step
         
+        if not photon_target_smoothness:
+            lambda_smoothing *= (1/eta_step)
+            
         if num_violated == num_violated_prev:
             print('Increase enforcement')
             eta[cnstr['Relaxed'] == False] *= eta_step
+            lambda_smoothing *= (1/eta_step)
+            print('Lambda Smoothing:', lambda_smoothing)
             
         u, obj_history, relaxed_obj_history = solver(u, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
+        
         auto_param_obj_history.append(obj_history)
         auto_param_relaxed_obj_history.append(relaxed_obj_history)
+        
         cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
+        photon_target_smoothness = check_photon_target_smoothness(target_photon_matrix, u)
         
     print('Enforcing Optimality')
     count = 0
@@ -931,7 +950,11 @@ def solver_auto_param(u_init, S, StS, lambda_smoothing, T, H, alpha, gamma, B, D
         obj_prev = obj_u_opt_N_fixed(u, T, alpha, B)
         u_prev = np.copy(u)
         eta_0 *= eta_step
-    
+        if not photon_target_smoothness:
+            print('Smoothing Warning: Smoothing violated, increasing penalty')
+            lambda_smoothing *= (1/eta_step)
+        
+        #Could do a while loop for smoothing here since we have the objective check later anyway
         u, obj_history, relaxed_obj_history = solver(u, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
         auto_param_obj_history.append(obj_history)
         #Note that smoothing is currently not counted in the relaxed objective
@@ -943,6 +966,8 @@ def solver_auto_param(u_init, S, StS, lambda_smoothing, T, H, alpha, gamma, B, D
             break
             
         cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
+        photon_target_smoothness = check_photon_target_smoothness(target_photon_matrix, u)
+        print('Resulting lambda_smoothing:', lambda_smoothing)
         print('# of violated constr:', cnstr['Relaxed'].sum()-len(H))
         
     print('Finding the correct solution:')
