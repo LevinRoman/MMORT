@@ -7,6 +7,7 @@ import scipy.spatial
 import numpy as np
 
 def save_obj(obj, name, directory = ''):
+    pathlib.Path('obj').mkdir(exist_ok=True)
     pathlib.Path(os.path.join('obj', directory)).mkdir(exist_ok=True)
     with open(os.path.join('obj', directory, name + '.pkl'), 'wb') as f:
         pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)

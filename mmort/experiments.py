@@ -3,6 +3,7 @@ import copy
 import scipy.optimize
 from optimization_tools import *
 import argparse
+from tqdm import tqdm
 
 
 
@@ -100,7 +101,7 @@ def construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data, modali
         return lin*d + quad*d**2
     for constr_type in range(len(OAR_constr_types)):
         if OAR_constr_types[constr_type].strip() == 'max_dose':
-            for voxel in range(num_voxels[1:][constr_type]): #for the max_dose, treat every voxel as a gen_OAR
+            for voxel in tqdm(range(num_voxels[1:][constr_type])): #for the max_dose, treat every voxel as a gen_OAR
                 #N_m included in coeffs
                 gamma.append(np.repeat(Gamma[constr_type], 1) * np.repeat(N, 1))
                 D.append(np.repeat(Delta[constr_type], 1) * np.repeat(N, 1))
