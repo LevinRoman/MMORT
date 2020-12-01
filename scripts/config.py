@@ -36,4 +36,4 @@ def experiment_1():
 	return configurations
 
 
-configurations['Experiment_1': experiment_1()]
+configurations['Experiment_1'] = experiment_1()
