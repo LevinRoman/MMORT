@@ -369,9 +369,9 @@ def evaluation_function_proton(u, N, data, organ_name, Alpha, Beta, Gamma, Delta
     #[:-1] because we don't want the last isolated voxel
     organ_indices = np.split(np.arange(len_voxels), np.cumsum(np.squeeze(data['num_voxels'])))[:-1]
     #Do this in per-voxel fashion
-    photon_num = data['Aphoton'].shape[1]
-    u_photon = u[:photon_num]
-    u_proton = u[photon_num:]
+    proton_num = data['Aproton'].shape[1]
+    u_photon = u[:-proton_num]
+    u_proton = u[-proton_num:]
 #     organ_Aphoton = data['Aphoton'][organ_indices[organ_number]]
     organ_Aproton = data['Aproton'][organ_indices[organ_number]]
 #     organ_photon_dose = organ_Aphoton.dot(u_photon) #shape of this is num_voxels
