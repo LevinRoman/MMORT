@@ -32,6 +32,7 @@ from config import configurations
 
 
 if __name__ == '__main__':
+	print(np.show_config())
 	parser = argparse.ArgumentParser()
 
 
