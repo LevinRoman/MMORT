@@ -106,6 +106,7 @@ if __name__ == '__main__':
 	#Form input matrices
 	############################
 
+	start = time.time()
 	#Initial input, with dv constraint types, multi-modality
 	if precomputed_input == 'no':
 		T_list_mult, T_mult, H_mult, alpha_mult, gamma_mult, B_mult, D_mult, C_mult = experiments.construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data, modality_names)
@@ -131,7 +132,12 @@ if __name__ == '__main__':
 		C_mult = utils.load_obj('C_mult', loading_dir)
 		print('\nInitial input, with dv constraint types, multi-modality loaded from '+loading_dir)
 
+	
+	end = time.time()
+	print('Time elapsed:', end - start)
 
+
+	start = time.time()
 	#Max Dose for dv constrained organs input, multi-modality
 	if precomputed_input == 'no':
 		T_list_mult_max, T_mult_max, H_mult_max, alpha_mult_max, gamma_mult_max, B_mult_max, D_mult_max, C_mult_max = experiments.construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data_max_dose, modality_names)
@@ -157,7 +163,11 @@ if __name__ == '__main__':
 		C_mult_max = utils.load_obj('C_mult_max', loading_dir)
 		print('\nMax Dose input for dv constrained organs input, multi-modality loaded from '+loading_dir)
 
+	end = time.time()
+	print('Time elapsed:', end - start)
 
+
+	start = time.time()
 	#Initial input, with dv constraint types, photon-modality
 	if precomputed_input == 'no':
 		T_list_photon, T_photon, H_photon, alpha_photon, gamma_photon, B_photon, D_photon, C_photon = experiments.construct_auto_param_solver_input(np.array([N_photon,0]), Alpha, Beta, Gamma, Delta, data, modality_names)
@@ -183,7 +193,11 @@ if __name__ == '__main__':
 		C_photon = utils.load_obj('C_photon', loading_dir)
 		print('\nInitial input, with dv constraint types, photon-modality loaded from '+loading_dir)
 
+	end = time.time()
+	print('Time elapsed:', end - start)
 
+
+	start = time.time()
 	#Max Dose for dv constrained organs input, photon-modality
 	if precomputed_input == 'no':
 		T_list_photon_max, T_photon_max, H_photon_max, alpha_photon_max, gamma_photon_max, B_photon_max, D_photon_max, C_photon_max = experiments.construct_auto_param_solver_input(np.array([N_photon,0]), Alpha, Beta, Gamma, Delta, data_max_dose, modality_names)
@@ -209,7 +223,11 @@ if __name__ == '__main__':
 		C_photon_max = utils.load_obj('C_photon_max', loading_dir)
 		print('\nMax Dose input for dv constrained organs input, photon-modality loaded from '+loading_dir)
 
+	end = time.time()
+	print('Time elapsed:', end - start)
+	
 
+	start = time.time()
 	#Initial input, with dv constraint types, proton-modality
 	if precomputed_input == 'no':
 		T_list_proton, T_proton, H_proton, alpha_proton, gamma_proton, B_proton, D_proton, C_proton = experiments.construct_auto_param_solver_input(np.array([0, N_proton]), Alpha, Beta, Gamma, Delta, data, modality_names)
@@ -236,6 +254,10 @@ if __name__ == '__main__':
 		print('\nInitial input, with dv constraint types, proton-modality loaded from '+loading_dir)
 
 
+	end = time.time()
+	print('Time elapsed:', end - start)
+
+	start = time.time()
 	#Max Dose for dv constrained organs input, proton-modality
 	if precomputed_input == 'no':
 		T_list_proton_max, T_proton_max, H_proton_max, alpha_proton_max, gamma_proton_max, B_proton_max, D_proton_max, C_proton_max = experiments.construct_auto_param_solver_input(np.array([N_proton,0]), Alpha, Beta, Gamma, Delta, data_max_dose, modality_names)
@@ -262,7 +284,8 @@ if __name__ == '__main__':
 		print('\nMax Dose input for dv constrained organs input, proton-modality loaded from '+loading_dir)
 
 
-
+	end = time.time()
+	print('Time elapsed:', end - start)
 
 
 
