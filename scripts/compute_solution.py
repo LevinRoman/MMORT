@@ -204,6 +204,7 @@ if __name__ == '__main__':
 		B_photon_max = utils.load_obj('B_photon_max', loading_dir)
 		D_photon_max = utils.load_obj('D_photon_max', loading_dir)
 		C_photon_max = utils.load_obj('C_photon_max', loading_dir)
+		print('\nMax Dose input for dv constrained organs input, photon-modality loaded from '+loading_dir)
 
 
 	#Initial input, with dv constraint types, proton-modality
@@ -255,6 +256,7 @@ if __name__ == '__main__':
 		B_proton_max = utils.load_obj('B_proton_max', loading_dir)
 		D_proton_max = utils.load_obj('D_proton_max', loading_dir)
 		C_proton_max = utils.load_obj('C_proton_max', loading_dir)
+		print('\nMax Dose input for dv constrained organs input, proton-modality loaded from '+loading_dir)
 
 
 
