@@ -60,6 +60,8 @@ if __name__ == '__main__':
     N_proton = args.N_proton
     N = np.array([N1, N2])
 
+    print('Args: data_name={}, config_experiment={}, smoothing_ratio={}, precomputed_input={}, N1={}, N2={}, N_photon={}, N_proton={}'.format(data_name, config_experiment, smoothing_ratio, precomputed_input, N1, N2, N_photon, N_proton))
+
 
     ###########################
     #Raw Data Part
