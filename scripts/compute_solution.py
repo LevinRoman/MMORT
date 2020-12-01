@@ -45,6 +45,9 @@ if __name__ == '__main__':
 	parser.add_argument('--N2', default = 1.0, type = float)
 	parser.add_argument('--N_photon', default = 44.0, type = float)
 	parser.add_argument('--N_proton', default = 44.0, type = float)
+	parser.add_argument('--compute_mult', default = 'yes', type = str)
+	parser.add_argument('--compute_photon', default = 'yes', type = str)
+	parser.add_argument('--compute_proton', default = 'yes', type = str)
 
 
 
@@ -60,6 +63,9 @@ if __name__ == '__main__':
 	N_photon = args.N_photon
 	N_proton = args.N_proton
 	N = np.array([N1, N2])
+	compute_mult = args.compute_mult
+	compute_photon = args.compute_photon
+	compute_proton = args.compute_proton
 
 	print('Args: data_name={}, config_experiment={}, smoothing_ratio={}, precomputed_input={}, N1={}, N2={}, N_photon={}, N_proton={}'.format(data_name, config_experiment, smoothing_ratio, precomputed_input, N1, N2, N_photon, N_proton))
 
@@ -106,186 +112,189 @@ if __name__ == '__main__':
 	#Form input matrices
 	############################
 
-	start = time.time()
-	#Initial input, with dv constraint types, multi-modality
-	if precomputed_input == 'no':
-		T_list_mult, T_mult, H_mult, alpha_mult, gamma_mult, B_mult, D_mult, C_mult = experiments.construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data, modality_names)
-		saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
-		utils.save_obj(T_list_mult, 'T_list_mult', saving_dir)
-		utils.save_obj(T_mult, 'T_mult', saving_dir)
-		utils.save_obj(H_mult, 'H_mult', saving_dir)
-		utils.save_obj(alpha_mult, 'alpha_mult', saving_dir)
-		utils.save_obj(gamma_mult, 'gamma_mult', saving_dir)
-		utils.save_obj(B_mult, 'B_mult', saving_dir)
-		utils.save_obj(D_mult, 'D_mult', saving_dir)
-		utils.save_obj(C_mult, 'C_mult', saving_dir)
-		print('\nInitial input, with dv constraint types, multi-modality saved to '+saving_dir)
-	if precomputed_input == 'yes':
-		loading_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
-		T_list_mult = utils.load_obj( 'T_list_mult', loading_dir)
-		T_mult = utils.load_obj('T_mult', loading_dir)
-		H_mult = utils.load_obj('H_mult', loading_dir)
-		alpha_mult = utils.load_obj('alpha_mult', loading_dir)
-		gamma_mult = utils.load_obj('gamma_mult', loading_dir)
-		B_mult = utils.load_obj('B_mult', loading_dir)
-		D_mult = utils.load_obj('D_mult', loading_dir)
-		C_mult = utils.load_obj('C_mult', loading_dir)
-		print('\nInitial input, with dv constraint types, multi-modality loaded from '+loading_dir)
 
+	if compute_mult == 'yes':
+		start = time.time()
+		#Initial input, with dv constraint types, multi-modality
+		if precomputed_input == 'no':
+			T_list_mult, T_mult, H_mult, alpha_mult, gamma_mult, B_mult, D_mult, C_mult = experiments.construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data, modality_names)
+			saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
+			utils.save_obj(T_list_mult, 'T_list_mult', saving_dir)
+			utils.save_obj(T_mult, 'T_mult', saving_dir)
+			utils.save_obj(H_mult, 'H_mult', saving_dir)
+			utils.save_obj(alpha_mult, 'alpha_mult', saving_dir)
+			utils.save_obj(gamma_mult, 'gamma_mult', saving_dir)
+			utils.save_obj(B_mult, 'B_mult', saving_dir)
+			utils.save_obj(D_mult, 'D_mult', saving_dir)
+			utils.save_obj(C_mult, 'C_mult', saving_dir)
+			print('\nInitial input, with dv constraint types, multi-modality saved to '+saving_dir)
+		if precomputed_input == 'yes':
+			loading_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
+			T_list_mult = utils.load_obj( 'T_list_mult', loading_dir)
+			T_mult = utils.load_obj('T_mult', loading_dir)
+			H_mult = utils.load_obj('H_mult', loading_dir)
+			alpha_mult = utils.load_obj('alpha_mult', loading_dir)
+			gamma_mult = utils.load_obj('gamma_mult', loading_dir)
+			B_mult = utils.load_obj('B_mult', loading_dir)
+			D_mult = utils.load_obj('D_mult', loading_dir)
+			C_mult = utils.load_obj('C_mult', loading_dir)
+			print('\nInitial input, with dv constraint types, multi-modality loaded from '+loading_dir)
+
+		
+		end = time.time()
+		print('Time elapsed:', end - start)
+
+
+		start = time.time()
+		#Max Dose for dv constrained organs input, multi-modality
+		if precomputed_input == 'no':
+			T_list_mult_max, T_mult_max, H_mult_max, alpha_mult_max, gamma_mult_max, B_mult_max, D_mult_max, C_mult_max = experiments.construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data_max_dose, modality_names)
+			saving_dir = config_experiment+'_mult_max_{}_{}'.format(N1, N2)
+			utils.save_obj(T_list_mult_max, 'T_list_mult_max', saving_dir)
+			utils.save_obj(T_mult_max, 'T_mult_max', saving_dir)
+			utils.save_obj(H_mult_max, 'H_mult_max', saving_dir)
+			utils.save_obj(alpha_mult_max, 'alpha_mult_max', saving_dir)
+			utils.save_obj(gamma_mult_max, 'gamma_mult_max', saving_dir)
+			utils.save_obj(B_mult_max, 'B_mult_max', saving_dir)
+			utils.save_obj(D_mult_max, 'D_mult_max', saving_dir)
+			utils.save_obj(C_mult_max, 'C_mult_max', saving_dir)
+			print('\nMax Dose input for dv constrained organs input, multi-modality saved to '+saving_dir)
+		if precomputed_input == 'yes':
+			loading_dir = config_experiment+'_mult_max_{}_{}'.format(N1, N2)
+			T_list_mult_max = utils.load_obj('T_list_mult_max', loading_dir)
+			T_mult_max = utils.load_obj('T_mult_max', loading_dir)
+			H_mult_max = utils.load_obj('H_mult_max', loading_dir)
+			alpha_mult_max = utils.load_obj('alpha_mult_max', loading_dir)
+			gamma_mult_max = utils.load_obj('gamma_mult_max', loading_dir)
+			B_mult_max = utils.load_obj('B_mult_max', loading_dir)
+			D_mult_max = utils.load_obj('D_mult_max', loading_dir)
+			C_mult_max = utils.load_obj('C_mult_max', loading_dir)
+			print('\nMax Dose input for dv constrained organs input, multi-modality loaded from '+loading_dir)
+
+		end = time.time()
+		print('Time elapsed:', end - start)
+
+
+	if compute_photon == 'yes':
+		start = time.time()
+		#Initial input, with dv constraint types, photon-modality
+		if precomputed_input == 'no':
+			T_list_photon, T_photon, H_photon, alpha_photon, gamma_photon, B_photon, D_photon, C_photon = experiments.construct_auto_param_solver_input(np.array([N_photon,0]), Alpha, Beta, Gamma, Delta, data, modality_names)
+			saving_dir = config_experiment+'_photon_{}_{}'.format(N_photon, 0)
+			utils.save_obj(T_list_photon, 'T_list_photon', saving_dir)
+			utils.save_obj(T_photon, 'T_photon', saving_dir)
+			utils.save_obj(H_photon, 'H_photon', saving_dir)
+			utils.save_obj(alpha_photon, 'alpha_photon', saving_dir)
+			utils.save_obj(gamma_photon, 'gamma_photon', saving_dir)
+			utils.save_obj(B_photon, 'B_photon', saving_dir)
+			utils.save_obj(D_photon, 'D_photon', saving_dir)
+			utils.save_obj(C_photon, 'C_photon', saving_dir)
+			print('\nInitial input, with dv constraint types, photon-modality saved to '+saving_dir)
+		if precomputed_input == 'yes':
+			loading_dir = config_experiment+'_photon_{}_{}'.format(N_photon, 0)
+			T_list_photon = utils.load_obj('T_list_photon', loading_dir)
+			T_photon = utils.load_obj('T_photon', loading_dir)
+			H_photon = utils.load_obj('H_photon', loading_dir)
+			alpha_photon = utils.load_obj('alpha_photon', loading_dir)
+			gamma_photon = utils.load_obj('gamma_photon', loading_dir)
+			B_photon = utils.load_obj('B_photon', loading_dir)
+			D_photon = utils.load_obj('D_photon', loading_dir)
+			C_photon = utils.load_obj('C_photon', loading_dir)
+			print('\nInitial input, with dv constraint types, photon-modality loaded from '+loading_dir)
+
+		end = time.time()
+		print('Time elapsed:', end - start)
+
+		start = time.time()
+		#Max Dose for dv constrained organs input, photon-modality
+		if precomputed_input == 'no':
+			T_list_photon_max, T_photon_max, H_photon_max, alpha_photon_max, gamma_photon_max, B_photon_max, D_photon_max, C_photon_max = experiments.construct_auto_param_solver_input(np.array([N_photon,0]), Alpha, Beta, Gamma, Delta, data_max_dose, modality_names)
+			saving_dir = config_experiment+'_photon_max_{}_{}'.format(N_photon, 0)
+			utils.save_obj(T_list_photon_max, 'T_list_photon_max', saving_dir)
+			utils.save_obj(T_photon_max, 'T_photon_max', saving_dir)
+			utils.save_obj(H_photon_max, 'H_photon_max', saving_dir)
+			utils.save_obj(alpha_photon_max, 'alpha_photon_max', saving_dir)
+			utils.save_obj(gamma_photon_max, 'gamma_photon_max', saving_dir)
+			utils.save_obj(B_photon_max, 'B_photon_max', saving_dir)
+			utils.save_obj(D_photon_max, 'D_photon_max', saving_dir)
+			utils.save_obj(C_photon_max, 'C_photon_max', saving_dir)
+			print('\nMax Dose input for dv constrained organs input, photon-modality saved to '+saving_dir)
+		if precomputed_input == 'yes':
+			loading_dir = config_experiment+'_photon_max_{}_{}'.format(N_photon, 0)
+			T_list_photon_max = utils.load_obj('T_list_photon_max', loading_dir)
+			T_photon_max = utils.load_obj('T_photon_max', loading_dir)
+			H_photon_max = utils.load_obj('H_photon_max', loading_dir)
+			alpha_photon_max = utils.load_obj('alpha_photon_max', loading_dir)
+			gamma_photon_max = utils.load_obj('gamma_photon_max', loading_dir)
+			B_photon_max = utils.load_obj('B_photon_max', loading_dir)
+			D_photon_max = utils.load_obj('D_photon_max', loading_dir)
+			C_photon_max = utils.load_obj('C_photon_max', loading_dir)
+			print('\nMax Dose input for dv constrained organs input, photon-modality loaded from '+loading_dir)
+
+		end = time.time()
+		print('Time elapsed:', end - start)
 	
-	end = time.time()
-	print('Time elapsed:', end - start)
+
+	if compute_proton == 'yes':
+		start = time.time()
+		#Initial input, with dv constraint types, proton-modality
+		if precomputed_input == 'no':
+			T_list_proton, T_proton, H_proton, alpha_proton, gamma_proton, B_proton, D_proton, C_proton = experiments.construct_auto_param_solver_input(np.array([0, N_proton]), Alpha, Beta, Gamma, Delta, data, modality_names)
+			saving_dir = config_experiment+'_proton_{}_{}'.format(0, N_proton)
+			utils.save_obj(T_list_proton, 'T_list_proton', saving_dir)
+			utils.save_obj(T_proton, 'T_proton', saving_dir)
+			utils.save_obj(H_proton, 'H_proton', saving_dir)
+			utils.save_obj(alpha_proton, 'alpha_proton', saving_dir)
+			utils.save_obj(gamma_proton, 'gamma_proton', saving_dir)
+			utils.save_obj(B_proton, 'B_proton', saving_dir)
+			utils.save_obj(D_proton, 'D_proton', saving_dir)
+			utils.save_obj(C_proton, 'C_proton', saving_dir)
+			print('\nInitial input, with dv constraint types, proton-modality saved to '+saving_dir)
+		if precomputed_input == 'yes':
+			loading_dir = config_experiment+'_proton_{}_{}'.format(0, N_proton)
+			T_list_proton = utils.load_obj('T_list_proton', loading_dir)
+			T_proton = utils.load_obj('T_proton', loading_dir)
+			H_proton = utils.load_obj('H_proton', loading_dir)
+			alpha_proton = utils.load_obj('alpha_proton', loading_dir)
+			gamma_proton = utils.load_obj('gamma_proton', loading_dir)
+			B_proton = utils.load_obj('B_proton', loading_dir)
+			D_proton = utils.load_obj('D_proton', loading_dir)
+			C_proton = utils.load_obj('C_proton', loading_dir)
+			print('\nInitial input, with dv constraint types, proton-modality loaded from '+loading_dir)
 
 
-	start = time.time()
-	#Max Dose for dv constrained organs input, multi-modality
-	if precomputed_input == 'no':
-		T_list_mult_max, T_mult_max, H_mult_max, alpha_mult_max, gamma_mult_max, B_mult_max, D_mult_max, C_mult_max = experiments.construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data_max_dose, modality_names)
-		saving_dir = config_experiment+'_mult_max_{}_{}'.format(N1, N2)
-		utils.save_obj(T_list_mult_max, 'T_list_mult_max', saving_dir)
-		utils.save_obj(T_mult_max, 'T_mult_max', saving_dir)
-		utils.save_obj(H_mult_max, 'H_mult_max', saving_dir)
-		utils.save_obj(alpha_mult_max, 'alpha_mult_max', saving_dir)
-		utils.save_obj(gamma_mult_max, 'gamma_mult_max', saving_dir)
-		utils.save_obj(B_mult_max, 'B_mult_max', saving_dir)
-		utils.save_obj(D_mult_max, 'D_mult_max', saving_dir)
-		utils.save_obj(C_mult_max, 'C_mult_max', saving_dir)
-		print('\nMax Dose input for dv constrained organs input, multi-modality saved to '+saving_dir)
-	if precomputed_input == 'yes':
-		loading_dir = config_experiment+'_mult_max_{}_{}'.format(N1, N2)
-		T_list_mult_max = utils.load_obj('T_list_mult_max', loading_dir)
-		T_mult_max = utils.load_obj('T_mult_max', loading_dir)
-		H_mult_max = utils.load_obj('H_mult_max', loading_dir)
-		alpha_mult_max = utils.load_obj('alpha_mult_max', loading_dir)
-		gamma_mult_max = utils.load_obj('gamma_mult_max', loading_dir)
-		B_mult_max = utils.load_obj('B_mult_max', loading_dir)
-		D_mult_max = utils.load_obj('D_mult_max', loading_dir)
-		C_mult_max = utils.load_obj('C_mult_max', loading_dir)
-		print('\nMax Dose input for dv constrained organs input, multi-modality loaded from '+loading_dir)
+		end = time.time()
+		print('Time elapsed:', end - start)
 
-	end = time.time()
-	print('Time elapsed:', end - start)
-
-
-	start = time.time()
-	#Initial input, with dv constraint types, photon-modality
-	if precomputed_input == 'no':
-		T_list_photon, T_photon, H_photon, alpha_photon, gamma_photon, B_photon, D_photon, C_photon = experiments.construct_auto_param_solver_input(np.array([N_photon,0]), Alpha, Beta, Gamma, Delta, data, modality_names)
-		saving_dir = config_experiment+'_photon_{}_{}'.format(N_photon, 0)
-		utils.save_obj(T_list_photon, 'T_list_photon', saving_dir)
-		utils.save_obj(T_photon, 'T_photon', saving_dir)
-		utils.save_obj(H_photon, 'H_photon', saving_dir)
-		utils.save_obj(alpha_photon, 'alpha_photon', saving_dir)
-		utils.save_obj(gamma_photon, 'gamma_photon', saving_dir)
-		utils.save_obj(B_photon, 'B_photon', saving_dir)
-		utils.save_obj(D_photon, 'D_photon', saving_dir)
-		utils.save_obj(C_photon, 'C_photon', saving_dir)
-		print('\nInitial input, with dv constraint types, photon-modality saved to '+saving_dir)
-	if precomputed_input == 'yes':
-		loading_dir = config_experiment+'_photon_{}_{}'.format(N_photon, 0)
-		T_list_photon = utils.load_obj('T_list_photon', loading_dir)
-		T_photon = utils.load_obj('T_photon', loading_dir)
-		H_photon = utils.load_obj('H_photon', loading_dir)
-		alpha_photon = utils.load_obj('alpha_photon', loading_dir)
-		gamma_photon = utils.load_obj('gamma_photon', loading_dir)
-		B_photon = utils.load_obj('B_photon', loading_dir)
-		D_photon = utils.load_obj('D_photon', loading_dir)
-		C_photon = utils.load_obj('C_photon', loading_dir)
-		print('\nInitial input, with dv constraint types, photon-modality loaded from '+loading_dir)
-
-	end = time.time()
-	print('Time elapsed:', end - start)
+		start = time.time()
+		#Max Dose for dv constrained organs input, proton-modality
+		if precomputed_input == 'no':
+			T_list_proton_max, T_proton_max, H_proton_max, alpha_proton_max, gamma_proton_max, B_proton_max, D_proton_max, C_proton_max = experiments.construct_auto_param_solver_input(np.array([N_proton,0]), Alpha, Beta, Gamma, Delta, data_max_dose, modality_names)
+			saving_dir = config_experiment+'_proton_max_{}_{}'.format(0, N_proton)
+			utils.save_obj(T_list_proton_max, 'T_list_proton_max', saving_dir)
+			utils.save_obj(T_proton_max, 'T_proton_max', saving_dir)
+			utils.save_obj(H_proton_max, 'H_proton_max', saving_dir)
+			utils.save_obj(alpha_proton_max, 'alpha_proton_max', saving_dir)
+			utils.save_obj(gamma_proton_max, 'gamma_proton_max', saving_dir)
+			utils.save_obj(B_proton_max, 'B_proton_max', saving_dir)
+			utils.save_obj(D_proton_max, 'D_proton_max', saving_dir)
+			utils.save_obj(C_proton_max, 'C_proton_max', saving_dir)
+			print('\nMax Dose input for dv constrained organs input, proton-modality saved to '+saving_dir)
+		if precomputed_input == 'yes':
+			loading_dir = config_experiment+'_proton_max_{}_{}'.format(0, N_proton)
+			T_list_proton_max = utils.load_obj('T_list_proton_max', loading_dir)
+			T_proton_max = utils.load_obj('T_proton_max', loading_dir)
+			H_proton_max = utils.load_obj('H_proton_max', loading_dir)
+			alpha_proton_max = utils.load_obj('alpha_proton_max', loading_dir)
+			gamma_proton_max = utils.load_obj('gamma_proton_max', loading_dir)
+			B_proton_max = utils.load_obj('B_proton_max', loading_dir)
+			D_proton_max = utils.load_obj('D_proton_max', loading_dir)
+			C_proton_max = utils.load_obj('C_proton_max', loading_dir)
+			print('\nMax Dose input for dv constrained organs input, proton-modality loaded from '+loading_dir)
 
 
-	start = time.time()
-	#Max Dose for dv constrained organs input, photon-modality
-	if precomputed_input == 'no':
-		T_list_photon_max, T_photon_max, H_photon_max, alpha_photon_max, gamma_photon_max, B_photon_max, D_photon_max, C_photon_max = experiments.construct_auto_param_solver_input(np.array([N_photon,0]), Alpha, Beta, Gamma, Delta, data_max_dose, modality_names)
-		saving_dir = config_experiment+'_photon_max_{}_{}'.format(N_photon, 0)
-		utils.save_obj(T_list_photon_max, 'T_list_photon_max', saving_dir)
-		utils.save_obj(T_photon_max, 'T_photon_max', saving_dir)
-		utils.save_obj(H_photon_max, 'H_photon_max', saving_dir)
-		utils.save_obj(alpha_photon_max, 'alpha_photon_max', saving_dir)
-		utils.save_obj(gamma_photon_max, 'gamma_photon_max', saving_dir)
-		utils.save_obj(B_photon_max, 'B_photon_max', saving_dir)
-		utils.save_obj(D_photon_max, 'D_photon_max', saving_dir)
-		utils.save_obj(C_photon_max, 'C_photon_max', saving_dir)
-		print('\nMax Dose input for dv constrained organs input, photon-modality saved to '+saving_dir)
-	if precomputed_input == 'yes':
-		loading_dir = config_experiment+'_photon_max_{}_{}'.format(N_photon, 0)
-		T_list_photon_max = utils.load_obj('T_list_photon_max', loading_dir)
-		T_photon_max = utils.load_obj('T_photon_max', loading_dir)
-		H_photon_max = utils.load_obj('H_photon_max', loading_dir)
-		alpha_photon_max = utils.load_obj('alpha_photon_max', loading_dir)
-		gamma_photon_max = utils.load_obj('gamma_photon_max', loading_dir)
-		B_photon_max = utils.load_obj('B_photon_max', loading_dir)
-		D_photon_max = utils.load_obj('D_photon_max', loading_dir)
-		C_photon_max = utils.load_obj('C_photon_max', loading_dir)
-		print('\nMax Dose input for dv constrained organs input, photon-modality loaded from '+loading_dir)
-
-	end = time.time()
-	print('Time elapsed:', end - start)
-	
-
-	start = time.time()
-	#Initial input, with dv constraint types, proton-modality
-	if precomputed_input == 'no':
-		T_list_proton, T_proton, H_proton, alpha_proton, gamma_proton, B_proton, D_proton, C_proton = experiments.construct_auto_param_solver_input(np.array([0, N_proton]), Alpha, Beta, Gamma, Delta, data, modality_names)
-		saving_dir = config_experiment+'_proton_{}_{}'.format(0, N_proton)
-		utils.save_obj(T_list_proton, 'T_list_proton', saving_dir)
-		utils.save_obj(T_proton, 'T_proton', saving_dir)
-		utils.save_obj(H_proton, 'H_proton', saving_dir)
-		utils.save_obj(alpha_proton, 'alpha_proton', saving_dir)
-		utils.save_obj(gamma_proton, 'gamma_proton', saving_dir)
-		utils.save_obj(B_proton, 'B_proton', saving_dir)
-		utils.save_obj(D_proton, 'D_proton', saving_dir)
-		utils.save_obj(C_proton, 'C_proton', saving_dir)
-		print('\nInitial input, with dv constraint types, proton-modality saved to '+saving_dir)
-	if precomputed_input == 'yes':
-		loading_dir = config_experiment+'_proton_{}_{}'.format(0, N_proton)
-		T_list_proton = utils.load_obj('T_list_proton', loading_dir)
-		T_proton = utils.load_obj('T_proton', loading_dir)
-		H_proton = utils.load_obj('H_proton', loading_dir)
-		alpha_proton = utils.load_obj('alpha_proton', loading_dir)
-		gamma_proton = utils.load_obj('gamma_proton', loading_dir)
-		B_proton = utils.load_obj('B_proton', loading_dir)
-		D_proton = utils.load_obj('D_proton', loading_dir)
-		C_proton = utils.load_obj('C_proton', loading_dir)
-		print('\nInitial input, with dv constraint types, proton-modality loaded from '+loading_dir)
-
-
-	end = time.time()
-	print('Time elapsed:', end - start)
-
-	start = time.time()
-	#Max Dose for dv constrained organs input, proton-modality
-	if precomputed_input == 'no':
-		T_list_proton_max, T_proton_max, H_proton_max, alpha_proton_max, gamma_proton_max, B_proton_max, D_proton_max, C_proton_max = experiments.construct_auto_param_solver_input(np.array([N_proton,0]), Alpha, Beta, Gamma, Delta, data_max_dose, modality_names)
-		saving_dir = config_experiment+'_proton_max_{}_{}'.format(0, N_proton)
-		utils.save_obj(T_list_proton_max, 'T_list_proton_max', saving_dir)
-		utils.save_obj(T_proton_max, 'T_proton_max', saving_dir)
-		utils.save_obj(H_proton_max, 'H_proton_max', saving_dir)
-		utils.save_obj(alpha_proton_max, 'alpha_proton_max', saving_dir)
-		utils.save_obj(gamma_proton_max, 'gamma_proton_max', saving_dir)
-		utils.save_obj(B_proton_max, 'B_proton_max', saving_dir)
-		utils.save_obj(D_proton_max, 'D_proton_max', saving_dir)
-		utils.save_obj(C_proton_max, 'C_proton_max', saving_dir)
-		print('\nMax Dose input for dv constrained organs input, proton-modality saved to '+saving_dir)
-	if precomputed_input == 'yes':
-		loading_dir = config_experiment+'_proton_max_{}_{}'.format(0, N_proton)
-		T_list_proton_max = utils.load_obj('T_list_proton_max', loading_dir)
-		T_proton_max = utils.load_obj('T_proton_max', loading_dir)
-		H_proton_max = utils.load_obj('H_proton_max', loading_dir)
-		alpha_proton_max = utils.load_obj('alpha_proton_max', loading_dir)
-		gamma_proton_max = utils.load_obj('gamma_proton_max', loading_dir)
-		B_proton_max = utils.load_obj('B_proton_max', loading_dir)
-		D_proton_max = utils.load_obj('D_proton_max', loading_dir)
-		C_proton_max = utils.load_obj('C_proton_max', loading_dir)
-		print('\nMax Dose input for dv constrained organs input, proton-modality loaded from '+loading_dir)
-
-
-	end = time.time()
-	print('Time elapsed:', end - start)
+		end = time.time()
+		print('Time elapsed:', end - start)
 
 
 
