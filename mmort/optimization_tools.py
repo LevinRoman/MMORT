@@ -492,14 +492,14 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     
 
     # from numdifftools import Jacobian, Hessian
-
+    #This part is wrong in terms of protons, will still do smoothin erroneously
     def fun(x, A, b, AtA, Atb, S, StS, lambda_smoothing):
         return (1/2)*np.linalg.norm(A.dot(x) - b)**2 + (lambda_smoothing/2)*np.linalg.norm(S.dot(x[:S.shape[1]]))**2
 
     def grad(x, A, b, AtA, Atb, S, StS, lambda_smoothing):
-        AA = np.ones((10,10))
-        AA[:5,:5] = AA[:5,:5]+1
-        AA
+        # AA = np.ones((10,10))
+        # AA[:5,:5] = AA[:5,:5]+1
+        # AA
         #S corresponds only to the first modality, so adding that to a block of A
         photon_shape = StS.shape[0]
         AtA[:photon_shape, :photon_shape] = AtA[:photon_shape, :photon_shape] + lambda_smoothing*StS
@@ -838,8 +838,10 @@ def solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, 
             print('    This iteration took: {}'.format(duration))
     return u, obj_history, relaxed_obj_history
 
-def check_photon_target_smoothness(target_photon_matrix, u_mult_smoothed, max_min_ratio = 2):
+def check_photon_target_smoothness(target_photon_matrix, u_mult_smoothed, max_min_ratio = 2, proton_only = False):
     """max_min_ratio -- the amount of difference we allow between max and min tumor dose"""
+    if proton_only:
+        True
     target_dose = target_photon_matrix.dot(u_mult_smoothed[:target_photon_matrix.shape[1]])
     print('SMOOTHING, max/min ratio in the target dose:', np.max(target_dose)/np.min(target_dose))
     if np.max(target_dose)/np.min(target_dose) <= max_min_ratio:
@@ -850,7 +852,7 @@ def check_photon_target_smoothness(target_photon_matrix, u_mult_smoothed, max_mi
     
 #Automatic choice of etas:
 
-def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, smoothing_ratio, T, H, alpha, gamma, B, D, C, eta_step = 0.5, ftol = 1e-3, max_iter = 300, eta_0 = None, eta = None, verbose = 0):
+def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, smoothing_ratio, T, H, alpha, gamma, B, D, C, eta_step = 0.5, ftol = 1e-3, max_iter = 300, eta_0 = None, eta = None, verbose = 0, proton_only = False):
     """Returns the optimal u for the relaxed problem in section 3.2.1 of the paper
     with the automated parameter selection
 
@@ -887,6 +889,8 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
     verbose : 0 or 1
         0 for no printing
         1 for printing
+    proton_only : bool
+        if True, the photon target smoothness is never enforced, False by default
    
     Returns
     -------
@@ -912,7 +916,7 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
     auto_param_obj_history.append(obj_history)
     auto_param_relaxed_obj_history.append(relaxed_obj_history)
     cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
-    photon_target_smoothness = check_photon_target_smoothness(target_photon_matrix, u, max_min_ratio = smoothing_ratio)
+    photon_target_smoothness = check_photon_target_smoothness(target_photon_matrix, u, max_min_ratio = smoothing_ratio, proton_only = proton_only)
     
     print('Enforcing Feasibility')
     count = 0
@@ -940,7 +944,7 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
         auto_param_relaxed_obj_history.append(relaxed_obj_history)
         
         cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
-        photon_target_smoothness = check_photon_target_smoothness(target_photon_matrix, u, max_min_ratio = smoothing_ratio)
+        photon_target_smoothness = check_photon_target_smoothness(target_photon_matrix, u, max_min_ratio = smoothing_ratio, proton_only = proton_only)
         
     print('Enforcing Optimality')
     count = 0
@@ -966,7 +970,7 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
             break
             
         cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
-        photon_target_smoothness = check_photon_target_smoothness(target_photon_matrix, u, max_min_ratio = smoothing_ratio)
+        photon_target_smoothness = check_photon_target_smoothness(target_photon_matrix, u, max_min_ratio = smoothing_ratio, proton_only = proton_only)
         print('Resulting lambda_smoothing:', lambda_smoothing)
         print('# of violated constr:', cnstr['Relaxed'].sum()-len(H))
         

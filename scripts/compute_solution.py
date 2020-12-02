@@ -326,6 +326,7 @@ if __name__ == '__main__':
 	#Solution computation, multi-modality
 	#######################################
 	if compute_mult == 'yes':
+		start = time.time()
 		#Compute initial guess, multi-modality
 		# Rx = 190#80#190#190 160 120 80
 		LHS1 = T_list_mult[0]
@@ -363,11 +364,12 @@ if __name__ == '__main__':
 		utils.save_obj(auto_param_obj_history_mult_smoothed, 'auto_param_obj_history_mult_smoothed', saving_dir)
 		utils.save_obj(auto_param_relaxed_obj_history_mult_smoothed, 'auto_param_relaxed_obj_history_mult_smoothed', saving_dir)
 
-
+		end = time.time()
+		print('\n Mult without DVC Solution Computed. Time elapsed:', end - start)
 
 
 		#Now with DVH constraints, multi-modality
-		oar_indices, T_list_mult_dv, T_mult_dv, H_mult_dv, alpha_mult_dv, gamma_mult_dv, B_mult_dv, D_mult_dv, C_mult_dv = utils.generate_dose_volume_input(T_list_mult_max, T_mult_max, H_mult_max, alpha_mult_max, gamma_mult_max, B_mult_max, D_mult_max, C_mult_max, u_mult, N, data, Alpha, Beta, Gamma, Delta)
+		oar_indices, T_list_mult_dv, T_mult_dv, H_mult_dv, alpha_mult_dv, gamma_mult_dv, B_mult_dv, D_mult_dv, C_mult_dv = utils.generate_dose_volume_input(T_list_mult_max, T_mult_max, H_mult_max, alpha_mult_max, gamma_mult_max, B_mult_max, D_mult_max, C_mult_max, u_mult_smoothed, N, data, Alpha, Beta, Gamma, Delta)
 
 		eta_0 =  (1/(2*np.max(B_mult_dv)))*eta0_coef_mult #Initialize eta_0
 		eta = np.array([eta_0/len(H_mult_dv)]*len(H_mult_dv))*eta_coef_mult
@@ -381,3 +383,70 @@ if __name__ == '__main__':
 		utils.save_obj(eta_mult_dv, 'eta_mult_dv', saving_dir)
 		utils.save_obj(auto_param_obj_history_mult_dv, 'auto_param_obj_history_mult_dv', saving_dir)
 		utils.save_obj(auto_param_relaxed_obj_history_mult_dv, 'auto_param_relaxed_obj_history_mult_dv', saving_dir)
+
+		end = time.time()
+		print('\n Mult DVC Solution Computed. Time elapsed:', end - start)
+
+
+
+	#######################################
+	#Solution computation, photon modality
+	#######################################
+	# if compute_photon == 'yes':
+	# 	#Compute initial guess, multi-modality
+	# 	# # Rx = 190#80#190#190 160 120 80
+	# 	# LHS1 = T_list_mult[0]
+	# 	# LHS2 = T_list_mult[1]
+	# 	# RHS1 = np.array([Rx/np.sum(N)]*LHS1.shape[0])
+	# 	# RHS2 = np.array([Rx/np.sum(N)]*LHS2.shape[0])
+
+	# 	# u1_guess = scipy.optimize.lsq_linear(LHS1, RHS1, bounds = (0, np.inf), tol=1e-3, lsmr_tol=1e-2, max_iter=30, verbose=1).x
+	# 	# u2_guess = scipy.optimize.lsq_linear(LHS2, RHS2, bounds = (0, np.inf), tol=1e-3, lsmr_tol=1e-2, max_iter=30, verbose=1).x
+
+	# 	# u_init11 = np.concatenate([u1_guess, u2_guess])
+	# 	u_init_photon = u1_guess
+	# 	# u_init11 = np.concatenate([u_conv, np.zeros(u2_guess.shape[0])])
+
+	# 	#Initalize parameters
+	# 	eta_0 =  (1/(2*np.max(B_photon)))*eta0_coef_photon#0.9 #Initialize eta_0
+	# 	eta = np.array([eta_0/len(H_photon)]*len(H_photon))*eta_coef_photon#1e-7
+	# 	#Set up smoothing matrix
+	# 	len_voxels = data['Aphoton'].shape[0]
+	# 	beamlet_indices = np.split(np.arange(len_voxels), np.cumsum(np.squeeze(data['num_beamlets'])))[:-1] 
+	# 	beams = [data['beamlet_pos'][i] for i in beamlet_indices]
+	# 	S = utils.construct_smoothing_matrix(beams, eps = 5)
+	# 	S = S.toarray()
+	# 	StS = S.T.dot(S)
+	# 	# lambda_smoothing = 1e5#1e7#1e-3 #1e-2
+
+	# 	#Compute the solution:
+		
+	# 	#First, compute the solution without dv constraint, photon modality
+	# 	u_photon_smoothed, eta_0_photon_smoothed, eta_photon_smoothed, auto_param_obj_history_photon_smoothed, auto_param_relaxed_obj_history_photon_smoothed = optimization_tools.solver_auto_param(u_init_photon, 
+	# 		utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing, smoothing_ratio, T_photon, H_photon, alpha_photon, gamma_photon, B_photon, D_photon, C_photon, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
+	# 	saving_dir = config_experiment+'_photon_{}_{}'.format(N1, N2)
+	# 	utils.save_obj(u_photon_smoothed, 'u_photon_smoothed', saving_dir)
+	# 	utils.save_obj(eta_0_photon_smoothed, 'eta_0_photon_smoothed', saving_dir)
+	# 	utils.save_obj(eta_photon_smoothed, 'eta_photon_smoothed', saving_dir)
+	# 	utils.save_obj(auto_param_obj_history_photon_smoothed, 'auto_param_obj_history_photon_smoothed', saving_dir)
+	# 	utils.save_obj(auto_param_relaxed_obj_history_photon_smoothed, 'auto_param_relaxed_obj_history_photon_smoothed', saving_dir)
+
+
+
+
+	# 	#Now with DVH constraints, multi-modality
+	# 	oar_indices, T_list_mult_dv, T_mult_dv, H_mult_dv, alpha_mult_dv, gamma_mult_dv, B_mult_dv, D_mult_dv, C_mult_dv = utils.generate_dose_volume_input(T_list_mult_max, T_mult_max, H_mult_max, alpha_mult_max, gamma_mult_max, B_mult_max, D_mult_max, C_mult_max, u_mult, N, data, Alpha, Beta, Gamma, Delta, photon_only = True)
+
+	# 	eta_0 =  (1/(2*np.max(B_mult_dv)))*eta0_coef_mult #Initialize eta_0
+	# 	eta = np.array([eta_0/len(H_mult_dv)]*len(H_mult_dv))*eta_coef_mult
+	# 	# lambda_smoothing = 1e5
+
+	# 	u_mult_dv, eta_0_mult_dv, eta_mult_dv, auto_param_obj_history_mult_dv, auto_param_relaxed_obj_history_mult_dv = optimization_tools.solver_auto_param(u_mult, 
+	# 		utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing, smoothing_ratio, T_mult_dv, H_mult_dv, alpha_mult_dv, gamma_mult_dv, B_mult_dv, D_mult_dv, C_mult_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
+	# 	saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
+	# 	utils.save_obj(u_mult_dv, 'u_mult_dv', saving_dir)
+	# 	utils.save_obj(eta_0_mult_dv, 'eta_0_mult_dv', saving_dir)
+	# 	utils.save_obj(eta_mult_dv, 'eta_mult_dv', saving_dir)
+	# 	utils.save_obj(auto_param_obj_history_mult_dv, 'auto_param_obj_history_mult_dv', saving_dir)
+	# 	utils.save_obj(auto_param_relaxed_obj_history_mult_dv, 'auto_param_relaxed_obj_history_mult_dv', saving_dir)
+
