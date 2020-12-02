@@ -355,7 +355,7 @@ if __name__ == '__main__':
 		
 		#First, compute the solution without dv constraint, multi-modality
 		u_mult_smoothed, eta_0_mult_smoothed, eta_mult_smoothed, auto_param_obj_history_mult_smoothed, auto_param_relaxed_obj_history_mult_smoothed = optimization_tools.solver_auto_param(u_init11, 
-			utils.organ_photon_matrix('Target'), S, StS, lambda_smoothing, smoothing_ratio, T_mult, H_mult, alpha_mult, gamma_mult, B_mult, D_mult, C_mult, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
+			utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing, smoothing_ratio, T_mult, H_mult, alpha_mult, gamma_mult, B_mult, D_mult, C_mult, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
 		saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
 		utils.save_obj(u_mult_smoothed, 'u_mult_smoothed', saving_dir)
 		utils.save_obj(eta_0_mult_smoothed, 'eta_0_mult_smoothed', saving_dir)
@@ -374,7 +374,7 @@ if __name__ == '__main__':
 		# lambda_smoothing = 1e5
 
 		u_mult_dv, eta_0_mult_dv, eta_mult_dv, auto_param_obj_history_mult_dv, auto_param_relaxed_obj_history_mult_dv = optimization_tools.solver_auto_param(u_mult, 
-			utils.organ_photon_matrix('Target'), S, StS, lambda_smoothing, smoothing_ratio, T_mult_dv, H_mult_dv, alpha_mult_dv, gamma_mult_dv, B_mult_dv, D_mult_dv, C_mult_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
+			utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing, smoothing_ratio, T_mult_dv, H_mult_dv, alpha_mult_dv, gamma_mult_dv, B_mult_dv, D_mult_dv, C_mult_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
 		saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
 		utils.save_obj(u_mult_dv, 'u_mult_dv', saving_dir)
 		utils.save_obj(eta_0_mult_dv, 'eta_0_mult_dv', saving_dir)

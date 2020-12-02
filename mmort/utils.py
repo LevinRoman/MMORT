@@ -135,7 +135,7 @@ def generate_dose_volume_input(T_list_mult_max, T_mult_max, H_mult_max, alpha_mu
 	updated_D = [D_mult_max[i] for oar in oar_indices for i in oar]
 	return oar_indices, T_list_mult_max, T_mult_max, updated_H, alpha_mult_max, updated_gamma, B_mult_max, updated_D, updated_C
 
-def organ_photon_matrix(organ_name):
+def organ_photon_matrix(organ_name, data):
 	"""This function is needed for monitoring smoothness and adjusting lambda_smoothing"""
 	organ_names = [str(i[0]) for i in np.squeeze(data['Organ'])]
 	organ_number = organ_names.index(organ_name)
