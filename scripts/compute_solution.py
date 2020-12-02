@@ -354,15 +354,22 @@ if __name__ == '__main__':
 
 		#Compute the solution:
 		
-		#First, compute the solution without dv constraint, multi-modality
-		u_mult_smoothed, eta_0_mult_smoothed, eta_mult_smoothed, auto_param_obj_history_mult_smoothed, auto_param_relaxed_obj_history_mult_smoothed = optimization_tools.solver_auto_param(u_init11, 
-			utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing, smoothing_ratio, T_mult, H_mult, alpha_mult, gamma_mult, B_mult, D_mult, C_mult, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
-		saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
-		utils.save_obj(u_mult_smoothed, 'u_mult_smoothed', saving_dir)
-		utils.save_obj(eta_0_mult_smoothed, 'eta_0_mult_smoothed', saving_dir)
-		utils.save_obj(eta_mult_smoothed, 'eta_mult_smoothed', saving_dir)
-		utils.save_obj(auto_param_obj_history_mult_smoothed, 'auto_param_obj_history_mult_smoothed', saving_dir)
-		utils.save_obj(auto_param_relaxed_obj_history_mult_smoothed, 'auto_param_relaxed_obj_history_mult_smoothed', saving_dir)
+		if precomputed_input == 'no':
+			print('\nComputing the solution')
+			#First, compute the solution without dv constraint, multi-modality
+			u_mult_smoothed, eta_0_mult_smoothed, eta_mult_smoothed, auto_param_obj_history_mult_smoothed, auto_param_relaxed_obj_history_mult_smoothed = optimization_tools.solver_auto_param(u_init11, 
+				utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing, smoothing_ratio, T_mult, H_mult, alpha_mult, gamma_mult, B_mult, D_mult, C_mult, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
+			saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
+			utils.save_obj(u_mult_smoothed, 'u_mult_smoothed', saving_dir)
+			utils.save_obj(eta_0_mult_smoothed, 'eta_0_mult_smoothed', saving_dir)
+			utils.save_obj(eta_mult_smoothed, 'eta_mult_smoothed', saving_dir)
+			utils.save_obj(auto_param_obj_history_mult_smoothed, 'auto_param_obj_history_mult_smoothed', saving_dir)
+			utils.save_obj(auto_param_relaxed_obj_history_mult_smoothed, 'auto_param_relaxed_obj_history_mult_smoothed', saving_dir)
+
+		if precomputed_input == 'yes':
+			print('\nLoading the solution')
+			loading_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
+			u_mult_smoothed = utils.load_obj('u_mult_smoothed', loading_dir)
 
 		end = time.time()
 		print('\n Mult without DVC Solution Computed. Time elapsed:', end - start)
