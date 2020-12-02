@@ -520,7 +520,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
 
     
     res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
-               options = {'maxiter': nnls_max_iter, iprint: 0})#'disp':True})
+               options = {'maxiter': nnls_max_iter, 'disp':1})
     print(res)
 
     end = time.time()
