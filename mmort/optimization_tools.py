@@ -926,7 +926,7 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
         num_violated_prev = np.copy(num_violated)
         num_violated = cnstr['Relaxed'].sum() - len(H)
         
-        print('Iter ', count, '# of violated constr:', cnstr['Relaxed'].sum()-len(H))
+        print('\n Iter ', count, '# of violated constr:', cnstr['Relaxed'].sum()-len(H), '\n Smoothness: {}'.format(photon_target_smoothness))
         eta[cnstr['Relaxed'] == False] *= eta_step
         
         if not photon_target_smoothness:
@@ -935,8 +935,9 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
         if num_violated == num_violated_prev:
             print('Increase enforcement')
             eta[cnstr['Relaxed'] == False] *= eta_step
-            lambda_smoothing *= (1/eta_step)
-            print('Lambda Smoothing:', lambda_smoothing)
+            if not photon_target_smoothness:
+                lambda_smoothing *= (1/eta_step)
+                print('Lambda Smoothing:', lambda_smoothing)
             
         u, obj_history, relaxed_obj_history = solver(u, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
         
