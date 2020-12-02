@@ -382,7 +382,7 @@ if __name__ == '__main__':
 		eta = np.array([eta_0/len(H_mult_dv)]*len(H_mult_dv))*eta_coef_mult
 		# lambda_smoothing = 1e5
 
-		u_mult_dv, eta_0_mult_dv, eta_mult_dv, auto_param_obj_history_mult_dv, auto_param_relaxed_obj_history_mult_dv = optimization_tools.solver_auto_param(u_mult, 
+		u_mult_dv, eta_0_mult_dv, eta_mult_dv, auto_param_obj_history_mult_dv, auto_param_relaxed_obj_history_mult_dv = optimization_tools.solver_auto_param(u_mult_smoothed, 
 			utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing, smoothing_ratio, T_mult_dv, H_mult_dv, alpha_mult_dv, gamma_mult_dv, B_mult_dv, D_mult_dv, C_mult_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
 		saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
 		utils.save_obj(u_mult_dv, 'u_mult_dv', saving_dir)
