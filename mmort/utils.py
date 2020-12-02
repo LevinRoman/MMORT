@@ -118,7 +118,7 @@ def generate_dose_volume_input(T_list_mult_max, T_mult_max, H_mult_max, alpha_mu
 			_, _, oar_BE, _, oar_photon_BE = evaluation_function_photon(u_mult, N, data, name, Alpha, Beta, Gamma, Delta, 3000, resolution = 500)
 			print(oar_BE, oar_photon_BE)
 		if proton_only:
-			 _, _, oar_BE, _, oar_proton_BE = evaluation_function_proton(u_mult, N, data, name, Alpha, Beta, Gamma, Delta, 3000, resolution = 500)
+			_, _, oar_BE, _, oar_proton_BE = evaluation_function_proton(u_mult, N, data, name, Alpha, Beta, Gamma, Delta, 3000, resolution = 500)
 			print(oar_BE, oar_proton_BE)
 		if (not photon_only) and (not proton_only):
 			_,_,_,_,_, oar_photon_BE, oar_proton_BE = evaluation.evaluation_function(u_mult, N, data, name, Alpha, Beta, Gamma, Delta, 3000, resolution = 500)
