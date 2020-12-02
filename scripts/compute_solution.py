@@ -355,7 +355,7 @@ if __name__ == '__main__':
 		
 		#First, compute the solution without dv constraint, multi-modality
 		u_mult_smoothed, eta_0_mult_smoothed, eta_mult_smoothed, auto_param_obj_history_mult_smoothed, auto_param_relaxed_obj_history_mult_smoothed = optimization_tools.solver_auto_param(u_init11, 
-			organ_photon_matrix('Target'), S, StS, lambda_smoothing, smoothing_ratio, T_mult, H_mult, alpha_mult, gamma_mult, B_mult, D_mult, C_mult, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
+			utils.organ_photon_matrix('Target'), S, StS, lambda_smoothing, smoothing_ratio, T_mult, H_mult, alpha_mult, gamma_mult, B_mult, D_mult, C_mult, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
 		saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
 		utils.save_obj(u_mult_smoothed, 'u_mult_smoothed', saving_dir)
 		utils.save_obj(eta_0_mult_smoothed, 'eta_0_mult_smoothed', saving_dir)
@@ -367,14 +367,14 @@ if __name__ == '__main__':
 
 
 		#Now with DVH constraints, multi-modality
-		oar_indices, T_list_mult_dv, T_mult_dv, H_mult_dv, alpha_mult_dv, gamma_mult_dv, B_mult_dv, D_mult_dv, C_mult_dv = generate_dose_volume_input(T_list_mult_max, T_mult_max, H_mult_max, alpha_mult_max, gamma_mult_max, B_mult_max, D_mult_max, C_mult_max, u_mult, N, data, Alpha, Beta, Gamma, Delta)
+		oar_indices, T_list_mult_dv, T_mult_dv, H_mult_dv, alpha_mult_dv, gamma_mult_dv, B_mult_dv, D_mult_dv, C_mult_dv = utils.generate_dose_volume_input(T_list_mult_max, T_mult_max, H_mult_max, alpha_mult_max, gamma_mult_max, B_mult_max, D_mult_max, C_mult_max, u_mult, N, data, Alpha, Beta, Gamma, Delta)
 
 		eta_0 =  (1/(2*np.max(B_mult_dv)))*eta0_coef_mult #Initialize eta_0
 		eta = np.array([eta_0/len(H_mult_dv)]*len(H_mult_dv))*eta_coef_mult
 		# lambda_smoothing = 1e5
 
 		u_mult_dv, eta_0_mult_dv, eta_mult_dv, auto_param_obj_history_mult_dv, auto_param_relaxed_obj_history_mult_dv = optimization_tools.solver_auto_param(u_mult, 
-			organ_photon_matrix('Target'), S, StS, lambda_smoothing, smoothing_ratio, T_mult_dv, H_mult_dv, alpha_mult_dv, gamma_mult_dv, B_mult_dv, D_mult_dv, C_mult_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
+			utils.organ_photon_matrix('Target'), S, StS, lambda_smoothing, smoothing_ratio, T_mult_dv, H_mult_dv, alpha_mult_dv, gamma_mult_dv, B_mult_dv, D_mult_dv, C_mult_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
 		saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
 		utils.save_obj(u_mult_dv, 'u_mult_dv', saving_dir)
 		utils.save_obj(eta_0_mult_dv, 'eta_0_mult_dv', saving_dir)
