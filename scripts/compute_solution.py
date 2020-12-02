@@ -53,7 +53,7 @@ if __name__ == '__main__':
 	parser.add_argument('--eta0_coef_mult', default = 0.9, type = float)
 	parser.add_argument('--eta_coef_mult', default = 1e-7, type = float)
 	parser.add_argument('--eta0_coef_photon', default = 0.9, type = float)
-	parser.add_argument('--eta0_coef_photon', default = 1e-7, type = float)
+	parser.add_argument('--eta_coef_photon', default = 1e-7, type = float)
 	parser.add_argument('--eta0_coef_proton', default = 0.9, type = float)
 	parser.add_argument('--eta_coef_proton', default = 1e-7, type = float)
 	parser.add_argument('--eta_step', default = 0.1, type = float)
