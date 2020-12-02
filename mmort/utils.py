@@ -106,3 +106,46 @@ def save_output_from_dict(out_dir, state, file_name):    # Read input informatio
         writer = csv.DictWriter(f, delimiter='\t', fieldnames=fieldnames)
         writer.writerow({arg: value for (arg, value) in zip(args, values)})
     print('\nResults saved to '+fname+'.')
+
+
+
+def generate_dose_volume_input(T_list_mult_max, T_mult_max, H_mult_max, alpha_mult_max, gamma_mult_max, B_mult_max, D_mult_max, C_mult_max, u_mult, N, data, Alpha, Beta, Gamma, Delta, photon_only = False, proton_only = False):
+    """Based on u_mult, add max-constrained additional OARs, note that this would not work with mean dose OARs"""
+    oar_indices = np.split(np.arange(data['Aphoton'].shape[0]), np.cumsum(np.squeeze(data['num_voxels'])[1:]))[:-1]
+    dv_oar_names = [str(i[0]) for i in np.squeeze(data['Organ'])[1:][data['OAR_constraint_types'] == 'dose_volume']]
+    for i, name in enumerate(dv_oar_names):
+        if photon_only:
+            _, _, oar_BE, _, oar_photon_BE = evaluation_function_photon(u_mult, N, data, name, Alpha, Beta, Gamma, Delta, 3000, resolution = 500)
+            print(oar_BE, oar_photon_BE)
+        if proton_only:
+             _, _, oar_BE, _, oar_proton_BE = evaluation_function_proton(u_mult, N, data, name, Alpha, Beta, Gamma, Delta, 3000, resolution = 500)
+            print(oar_BE, oar_proton_BE)
+        if (not photon_only) and (not proton_only):
+            _,_,_,_,_, oar_photon_BE, oar_proton_BE = evaluation.evaluation_function(u_mult, N, data, name, Alpha, Beta, Gamma, Delta, 3000, resolution = 500)
+            oar_BE = oar_photon_BE + oar_proton_BE
+
+        #Take the low 50% of the voxels, should make this more general to handle arbitrary percentage
+        cur_oar_indices_to_max_constrain = np.argsort(oar_BE)[:(oar_BE.shape[0]//2 + oar_BE.shape[0]%2)]
+        # constraint = np.array(C_mult_max)[oar_indices[0]]
+        cur_oar_number = np.arange(len(oar_indices))[data['OAR_constraint_types'] == 'dose_volume'][i]
+        oar_indices[cur_oar_number] = cur_oar_indices_to_max_constrain
+    updated_C = [C_mult_max[i] for oar in oar_indices for i in oar]
+    updated_H = [H_mult_max[i] for oar in oar_indices for i in oar]
+    updated_gamma = [gamma_mult_max[i] for oar in oar_indices for i in oar]
+    updated_D = [D_mult_max[i] for oar in oar_indices for i in oar]
+    return oar_indices, T_list_mult_max, T_mult_max, updated_H, alpha_mult_max, updated_gamma, B_mult_max, updated_D, updated_C
+
+def organ_photon_matrix(organ_name):
+    """This function is needed for monitoring smoothness and adjusting lambda_smoothing"""
+    organ_names = [str(i[0]) for i in np.squeeze(data['Organ'])]
+    organ_number = organ_names.index(organ_name)
+    organ_number_no_target = organ_number-1
+    len_voxels = data['Aphoton'].shape[0]
+    #[:-1] because we don't wabt the last isolated voxel
+    organ_indices = np.split(np.arange(len_voxels), np.cumsum(np.squeeze(data['num_voxels'])))[:-1]
+    #Do this in per-voxel fashion
+    photon_num = data['Aphoton'].shape[1]
+#     u_photon = u[:photon_num]
+#     u_proton = u[photon_num:]
+    organ_Aphoton = data['Aphoton'][organ_indices[organ_number]]
+    return organ_Aphoton
