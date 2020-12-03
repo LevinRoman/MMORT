@@ -46,9 +46,9 @@ if __name__ == '__main__':
 	parser.add_argument('--N2', default = 1.0, type = float)
 	parser.add_argument('--N_photon', default = 44.0, type = float)
 	parser.add_argument('--N_proton', default = 44.0, type = float)
-	parser.add_argument('--compute_mult', default = 'yes', type = str)
-	parser.add_argument('--compute_photon', default = 'yes', type = str)
-	parser.add_argument('--compute_proton', default = 'yes', type = str)
+	parser.add_argument('--compute_mult', default = 'no', type = str)
+	parser.add_argument('--compute_photon', default = 'no', type = str)
+	parser.add_argument('--compute_proton', default = 'no', type = str)
 	# parser.add_argument('--Rx', default = 190.0, type = float)
 	# parser.add_argument('--eta0_coef_mult', default = 0.9, type = float)
 	# parser.add_argument('--eta_coef_mult', default = 1e-7, type = float)
@@ -61,7 +61,7 @@ if __name__ == '__main__':
 	# parser.add_argument('--max_iter', default = 50.0, type = float)
 	# parser.add_argument('--update_parameters', default = 'no', type = str)
 
- 	# eta_step = 0.1, ftol = 1e-3, max_iter = 50, verbose = 1
+	# eta_step = 0.1, ftol = 1e-3, max_iter = 50, verbose = 1
 
 
 	args = parser.parse_args()
@@ -443,12 +443,12 @@ if __name__ == '__main__':
 		fig = plt.figure()
 		for i in range(len(beamlet_indices)):
 			ax = fig.add_subplot(150 + i + 1, projection='3d')
-		    x_beam = data['beamlet_pos'][beamlet_indices[i]][:,0]
-		    y_beam = data['beamlet_pos'][beamlet_indices[i]][:,1]
-		    u_beam = u_mult_dv[:data['Aphoton'].shape[1]][beamlet_indices[i]]
-		    evaluation.plot_beam(ax, x_beam, y_beam, u_beam)
+			x_beam = data['beamlet_pos'][beamlet_indices[i]][:,0]
+			y_beam = data['beamlet_pos'][beamlet_indices[i]][:,1]
+			u_beam = u_mult_dv[:data['Aphoton'].shape[1]][beamlet_indices[i]]
+			evaluation.plot_beam(ax, x_beam, y_beam, u_beam)
 		fig.savefig(os.path.abspath(os.path.join('obj', saving_dir, 'beams.png')), dpi = 350, bbox_inches = 'tight')
 
 		#Figure 4: DVH
-		
+
 
