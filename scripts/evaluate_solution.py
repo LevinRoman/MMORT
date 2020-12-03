@@ -450,5 +450,10 @@ if __name__ == '__main__':
 		fig.savefig(os.path.abspath(os.path.join('obj', saving_dir, 'beams.png')), dpi = 350, bbox_inches = 'tight')
 
 		#Figure 4: DVH
-
+		fig, axs = plt.subplots(3,2, figsize = (30,30))
+		saving_df_path = os.path.abspath(os.path.join('obj', saving_dir))
+		evaluation.evaluation_mult_plot_BE(saving_df_path, axs[0,0], axs[0,1], u_mult_dv, N, data, Alpha, Beta, Gamma, Delta, max_BE = 200, resolution = 500, max_dose = 45*5.0, dose_resolution = 500)
+		evaluation.evaluation_photon_plot_BE(saving_df_path, axs[1,0], axs[1,1], u_mult_dv, N, data, Alpha, Beta, Gamma, Delta, max_BE = 200, resolution = 500, max_dose = 45*5.0, dose_resolution = 500)
+		evaluation.evaluation_proton_plot_BE(saving_df_path, axs[2,0], axs[2,1], u_mult_dv, N, data, Alpha, Beta, Gamma, Delta, max_BE = 10, resolution = 500, max_dose = 45*0.5, dose_resolution = 500)
+		fig.savefig(os.path.abspath(os.path.join('obj', saving_dir, 'dvh.png')), dpi = 350, bbox_inches = 'tight')
 
