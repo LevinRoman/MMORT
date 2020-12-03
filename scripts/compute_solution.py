@@ -376,7 +376,8 @@ if __name__ == '__main__':
 			u_mult_smoothed = utils.load_obj('u_mult_smoothed', loading_dir)
 			eta_0_mult_smoothed = utils.load_obj('eta_0_mult_smoothed', loading_dir)
 			eta_mult_smoothed = utils.load_obj('eta_mult_smoothed', loading_dir)
-			lambda_smoothing_mult_smoothed = utils.load_obj('lambda_smoothing_mult_smoothed', loading_dir)
+			lambda_smoothing_mult_smoothed = 1e12
+			# lambda_smoothing_mult_smoothed = utils.load_obj('lambda_smoothing_mult_smoothed', loading_dir)
 			#Load lambda smoothing here too
 			#Try with all the same parameters and initialize larger smoothing
 
