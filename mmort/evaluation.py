@@ -25,7 +25,7 @@ import scipy.stats as stats
 # Y = np.arange(-5, 5, 0.25)
 def plot_beam(ax, x_beam, y_beam, u_beam):
     # fig = plt.figure()
-    ax = fig.gca(projection='3d')
+    # ax = fig.gca(projection='3d')
     
     X = x_beam#[:, None]
     Y = y_beam#[None, :]
