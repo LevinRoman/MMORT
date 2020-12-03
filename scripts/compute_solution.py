@@ -73,6 +73,7 @@ if __name__ == '__main__':
 	smoothing_ratio = args.smoothing_ratio
 	lambda_smoothing = args.lambda_smoothing
 	precomputed_input = args.precomputed_input
+	precomputed_solution = args.precomputed_solution
 	N1 = args.N1
 	N2 = args.N2
 	N_photon = args.N_photon
@@ -371,7 +372,7 @@ if __name__ == '__main__':
 			utils.save_obj(auto_param_obj_history_mult_smoothed, 'auto_param_obj_history_mult_smoothed', saving_dir)
 			utils.save_obj(auto_param_relaxed_obj_history_mult_smoothed, 'auto_param_relaxed_obj_history_mult_smoothed', saving_dir)
 
-		if precomputed_input == 'yes':
+		if precomputed_solution == 'yes':
 			print('\nLoading the solution')
 			loading_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
 			u_mult_smoothed = utils.load_obj('u_mult_smoothed', loading_dir)
