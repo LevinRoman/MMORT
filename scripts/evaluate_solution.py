@@ -440,7 +440,7 @@ if __name__ == '__main__':
 		len_voxels = data['Aphoton'].shape[0]
 		beamlet_indices = np.split(np.arange(len_voxels), np.cumsum(np.squeeze(data['num_beamlets'])))[:-1] 
 		# beams = [data['beamlet_pos'][i] for i in beamlet_indices]
-		fig = plt.figure()
+		fig = plt.figure(figsize = (50, 10))
 		for i in range(len(beamlet_indices)):
 			ax = fig.add_subplot(150 + i + 1, projection='3d')
 			x_beam = data['beamlet_pos'][beamlet_indices[i]][:,0]
