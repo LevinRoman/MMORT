@@ -931,6 +931,7 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
         
         if not photon_target_smoothness:
             lambda_smoothing *= (1/eta_step)
+            print('Lambda Smoothing:', lambda_smoothing)
             
         if num_violated == num_violated_prev:
             print('Increase enforcement')
