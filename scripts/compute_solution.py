@@ -42,6 +42,7 @@ if __name__ == '__main__':
 	parser.add_argument('--smoothing_ratio', default = 2.0, type = float)
 	parser.add_argument('--lambda_smoothing', default = 1e5, type = float)
 	parser.add_argument('--precomputed_input', default = 'no', type = str)
+	parser.add_argument('--precomputed_solution', default = 'no', type = str)
 	parser.add_argument('--N1', default = 43.0, type = float)
 	parser.add_argument('--N2', default = 1.0, type = float)
 	parser.add_argument('--N_photon', default = 44.0, type = float)
@@ -357,7 +358,7 @@ if __name__ == '__main__':
 
 		#Compute the solution:
 		
-		if precomputed_input == 'no':
+		if precomputed_solution == 'no':
 			print('\nComputing the solution')
 			#First, compute the solution without dv constraint, multi-modality
 			u_mult_smoothed, eta_0_mult_smoothed, eta_mult_smoothed, lambda_smoothing_mult_smoothed, auto_param_obj_history_mult_smoothed, auto_param_relaxed_obj_history_mult_smoothed = optimization_tools.solver_auto_param(u_init11, 
@@ -376,8 +377,8 @@ if __name__ == '__main__':
 			u_mult_smoothed = utils.load_obj('u_mult_smoothed', loading_dir)
 			eta_0_mult_smoothed = utils.load_obj('eta_0_mult_smoothed', loading_dir)
 			eta_mult_smoothed = utils.load_obj('eta_mult_smoothed', loading_dir)
-			lambda_smoothing_mult_smoothed = 1e12
-			# lambda_smoothing_mult_smoothed = utils.load_obj('lambda_smoothing_mult_smoothed', loading_dir)
+			# lambda_smoothing_mult_smoothed = 1e12
+			lambda_smoothing_mult_smoothed = utils.load_obj('lambda_smoothing_mult_smoothed', loading_dir)
 			#Load lambda smoothing here too
 			#Try with all the same parameters and initialize larger smoothing
 
