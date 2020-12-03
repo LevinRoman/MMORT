@@ -142,6 +142,8 @@ def generate_dose_volume_input(T_list_mult_max, T_mult_max, H_mult_max, alpha_mu
 	updated_D = [D_mult_max[i] for oar in oar_indices for i in oar]
 	return oar_indices, T_list_mult_max, T_mult_max, updated_H, alpha_mult_max, updated_gamma, B_mult_max, updated_D, updated_C
 
+
+
 def organ_photon_matrix(organ_name, data):
 	"""This function is needed for monitoring smoothness and adjusting lambda_smoothing"""
 	organ_names = [str(i[0]) for i in np.squeeze(data['Organ'])]
@@ -156,3 +158,13 @@ def organ_photon_matrix(organ_name, data):
 #     u_proton = u[photon_num:]
 	organ_Aphoton = data['Aphoton'][organ_indices[organ_number]]
 	return organ_Aphoton
+
+def update_dose_volume_eta(eta_dv, eta, dv_oar_indices, data):
+	"""Use eta in the appropriate places of eta_dv as initial parameters"""
+	non_dv_positions = np.array(dv_oar_indices) 
+	non_dv_positions[data['OAR_constraint_types'] == 'dose_volume'] *= 0 
+	non_dv_positions = np.concatenate(non_dv_positions).astype('bool')
+	eta_dv_output = np.array(eta_dv)
+	eta_dv_output[non_dv_positions] = eta
+	
+	return eta_dv_output

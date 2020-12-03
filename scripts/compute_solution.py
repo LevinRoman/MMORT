@@ -59,6 +59,7 @@ if __name__ == '__main__':
 	parser.add_argument('--eta_step', default = 0.1, type = float)
 	parser.add_argument('--ftol', default = 1e-3, type = float)
 	parser.add_argument('--max_iter', default = 50.0, type = float)
+	parser.add_argument('--update_parameters', default = 'no', type = str)
 
  	# eta_step = 0.1, ftol = 1e-3, max_iter = 50, verbose = 1
 
@@ -89,6 +90,7 @@ if __name__ == '__main__':
 	eta_step = args.eta_step
 	ftol = args.ftol
 	max_iter = args.max_iter
+	update_parameters = args.update_parameters
 
 
 	print('Args: data_name={}, config_experiment={}, smoothing_ratio={}, precomputed_input={}, N1={}, N2={}, N_photon={}, N_proton={}'.format(data_name, config_experiment, smoothing_ratio, precomputed_input, N1, N2, N_photon, N_proton))
@@ -343,6 +345,7 @@ if __name__ == '__main__':
 		#Initalize parameters
 		eta_0 =  (1/(2*np.max(B_mult)))*eta0_coef_mult#0.9 #Initialize eta_0
 		eta = np.array([eta_0/len(H_mult)]*len(H_mult))*eta_coef_mult#1e-7
+		lambda_smoothing_init = np.copy(lambda_smoothing)
 		#Set up smoothing matrix
 		len_voxels = data['Aphoton'].shape[0]
 		beamlet_indices = np.split(np.arange(len_voxels), np.cumsum(np.squeeze(data['num_beamlets'])))[:-1] 
@@ -357,12 +360,13 @@ if __name__ == '__main__':
 		if precomputed_input == 'no':
 			print('\nComputing the solution')
 			#First, compute the solution without dv constraint, multi-modality
-			u_mult_smoothed, eta_0_mult_smoothed, eta_mult_smoothed, auto_param_obj_history_mult_smoothed, auto_param_relaxed_obj_history_mult_smoothed = optimization_tools.solver_auto_param(u_init11, 
-				utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing, smoothing_ratio, T_mult, H_mult, alpha_mult, gamma_mult, B_mult, D_mult, C_mult, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
+			u_mult_smoothed, eta_0_mult_smoothed, eta_mult_smoothed, lambda_smoothing_mult_smoothed, auto_param_obj_history_mult_smoothed, auto_param_relaxed_obj_history_mult_smoothed = optimization_tools.solver_auto_param(u_init11, 
+				utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_mult, H_mult, alpha_mult, gamma_mult, B_mult, D_mult, C_mult, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
 			saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
 			utils.save_obj(u_mult_smoothed, 'u_mult_smoothed', saving_dir)
 			utils.save_obj(eta_0_mult_smoothed, 'eta_0_mult_smoothed', saving_dir)
 			utils.save_obj(eta_mult_smoothed, 'eta_mult_smoothed', saving_dir)
+			utils.save_obj(lambda_smoothing_mult_smoothed, 'lambda_smoothing_mult_smoothed', saving_dir)
 			utils.save_obj(auto_param_obj_history_mult_smoothed, 'auto_param_obj_history_mult_smoothed', saving_dir)
 			utils.save_obj(auto_param_relaxed_obj_history_mult_smoothed, 'auto_param_relaxed_obj_history_mult_smoothed', saving_dir)
 
@@ -370,6 +374,11 @@ if __name__ == '__main__':
 			print('\nLoading the solution')
 			loading_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
 			u_mult_smoothed = utils.load_obj('u_mult_smoothed', loading_dir)
+			eta_0_mult_smoothed = utils.load_obj('eta_0_mult_smoothed', loading_dir)
+			eta_mult_smoothed = utils.load_obj('eta_mult_smoothed', loading_dir)
+			lambda_smoothing_mult_smoothed = utils.load_obj('lambda_smoothing_mult_smoothed', loading_dir)
+			#Load lambda smoothing here too
+			#Try with all the same parameters and initialize larger smoothing
 
 		end = time.time()
 		print('\n Mult without DVC Solution Computed. Time elapsed:', end - start)
@@ -380,14 +389,21 @@ if __name__ == '__main__':
 
 		eta_0 =  (1/(2*np.max(B_mult_dv)))*eta0_coef_mult #Initialize eta_0
 		eta = np.array([eta_0/len(H_mult_dv)]*len(H_mult_dv))*eta_coef_mult
+
+		#Update parameters
+		if update_parameters == 'yes':
+			lambda_smoothing_init = np.copy(lambda_smoothing_mult_smoothed)
+			eta_0 = eta_0_mult_smoothed
+			eta = utils.update_dose_volume_eta(eta, eta_mult_smoothed, oar_indices, data)
 		# lambda_smoothing = 1e5
 
-		u_mult_dv, eta_0_mult_dv, eta_mult_dv, auto_param_obj_history_mult_dv, auto_param_relaxed_obj_history_mult_dv = optimization_tools.solver_auto_param(u_mult_smoothed, 
-			utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing, smoothing_ratio, T_mult_dv, H_mult_dv, alpha_mult_dv, gamma_mult_dv, B_mult_dv, D_mult_dv, C_mult_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
+		u_mult_dv, eta_0_mult_dv, eta_mult_dv, lambda_smoothing_mult_dv, auto_param_obj_history_mult_dv, auto_param_relaxed_obj_history_mult_dv = optimization_tools.solver_auto_param(u_mult_smoothed, 
+			utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_mult_dv, H_mult_dv, alpha_mult_dv, gamma_mult_dv, B_mult_dv, D_mult_dv, C_mult_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
 		saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
 		utils.save_obj(u_mult_dv, 'u_mult_dv', saving_dir)
 		utils.save_obj(eta_0_mult_dv, 'eta_0_mult_dv', saving_dir)
 		utils.save_obj(eta_mult_dv, 'eta_mult_dv', saving_dir)
+		utils.save_obj(lambda_smoothing_mult_dv, 'lambda_smoothing_mult_dv', saving_dir)
 		utils.save_obj(auto_param_obj_history_mult_dv, 'auto_param_obj_history_mult_dv', saving_dir)
 		utils.save_obj(auto_param_relaxed_obj_history_mult_dv, 'auto_param_relaxed_obj_history_mult_dv', saving_dir)
 

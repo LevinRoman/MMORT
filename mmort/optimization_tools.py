@@ -801,7 +801,7 @@ def solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, 
 #     premultiplied_lhs = eta_T_H_stacked.T.dot(eta_T_H_stacked).toarray()
     #!!!!
     u_prev = u_init + 1
-    u = u_init
+    u = np.copy(u_init)
     count = 0
     obj_history = []
     relaxed_obj_history = [-1, 0.1] #just two initial values to enter the loop
@@ -982,5 +982,5 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
     cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
     print('# of violated constr:', cnstr['Relaxed'].sum()-len(H))
     print("OBJJJJJ:", obj_u_opt_N_fixed(u, T, alpha, B))
-    return u, eta_0, eta, auto_param_obj_history, auto_param_relaxed_obj_history
+    return u, eta_0, eta, lambda_smoothing, auto_param_obj_history, auto_param_relaxed_obj_history
 
