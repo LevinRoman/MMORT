@@ -47,7 +47,7 @@ def plot_beam(ax, x_beam, y_beam, u_beam):
     ax.view_init(30,60)
 
     # Add a color bar which maps values to colors.
-    fig.colorbar(surf, shrink=0.5, aspect=5)
+    # fig.colorbar(surf, shrink=0.5, aspect=5)
 
 # #Example use:
 # x_beam = data['beamlet_pos'][beamlet_indices[0]][:,0]
