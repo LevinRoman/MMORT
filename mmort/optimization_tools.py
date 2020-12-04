@@ -440,7 +440,7 @@ def constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0):
 #     return u_next
 
 
-def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=100):  
+def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=100, normalize = False):  
     # PREMULTIPLIED LHS IS AN EXTRA ARGUMENT! Set it to None and add solver!    
     """Compute the sparse least squares update for u per section 3.2.1 of the paper 
     The rhs of the ls problem needs to be recomputed every time since w_0 and w are variables   
@@ -487,6 +487,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     import time
 
     start = time.time()
+    #Renormalize here, could throw away the zero rows
     w_concat = np.concatenate((1/np.sqrt(2*eta))*np.array(w+[[]])[:-1], axis = 0) #[:-1] Added as a hack to keep it one-dim array of objects    
     b_ls = np.concatenate([(1/np.sqrt(2*eta_0))*w_0, w_concat], axis = 0)   
     
@@ -512,14 +513,24 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
 
     A = eta_T_H_stacked
     b = b_ls
-    Atb = A.T.dot(b_ls)
+    Atb = A.T.dot(b)
+    lambda_smoothing_ = np.copy(lambda_smoothing) #To avoid changing it inplace
+
+    if normalize:
+        normalization = np.mean(2*eta)
+        A = np.sqrt(normalization)*A
+        b = np.sqrt(normalization)*b
+        lambda_smoothing_ = normalization*lambda_smoothing_
+        Atb = A.T.dot(b)
+        AA = normalization*AA
+
 
     x0 = u_cur#np.zeros(AtA.shape[1])
 
     bnds = [(0, np.inf)]*x0.shape[0]
 
     
-    res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
+    res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing_), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
                options = {'maxiter': nnls_max_iter, 'disp':1})
     print(res)
 
@@ -748,7 +759,7 @@ def w_s_update(u, S):
 #     return u, obj_history, relaxed_obj_history
 
 
-def solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = 5000, verbose = 0):
+def solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = 5000, verbose = 0, normalize = False):
     """Returns the optimal u for the relaxed problem in section 3.2.1 of the paper
 
     Parameters
@@ -812,7 +823,7 @@ def solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, 
         w_0 = w_0_update(eta_0, u, T, alpha, B) 
         w = w_update(u, H, gamma, D, C)
         nnls_max_iter = 50 + (max(0,count-10))**(3/2)
-        u = u_update(u, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=nnls_max_iter)
+        u = u_update(u, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=nnls_max_iter, normalize = normalize)
 #         u = u_update(eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=50)
         #!!!!
 #         u = u_update(eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=30)
@@ -852,7 +863,7 @@ def check_photon_target_smoothness(target_photon_matrix, u_mult_smoothed, max_mi
     
 #Automatic choice of etas:
 
-def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, smoothing_ratio, T, H, alpha, gamma, B, D, C, eta_step = 0.5, ftol = 1e-3, max_iter = 300, eta_0 = None, eta = None, verbose = 0, proton_only = False):
+def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, smoothing_ratio, T, H, alpha, gamma, B, D, C, eta_step = 0.5, ftol = 1e-3, max_iter = 300, eta_0 = None, eta = None, verbose = 0, proton_only = False, normalize = False):
     """Returns the optimal u for the relaxed problem in section 3.2.1 of the paper
     with the automated parameter selection
 
@@ -912,7 +923,7 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
     if eta is None:
         eta = np.array([eta_0/len(H)]*len(H))*2#*0.01#np.array([eta_0/len(H)]*len(H))*2 
     
-    u, obj_history, relaxed_obj_history = solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = max_iter, verbose = verbose)
+    u, obj_history, relaxed_obj_history = solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = max_iter, verbose = verbose, normalize = normalize)
     auto_param_obj_history.append(obj_history)
     auto_param_relaxed_obj_history.append(relaxed_obj_history)
     cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
@@ -940,7 +951,7 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
                 lambda_smoothing *= (1/eta_step)
                 print('Lambda Smoothing:', lambda_smoothing)
             
-        u, obj_history, relaxed_obj_history = solver(u, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
+        u, obj_history, relaxed_obj_history = solver(u, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose, normalize = normalize)
         
         auto_param_obj_history.append(obj_history)
         auto_param_relaxed_obj_history.append(relaxed_obj_history)
@@ -961,7 +972,7 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
             lambda_smoothing *= (1/eta_step)
         
         #Could do a while loop for smoothing here since we have the objective check later anyway
-        u, obj_history, relaxed_obj_history = solver(u, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose)
+        u, obj_history, relaxed_obj_history = solver(u, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose, normalize = normalize)
         auto_param_obj_history.append(obj_history)
         #Note that smoothing is currently not counted in the relaxed objective
         auto_param_relaxed_obj_history.append(relaxed_obj_history)
