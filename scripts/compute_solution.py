@@ -434,8 +434,8 @@ if __name__ == '__main__':
 		# u_init11 = np.concatenate([u_conv, np.zeros(u2_guess.shape[0])])
 
 		#Initalize parameters
-		eta_0 =  (1/(2*np.max(B_mult)))*eta0_coef_photon#0.9 #Initialize eta_0
-		eta = np.array([eta_0/len(H_mult)]*len(H_mult))*eta_coef_photon#1e-7
+		eta_0 =  (1/(2*np.max(B_photon)))*eta0_coef_photon#0.9 #Initialize eta_0
+		eta = np.array([eta_0/len(H_photon)]*len(H_photon))*eta_coef_photon#1e-7
 		lambda_smoothing_init = np.copy(lambda_smoothing)
 		#Set up smoothing matrix
 		len_voxels = data['Aphoton'].shape[0]
