@@ -422,12 +422,12 @@ if __name__ == '__main__':
 		start = time.time()
 		#Compute initial guess, multi-modality
 		# Rx = 190#80#190#190 160 120 80
-		# LHS1 = T_list_mult[0]
+		LHS1 = T_list_photon[0]
 		# LHS2 = T_list_mult[1]
-		# RHS1 = np.array([Rx/np.sum(N)]*LHS1.shape[0])
+		RHS1 = np.array([Rx/N_photon]*LHS1.shape[0])
 		# RHS2 = np.array([Rx/np.sum(N)]*LHS2.shape[0])
 
-		# u1_guess = scipy.optimize.lsq_linear(LHS1, RHS1, bounds = (0, np.inf), tol=1e-3, lsmr_tol=1e-2, max_iter=30, verbose=1).x
+		u1_guess = scipy.optimize.lsq_linear(LHS1, RHS1, bounds = (0, np.inf), tol=1e-3, lsmr_tol=1e-2, max_iter=30, verbose=1).x
 		# u2_guess = scipy.optimize.lsq_linear(LHS2, RHS2, bounds = (0, np.inf), tol=1e-3, lsmr_tol=1e-2, max_iter=30, verbose=1).x
 
 		# u_init11 = np.concatenate([u1_guess, u2_guess])
@@ -512,12 +512,12 @@ if __name__ == '__main__':
 		#Compute initial guess, protoni-modality
 		# Rx = 190#80#190#190 160 120 80
 		# LHS1 = T_list_proton[0]
-		# LHS2 = T_list_proton[1]
+		LHS2 = T_list_proton[0]
 		# RHS1 = np.array([Rx/np.sum(N)]*LHS1.shape[0])
-		# RHS2 = np.array([Rx/np.sum(N)]*LHS2.shape[0])
+		RHS2 = np.array([Rx/N_proton]*LHS2.shape[0])
 
 		# u1_guess = scipy.optimize.lsq_linear(LHS1, RHS1, bounds = (0, np.inf), tol=1e-3, lsmr_tol=1e-2, max_iter=30, verbose=1).x
-		# u2_guess = scipy.optimize.lsq_linear(LHS2, RHS2, bounds = (0, np.inf), tol=1e-3, lsmr_tol=1e-2, max_iter=30, verbose=1).x
+		u2_guess = scipy.optimize.lsq_linear(LHS2, RHS2, bounds = (0, np.inf), tol=1e-3, lsmr_tol=1e-2, max_iter=30, verbose=1).x
 
 		# u_init11 = np.concatenate([u1_guess, u2_guess])
 		# u_init11 = np.concatenate([u_conv, np.zeros(u2_guess.shape[0])])
