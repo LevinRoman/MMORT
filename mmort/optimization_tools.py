@@ -841,7 +841,7 @@ def solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, 
 def check_photon_target_smoothness(target_photon_matrix, u_mult_smoothed, max_min_ratio = 2, proton_only = False):
     """max_min_ratio -- the amount of difference we allow between max and min tumor dose"""
     if proton_only:
-        True
+        return True
     target_dose = target_photon_matrix.dot(u_mult_smoothed[:target_photon_matrix.shape[1]])
     print('SMOOTHING, max/min ratio in the target dose:', np.max(target_dose)/np.min(target_dose))
     if np.max(target_dose)/np.min(target_dose) <= max_min_ratio:
