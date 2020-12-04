@@ -302,7 +302,7 @@ if __name__ == '__main__':
 		start = time.time()
 		#Max Dose for dv constrained organs input, proton-modality
 		if precomputed_input == 'no':
-			T_list_proton_max, T_proton_max, H_proton_max, alpha_proton_max, gamma_proton_max, B_proton_max, D_proton_max, C_proton_max = experiments.construct_auto_param_solver_input(np.array([N_proton,0]), Alpha, Beta, Gamma, Delta, data_max_dose, modality_names)
+			T_list_proton_max, T_proton_max, H_proton_max, alpha_proton_max, gamma_proton_max, B_proton_max, D_proton_max, C_proton_max = experiments.construct_auto_param_solver_input(np.array([0, N_proton]), Alpha, Beta, Gamma, Delta, data_max_dose, modality_names)
 			saving_dir = config_experiment+'_proton_max_{}_{}'.format(0, N_proton)
 			utils.save_obj(T_list_proton_max, 'T_list_proton_max', saving_dir)
 			utils.save_obj(T_proton_max, 'T_proton_max', saving_dir)
@@ -582,7 +582,6 @@ if __name__ == '__main__':
 			eta = utils.update_dose_volume_eta(eta, eta_proton_smoothed, oar_indices, data)
 		# lambda_smoothing = 1e5
 
-		print('\n !!!!!!!! Shapes:', u_proton_smoothed.shape, T_list_proton_dv[0].shape)
 
 		u_proton_dv, eta_0_proton_dv, eta_proton_dv, lambda_smoothing_proton_dv, auto_param_obj_history_proton_dv, auto_param_relaxed_obj_history_proton_dv = optimization_tools.solver_auto_param(u_proton_smoothed, 
 			utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_proton_dv, H_proton_dv, alpha_proton_dv, gamma_proton_dv, B_proton_dv, D_proton_dv, C_proton_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0,  proton_only = True, normalize = normalize)
