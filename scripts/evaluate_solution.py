@@ -5,7 +5,7 @@ ARGS:
 	data_path
 	coefficients_path (for Alpha, Beta, Gamma, Delta)
 	N1
-	N_proton
+	N2
 	"""
 
 import argparse
@@ -43,7 +43,7 @@ if __name__ == '__main__':
 	# parser.add_argument('--lambda_smoothing', default = 1e5, type = float)
 	# parser.add_argument('--precomputed_input', default = 'no', type = str)
 	parser.add_argument('--N1', default = 43.0, type = float)
-	parser.add_argument('--N_proton', default = 1.0, type = float)
+	parser.add_argument('--N2', default = 1.0, type = float)
 	parser.add_argument('--N_photon', default = 44.0, type = float)
 	parser.add_argument('--N_proton', default = 44.0, type = float)
 	parser.add_argument('--compute_mult', default = 'no', type = str)
@@ -73,10 +73,10 @@ if __name__ == '__main__':
 	# lambda_smoothing = args.lambda_smoothing
 	# precomputed_input = args.precomputed_input
 	N1 = args.N1
-	N_proton = args.N_proton
+	N2 = args.N2
 	N_photon = args.N_photon
 	N_proton = args.N_proton
-	N = np.array([N1, N_proton])
+	N = np.array([N1, N2])
 	compute_mult = args.compute_mult
 	compute_photon = args.compute_photon
 	compute_proton = args.compute_proton
@@ -93,7 +93,7 @@ if __name__ == '__main__':
 	# update_parameters = args.update_parameters
 
 
-	# print('Args: data_name={}, config_experiment={}, smoothing_ratio={}, precomputed_input={}, N1={}, N_proton={}, N_photon={}, N_proton={}'.format(data_name, config_experiment, smoothing_ratio, precomputed_input, N1, N_proton, N_photon, N_proton))
+	# print('Args: data_name={}, config_experiment={}, smoothing_ratio={}, precomputed_input={}, N1={}, N2={}, N_photon={}, N_proton={}'.format(data_name, config_experiment, smoothing_ratio, precomputed_input, N1, N2, N_photon, N_proton))
 
 
 	###########################
@@ -145,7 +145,7 @@ if __name__ == '__main__':
 		# #Initial input, with no dv constraints, multi-modality
 		# if precomputed_input == 'no':
 		# 	T_list_mult, T_mult, H_mult, alpha_mult, gamma_mult, B_mult, D_mult, C_mult = experiments.construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data, modality_names)
-		# 	saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N_proton)
+		# 	saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
 		# 	utils.save_obj(T_list_mult, 'T_list_mult', saving_dir)
 		# 	utils.save_obj(T_mult, 'T_mult', saving_dir)
 		# 	utils.save_obj(H_mult, 'H_mult', saving_dir)
@@ -156,7 +156,7 @@ if __name__ == '__main__':
 		# 	utils.save_obj(C_mult, 'C_mult', saving_dir)
 		# 	print('\nInitial input, with dv constraint types, multi-modality saved to '+saving_dir)
 		# if precomputed_input == 'yes':
-		loading_dir = config_experiment+'_mult_{}_{}'.format(N1, N_proton)
+		loading_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
 		T_list_mult = utils.load_obj( 'T_list_mult', loading_dir)
 		T_mult = utils.load_obj('T_mult', loading_dir)
 		H_mult = utils.load_obj('H_mult', loading_dir)
@@ -176,7 +176,7 @@ if __name__ == '__main__':
 		#Max Dose for dv constrained organs input, multi-modality
 		# if precomputed_input == 'no':
 		# 	T_list_mult_max, T_mult_max, H_mult_max, alpha_mult_max, gamma_mult_max, B_mult_max, D_mult_max, C_mult_max = experiments.construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data_max_dose, modality_names)
-		# 	saving_dir = config_experiment+'_mult_max_{}_{}'.format(N1, N_proton)
+		# 	saving_dir = config_experiment+'_mult_max_{}_{}'.format(N1, N2)
 		# 	utils.save_obj(T_list_mult_max, 'T_list_mult_max', saving_dir)
 		# 	utils.save_obj(T_mult_max, 'T_mult_max', saving_dir)
 		# 	utils.save_obj(H_mult_max, 'H_mult_max', saving_dir)
@@ -187,7 +187,7 @@ if __name__ == '__main__':
 		# 	utils.save_obj(C_mult_max, 'C_mult_max', saving_dir)
 		# 	print('\nMax Dose input for dv constrained organs input, multi-modality saved to '+saving_dir)
 		# if precomputed_input == 'yes':
-		loading_dir = config_experiment+'_mult_max_{}_{}'.format(N1, N_proton)
+		loading_dir = config_experiment+'_mult_max_{}_{}'.format(N1, N2)
 		T_list_mult_max = utils.load_obj('T_list_mult_max', loading_dir)
 		T_mult_max = utils.load_obj('T_mult_max', loading_dir)
 		H_mult_max = utils.load_obj('H_mult_max', loading_dir)
@@ -362,7 +362,7 @@ if __name__ == '__main__':
 		# 	#First, compute the solution without dv constraint, multi-modality
 		# 	u_mult_smoothed, eta_0_mult_smoothed, eta_mult_smoothed, lambda_smoothing_mult_smoothed, auto_param_obj_history_mult_smoothed, auto_param_relaxed_obj_history_mult_smoothed = optimization_tools.solver_auto_param(u_init11, 
 		# 		utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_mult, H_mult, alpha_mult, gamma_mult, B_mult, D_mult, C_mult, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
-		# 	saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N_proton)
+		# 	saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
 		# 	utils.save_obj(u_mult_smoothed, 'u_mult_smoothed', saving_dir)
 		# 	utils.save_obj(eta_0_mult_smoothed, 'eta_0_mult_smoothed', saving_dir)
 		# 	utils.save_obj(eta_mult_smoothed, 'eta_mult_smoothed', saving_dir)
@@ -372,7 +372,7 @@ if __name__ == '__main__':
 
 		# if precomputed_input == 'yes':
 		print('\nLoading the solution')
-		loading_dir = config_experiment+'_mult_{}_{}'.format(N1, N_proton)
+		loading_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
 		u_mult_smoothed = utils.load_obj('u_mult_smoothed', loading_dir)
 		auto_param_obj_history_mult_smoothed = utils.load_obj('auto_param_obj_history_mult_smoothed', loading_dir)
 		auto_param_relaxed_obj_history_mult_smoothed = utils.load_obj('auto_param_relaxed_obj_history_mult_smoothed', loading_dir)
@@ -402,7 +402,7 @@ if __name__ == '__main__':
 
 		# u_mult_dv, eta_0_mult_dv, eta_mult_dv, lambda_smoothing_mult_dv, auto_param_obj_history_mult_dv, auto_param_relaxed_obj_history_mult_dv = optimization_tools.solver_auto_param(u_mult_smoothed, 
 			# utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_mult_dv, H_mult_dv, alpha_mult_dv, gamma_mult_dv, B_mult_dv, D_mult_dv, C_mult_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
-		loading_dir = config_experiment+'_mult_{}_{}'.format(N1, N_proton)
+		loading_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
 		u_mult_dv = utils.load_obj('u_mult_dv', loading_dir)
 		auto_param_obj_history_mult_dv = utils.load_obj('auto_param_obj_history_mult_dv', loading_dir)
 		auto_param_relaxed_obj_history_mult_dv = utils.load_obj('auto_param_relaxed_obj_history_mult_dv', loading_dir)
@@ -418,7 +418,7 @@ if __name__ == '__main__':
 		#######################
 		#Visualization
 		#######################
-		saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N_proton)
+		saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
 
 		#Figure 1: Constraints 
 		plt.figure()
