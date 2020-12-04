@@ -517,7 +517,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     lambda_smoothing_ = np.copy(lambda_smoothing) #To avoid changing it inplace
 
     if normalize:
-        normalization = np.mean(2*eta)
+        normalization = 1/np.mean(1/(2*eta))
         A = np.sqrt(normalization)*A
         b = np.sqrt(normalization)*b
         lambda_smoothing_ = normalization*lambda_smoothing_

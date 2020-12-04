@@ -183,10 +183,11 @@ def dose_dvh(max_BE, resolution, organ_BE):
 
 def min_max_mean_df(list_of_doses_and_names, dose_type = '_BE'):
     """list_of_doses_and_names should be a list of tuples"""
-    df_list = [[i[0], np.min(i[1]), np.max(i[1]), np.mean(i[1])] for i in list_of_doses_and_names]
-    df_cols = ['Organ', 'min'+dose_type, 'max'+dose_type, 'mean'+dose_type]
+    df_list = [[i[0], np.min(i[1]), np.max(i[1]), np.mean(i[1]), np.max(i[1])/np.min(i[1]), np.sum(i[1])] for i in list_of_doses_and_names]
+    df_cols = ['Organ', 'min'+dose_type, 'max'+dose_type, 'mean'+dose_type, 'max/min_ratio'+dose_type, 'total_'+dose_type]
     df = pd.DataFrame(df_list, columns=df_cols)
     return df
+
 
 def evaluation_photon_plot_BE(path, ax_BE, ax_dose, u, N, data, Alpha, Beta, Gamma, Delta, max_BE = 200, resolution = 500, max_dose = 45*5.0, dose_resolution = 500):
     #Note that mean dose is not supported
