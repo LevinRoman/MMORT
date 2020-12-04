@@ -457,3 +457,134 @@ if __name__ == '__main__':
 		evaluation.evaluation_proton_plot_BE(saving_df_path, axs[2,0], axs[2,1], u_mult_dv, N, data, Alpha, Beta, Gamma, Delta, max_BE = 10, resolution = 500, max_dose = 45*0.5, dose_resolution = 500)
 		fig.savefig(os.path.abspath(os.path.join('obj', saving_dir, 'dvh.png')), dpi = 350, bbox_inches = 'tight')
 
+
+	if compute_photon == 'yes':
+		start = time.time()
+		# #Compute initial guess, photoni-modality
+		# # Rx = 190#80#190#190 160 120 80
+		# LHS1 = T_list_photon[0]
+		# LHS2 = T_list_photon[1]
+		# RHS1 = np.array([Rx/np.sum(N)]*LHS1.shape[0])
+		# RHS2 = np.array([Rx/np.sum(N)]*LHS2.shape[0])
+
+		# u1_guess = scipy.optimize.lsq_linear(LHS1, RHS1, bounds = (0, np.inf), tol=1e-3, lsmr_tol=1e-2, max_iter=30, verbose=1).x
+		# u2_guess = scipy.optimize.lsq_linear(LHS2, RHS2, bounds = (0, np.inf), tol=1e-3, lsmr_tol=1e-2, max_iter=30, verbose=1).x
+
+		# u_init11 = np.concatenate([u1_guess, u2_guess])
+		# # u_init11 = np.concatenate([u_conv, np.zeros(u2_guess.shape[0])])
+
+		# #Initalize parameters
+		# eta_0 =  (1/(2*np.max(B_photon)))*eta0_coef_photon#0.9 #Initialize eta_0
+		# eta = np.array([eta_0/len(H_photon)]*len(H_photon))*eta_coef_photon#1e-7
+		# lambda_smoothing_init = np.copy(lambda_smoothing)
+		# #Set up smoothing matrix
+		# len_voxels = data['Aphoton'].shape[0]
+		# beamlet_indices = np.split(np.arange(len_voxels), np.cumsum(np.squeeze(data['num_beamlets'])))[:-1] 
+		# beams = [data['beamlet_pos'][i] for i in beamlet_indices]
+		# S = utils.construct_smoothing_matrix(beams, eps = 5)
+		# S = S.toarray()
+		# StS = S.T.dot(S)
+		# lambda_smoothing = 1e5#1e7#1e-3 #1e-2
+
+		#Compute the solution:
+		
+		# if precomputed_input == 'no':
+		# 	print('\nComputing the solution')
+		# 	#First, compute the solution without dv constraint, photoni-modality
+		# 	u_photon_smoothed, eta_0_photon_smoothed, eta_photon_smoothed, lambda_smoothing_photon_smoothed, auto_param_obj_history_photon_smoothed, auto_param_relaxed_obj_history_photon_smoothed = optimization_tools.solver_auto_param(u_init11, 
+		# 		utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_photon, H_photon, alpha_photon, gamma_photon, B_photon, D_photon, C_photon, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
+		# 	saving_dir = config_experiment+'_photon_{}_{}'.format(N_photon, 0)
+		# 	utils.save_obj(u_photon_smoothed, 'u_photon_smoothed', saving_dir)
+		# 	utils.save_obj(eta_0_photon_smoothed, 'eta_0_photon_smoothed', saving_dir)
+		# 	utils.save_obj(eta_photon_smoothed, 'eta_photon_smoothed', saving_dir)
+		# 	utils.save_obj(lambda_smoothing_photon_smoothed, 'lambda_smoothing_photon_smoothed', saving_dir)
+		# 	utils.save_obj(auto_param_obj_history_photon_smoothed, 'auto_param_obj_history_photon_smoothed', saving_dir)
+		# 	utils.save_obj(auto_param_relaxed_obj_history_photon_smoothed, 'auto_param_relaxed_obj_history_photon_smoothed', saving_dir)
+
+		# if precomputed_input == 'yes':
+		print('\nLoading the solution')
+		loading_dir = config_experiment+'_photon_{}_{}'.format(N_photon, 0)
+		u_photon_smoothed = utils.load_obj('u_photon_smoothed', loading_dir)
+		auto_param_obj_history_photon_smoothed = utils.load_obj('auto_param_obj_history_photon_smoothed', loading_dir)
+		auto_param_relaxed_obj_history_photon_smoothed = utils.load_obj('auto_param_relaxed_obj_history_photon_smoothed', loading_dir)
+		# eta_0_photon_smoothed = utils.load_obj('eta_0_photon_smoothed', loading_dir)
+		# eta_photon_smoothed = utils.load_obj('eta_photon_smoothed', loading_dir)
+		# lambda_smoothing_photon_smoothed = 1e12
+		# lambda_smoothing_photon_smoothed = utils.load_obj('lambda_smoothing_photon_smoothed', loading_dir)
+		#Load lambda smoothing here too
+		#Try with all the same parameters and initialize larger smoothing
+
+		end = time.time()
+		print('\n Mult without DVC Solution Computed. Time elapsed:', end - start)
+
+
+		#Now with DVH constraints, photoni-modality
+		oar_indices, T_list_photon_dv, T_photon_dv, H_photon_dv, alpha_photon_dv, gamma_photon_dv, B_photon_dv, D_photon_dv, C_photon_dv = utils.generate_dose_volume_input(T_list_photon_max, T_photon_max, H_photon_max, alpha_photon_max, gamma_photon_max, B_photon_max, D_photon_max, C_photon_max, u_photon_smoothed, N, data, Alpha, Beta, Gamma, Delta)
+
+		# eta_0 =  (1/(2*np.max(B_photon_dv)))*eta0_coef_photon #Initialize eta_0
+		# eta = np.array([eta_0/len(H_photon_dv)]*len(H_photon_dv))*eta_coef_photon
+
+		#Update parameters
+		# if update_parameters == 'yes':
+			# lambda_smoothing_init = np.copy(lambda_smoothing_photon_smoothed)
+			# eta_0 = eta_0_photon_smoothed
+			# eta = utils.update_dose_volume_eta(eta, eta_photon_smoothed, oar_indices, data)
+		# lambda_smoothing = 1e5
+
+		# u_photon_dv, eta_0_photon_dv, eta_photon_dv, lambda_smoothing_photon_dv, auto_param_obj_history_photon_dv, auto_param_relaxed_obj_history_photon_dv = optimization_tools.solver_auto_param(u_photon_smoothed, 
+			# utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_photon_dv, H_photon_dv, alpha_photon_dv, gamma_photon_dv, B_photon_dv, D_photon_dv, C_photon_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
+		loading_dir = config_experiment+'_photon_{}_{}'.format(N_photon, 0)
+		u_photon_dv = utils.load_obj('u_photon_dv', loading_dir)
+		auto_param_obj_history_photon_dv = utils.load_obj('auto_param_obj_history_photon_dv', loading_dir)
+		auto_param_relaxed_obj_history_photon_dv = utils.load_obj('auto_param_relaxed_obj_history_photon_dv', loading_dir)
+
+		# utils.save_obj(eta_0_photon_dv, 'eta_0_photon_dv', saving_dir)
+		# utils.save_obj(eta_photon_dv, 'eta_photon_dv', saving_dir)
+		# utils.save_obj(lambda_smoothing_photon_dv, 'lambda_smoothing_photon_dv', saving_dir)
+		
+		end = time.time()
+		print('\n Mult DVC Solution Computed. Time elapsed:', end - start)
+
+
+		#######################
+		#Visualization
+		#######################
+		saving_dir = config_experiment+'_photon_{}_{}'.format(N_photon, 0)
+
+		#Figure 1: Constraints 
+		plt.figure()
+		sns.set()
+		plt.plot(optimization_tools.constraints_all(u_photon_dv, H_photon_dv, gamma_photon_dv, D_photon_dv, C_photon_dv, tol = 0.05, verbose = 0)['Constr at u_opt'])
+		plt.plot(optimization_tools.constraints_all(u_photon_dv, H_photon_dv, gamma_photon_dv, D_photon_dv, C_photon_dv, tol = 0.05, verbose = 0)['actual constr'], '-.')
+		plt.title('OAR constraints')
+		plt.savefig(os.path.abspath(os.path.join('obj', saving_dir, 'constraints.png')), dpi = 350, bbox_inches = 'tight')
+
+		#Figure 2: Objective
+		fig, ax = plt.subplots(1, 2)
+		ax[0].plot(np.concatenate(auto_param_obj_history_photon_dv))
+		ax[0].set_title('Objective (Tumor BE')
+		ax[1].plot(np.concatenate(auto_param_relaxed_obj_history_photon_dv))
+		ax[1].set_title('Relaxed Objective')
+		fig.savefig(os.path.abspath(os.path.join('obj', saving_dir, 'Objectives.png')), dpi = 350, bbox_inches = 'tight')
+
+		#Figure 3: Beams
+		len_voxels = data['Aphoton'].shape[0]
+		beamlet_indices = np.split(np.arange(len_voxels), np.cumsum(np.squeeze(data['num_beamlets'])))[:-1] 
+		# beams = [data['beamlet_pos'][i] for i in beamlet_indices]
+		fig = plt.figure(figsize = (50, 10))
+		for i in range(len(beamlet_indices)):
+			ax = fig.add_subplot(150 + i + 1, projection='3d')
+			x_beam = data['beamlet_pos'][beamlet_indices[i]][:,0]
+			y_beam = data['beamlet_pos'][beamlet_indices[i]][:,1]
+			u_beam = u_photon_dv[:data['Aphoton'].shape[1]][beamlet_indices[i]]
+			evaluation.plot_beam(ax, x_beam, y_beam, u_beam)
+		fig.savefig(os.path.abspath(os.path.join('obj', saving_dir, 'beams.png')), dpi = 350, bbox_inches = 'tight')
+
+		#Figure 4: DVH
+		fig, axs = plt.subplots(1,2, figsize = (30,30))
+		saving_df_path = os.path.abspath(os.path.join('obj', saving_dir))
+		# evaluation.evaluation_photon_plot_BE(saving_df_path, axs[0,0], axs[0,1], u_photon_dv, N, data, Alpha, Beta, Gamma, Delta, max_BE = 200, resolution = 500, max_dose = 45*5.0, dose_resolution = 500)
+		evaluation.evaluation_photon_plot_BE(saving_df_path, axs[1,0], axs[1,1], u_photon_dv, N, data, Alpha, Beta, Gamma, Delta, max_BE = 200, resolution = 500, max_dose = 45*5.0, dose_resolution = 500)
+		# evaluation.evaluation_proton_plot_BE(saving_df_path, axs[2,0], axs[2,1], u_photon_dv, N, data, Alpha, Beta, Gamma, Delta, max_BE = 10, resolution = 500, max_dose = 45*0.5, dose_resolution = 500)
+		fig.savefig(os.path.abspath(os.path.join('obj', saving_dir, 'dvh.png')), dpi = 350, bbox_inches = 'tight')
+
