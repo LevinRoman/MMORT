@@ -477,7 +477,7 @@ if __name__ == '__main__':
 
 
 		#Now with DVH constraints, photon-modality
-		oar_indices, T_list_photon_dv, T_photon_dv, H_photon_dv, alpha_photon_dv, gamma_photon_dv, B_photon_dv, D_photon_dv, C_photon_dv = utils.generate_dose_volume_input(T_list_photon_max, T_photon_max, H_photon_max, alpha_photon_max, gamma_photon_max, B_photon_max, D_photon_max, C_photon_max, u_photon_smoothed, N, data, Alpha, Beta, Gamma, Delta)
+		oar_indices, T_list_photon_dv, T_photon_dv, H_photon_dv, alpha_photon_dv, gamma_photon_dv, B_photon_dv, D_photon_dv, C_photon_dv = utils.generate_dose_volume_input(T_list_photon_max, T_photon_max, H_photon_max, alpha_photon_max, gamma_photon_max, B_photon_max, D_photon_max, C_photon_max, u_photon_smoothed, N, data, Alpha, Beta, Gamma, Delta, photon_only = True)
 
 		eta_0 =  (1/(2*np.max(B_photon_dv)))*eta0_coef_photon #Initialize eta_0
 		eta = np.array([eta_0/len(H_photon_dv)]*len(H_photon_dv))*eta_coef_photon
@@ -566,7 +566,7 @@ if __name__ == '__main__':
 
 
 		#Now with DVH constraints, protoni-modality
-		oar_indices, T_list_proton_dv, T_proton_dv, H_proton_dv, alpha_proton_dv, gamma_proton_dv, B_proton_dv, D_proton_dv, C_proton_dv = utils.generate_dose_volume_input(T_list_proton_max, T_proton_max, H_proton_max, alpha_proton_max, gamma_proton_max, B_proton_max, D_proton_max, C_proton_max, u_proton_smoothed, N, data, Alpha, Beta, Gamma, Delta)
+		oar_indices, T_list_proton_dv, T_proton_dv, H_proton_dv, alpha_proton_dv, gamma_proton_dv, B_proton_dv, D_proton_dv, C_proton_dv = utils.generate_dose_volume_input(T_list_proton_max, T_proton_max, H_proton_max, alpha_proton_max, gamma_proton_max, B_proton_max, D_proton_max, C_proton_max, u_proton_smoothed, N, data, Alpha, Beta, Gamma, Delta, proton_only = True)
 
 		eta_0 =  (1/(2*np.max(B_proton_dv)))*eta0_coef_proton #Initialize eta_0
 		eta = np.array([eta_0/len(H_proton_dv)]*len(H_proton_dv))*eta_coef_proton
