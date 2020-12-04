@@ -582,6 +582,8 @@ if __name__ == '__main__':
 			eta = utils.update_dose_volume_eta(eta, eta_proton_smoothed, oar_indices, data)
 		# lambda_smoothing = 1e5
 
+		print('\n !!!!!!!! Shapes:', u_proton_smoothed.shape, T_list_proton_dv[0].shape)
+
 		u_proton_dv, eta_0_proton_dv, eta_proton_dv, lambda_smoothing_proton_dv, auto_param_obj_history_proton_dv, auto_param_relaxed_obj_history_proton_dv = optimization_tools.solver_auto_param(u_proton_smoothed, 
 			utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_proton_dv, H_proton_dv, alpha_proton_dv, gamma_proton_dv, B_proton_dv, D_proton_dv, C_proton_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0,  proton_only = True, normalize = normalize)
 		saving_dir = config_experiment+'_proton_{}_{}'.format(0, N_proton)
