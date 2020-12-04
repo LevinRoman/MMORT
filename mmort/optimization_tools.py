@@ -441,7 +441,7 @@ def constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0):
 
 
 def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=100, normalize = False,
-    target_photon_matrix = None, max_min_ratio = 2.0, proton_only = False, lambda_step = 10.0):  
+    target_photon_matrix = None, max_min_ratio = 2.0, proton_only = False, lambda_step = 10.0, enforce_smooth_u = True):  
     # PREMULTIPLIED LHS IS AN EXTRA ARGUMENT! Set it to None and add solver!    
     """Compute the sparse least squares update for u per section 3.2.1 of the paper 
     The rhs of the ls problem needs to be recomputed every time since w_0 and w are variables   
