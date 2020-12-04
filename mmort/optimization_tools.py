@@ -440,7 +440,8 @@ def constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0):
 #     return u_next
 
 
-def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=100, normalize = False):  
+def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=100, normalize = False,
+    target_photon_matrix = None, max_min_ratio = 2.0, proton_only = False, lambda_step = 10.0):  
     # PREMULTIPLIED LHS IS AN EXTRA ARGUMENT! Set it to None and add solver!    
     """Compute the sparse least squares update for u per section 3.2.1 of the paper 
     The rhs of the ls problem needs to be recomputed every time since w_0 and w are variables   
@@ -529,15 +530,32 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
 
     bnds = [(0, np.inf)]*x0.shape[0]
 
-    
     res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing_), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
-               options = {'maxiter': nnls_max_iter, 'disp':1})
+       options = {'maxiter': nnls_max_iter, 'disp':1})
     print(res)
+    u_next = res.x
+
+    if enforce_smooth_u:
+        photon_target_smoothness = check_photon_target_smoothness(target_photon_matrix, u_next, max_min_ratio = max_min_ratio, proton_only = proton_only)
+        count = 0
+        while not photon_target_smoothness:
+            print('\nTaken {} smoothness iterations'.format(count))
+            count+=1
+            lambda_smoothing_ *= lambda_step
+            x0 = u_next#np.zeros(AtA.shape[1])
+
+            bnds = [(0, np.inf)]*x0.shape[0]
+
+            res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing_), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
+               options = {'maxiter': nnls_max_iter, 'disp':0})
+            print(res)
+            u_next = res.x
+            photon_target_smoothness = check_photon_target_smoothness(target_photon_matrix, u_next, max_min_ratio = max_min_ratio, proton_only = proton_only)
 
     end = time.time()
     print('u update took:', end - start)
-    u_next = res.x
-    return u_next
+    
+    return u_next, lambda_smoothing_
 
 #update in w0:
 def w_0_update(eta_0, u, T, alpha, B):
@@ -759,7 +777,8 @@ def w_s_update(u, S):
 #     return u, obj_history, relaxed_obj_history
 
 
-def solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = 5000, verbose = 0, normalize = False):
+def solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = 5000, verbose = 0, normalize = False,
+    target_photon_matrix = None, max_min_ratio = 2.0, proton_only = False, lambda_step = 10.0):
     """Returns the optimal u for the relaxed problem in section 3.2.1 of the paper
 
     Parameters
@@ -823,7 +842,8 @@ def solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, 
         w_0 = w_0_update(eta_0, u, T, alpha, B) 
         w = w_update(u, H, gamma, D, C)
         nnls_max_iter = 50 #+ (max(0,count-10))**(3/2)
-        u = u_update(u, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=nnls_max_iter, normalize = normalize)
+        u, lambda_smoothing = u_update(u, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=nnls_max_iter, normalize = normalize,
+            target_photon_matrix = target_photon_matrix, max_min_ratio = max_min_ratio, proton_only = proton_only, lambda_step = lambda_step)
 #         u = u_update(eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=50)
         #!!!!
 #         u = u_update(eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=30)
@@ -847,7 +867,7 @@ def solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, 
             stopping_criterium = np.abs((relaxed_obj_history[-2] - relaxed_obj_history[-1])/relaxed_obj_history[-2])
             print('    iter = {}, stopping criterion:{}, OBJ {}'.format(count, stopping_criterium, cur_obj))
             print('    This iteration took: {}'.format(duration))
-    return u, obj_history, relaxed_obj_history
+    return u, lambda_smoothing, obj_history, relaxed_obj_history
 
 def check_photon_target_smoothness(target_photon_matrix, u_mult_smoothed, max_min_ratio = 2, proton_only = False):
     """max_min_ratio -- the amount of difference we allow between max and min tumor dose"""
@@ -863,7 +883,8 @@ def check_photon_target_smoothness(target_photon_matrix, u_mult_smoothed, max_mi
     
 #Automatic choice of etas:
 
-def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, smoothing_ratio, T, H, alpha, gamma, B, D, C, eta_step = 0.5, ftol = 1e-3, max_iter = 300, eta_0 = None, eta = None, verbose = 0, proton_only = False, normalize = False):
+def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, smoothing_ratio, T, H, alpha, gamma, B, D, C, eta_step = 0.5, ftol = 1e-3, max_iter = 300, eta_0 = None, eta = None, verbose = 0, proton_only = False, normalize = False,
+    lambda_step = 10.0):
     """Returns the optimal u for the relaxed problem in section 3.2.1 of the paper
     with the automated parameter selection
 
@@ -923,7 +944,8 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
     if eta is None:
         eta = np.array([eta_0/len(H)]*len(H))*2#*0.01#np.array([eta_0/len(H)]*len(H))*2 
     
-    u, obj_history, relaxed_obj_history = solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = max_iter, verbose = verbose, normalize = normalize)
+    u, lambda_smoothing, obj_history, relaxed_obj_history = solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = max_iter, verbose = verbose, normalize = normalize,
+        target_photon_matrix = target_photon_matrix, max_min_ratio = max_min_ratio, proton_only = proton_only, lambda_step = lambda_step)
     auto_param_obj_history.append(obj_history)
     auto_param_relaxed_obj_history.append(relaxed_obj_history)
     cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
@@ -951,7 +973,8 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
                 lambda_smoothing *= (1/eta_step)
                 print('Lambda Smoothing:', lambda_smoothing)
             
-        u, obj_history, relaxed_obj_history = solver(u, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose, normalize = normalize)
+        u, lambda_smoothing, obj_history, relaxed_obj_history = solver(u, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose, normalize = normalize,
+            target_photon_matrix = target_photon_matrix, max_min_ratio = max_min_ratio, proton_only = proton_only, lambda_step = lambda_step)
         
         auto_param_obj_history.append(obj_history)
         auto_param_relaxed_obj_history.append(relaxed_obj_history)
@@ -972,7 +995,8 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
             lambda_smoothing *= (1/eta_step)
         
         #Could do a while loop for smoothing here since we have the objective check later anyway
-        u, obj_history, relaxed_obj_history = solver(u, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose, normalize = normalize)
+        u, lambda_smoothing, obj_history, relaxed_obj_history = solver(u, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = ftol, max_iter = max_iter, verbose = verbose, normalize = normalize,
+            target_photon_matrix = target_photon_matrix, max_min_ratio = max_min_ratio, proton_only = proton_only, lambda_step = lambda_step)
         auto_param_obj_history.append(obj_history)
         #Note that smoothing is currently not counted in the relaxed objective
         auto_param_relaxed_obj_history.append(relaxed_obj_history)
