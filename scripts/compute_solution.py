@@ -47,12 +47,12 @@ if __name__ == '__main__':
 	parser.add_argument('--N2', default = 1.0, type = float)
 	parser.add_argument('--N_photon', default = 44.0, type = float)
 	parser.add_argument('--N_proton', default = 44.0, type = float)
-	parser.add_argument('--compute_proton', default = 'yes', type = str)
+	parser.add_argument('--compute_mult', default = 'yes', type = str)
 	parser.add_argument('--compute_photon', default = 'yes', type = str)
 	parser.add_argument('--compute_proton', default = 'yes', type = str)
 	parser.add_argument('--Rx', default = 190.0, type = float)
-	parser.add_argument('--eta0_coef_proton', default = 0.9, type = float)
-	parser.add_argument('--eta_coef_proton', default = 1e-7, type = float)
+	parser.add_argument('--eta0_coef_mult', default = 0.9, type = float)
+	parser.add_argument('--eta_coef_mult', default = 1e-7, type = float)
 	parser.add_argument('--eta0_coef_photon', default = 0.9, type = float)
 	parser.add_argument('--eta_coef_photon', default = 1e-7, type = float)
 	parser.add_argument('--eta0_coef_proton', default = 0.9, type = float)
@@ -79,12 +79,12 @@ if __name__ == '__main__':
 	N_photon = args.N_photon
 	N_proton = args.N_proton
 	N = np.array([N1, N2])
-	compute_proton = args.compute_proton
+	compute_mult = args.compute_mult
 	compute_photon = args.compute_photon
 	compute_proton = args.compute_proton
 	Rx = args.Rx
-	eta0_coef_proton = args.eta0_coef_proton
-	eta_coef_proton = args.eta_coef_proton
+	eta0_coef_mult = args.eta0_coef_mult
+	eta_coef_mult = args.eta_coef_mult
 	eta0_coef_photon = args.eta0_coef_photon
 	eta_coef_photon = args.eta_coef_photon
 	eta0_coef_proton = args.eta0_coef_proton
@@ -142,32 +142,32 @@ if __name__ == '__main__':
 	############################
 
 
-	if compute_proton == 'yes':
+	if compute_mult == 'yes':
 		start = time.time()
-		#Initial input, with dv constraint types, protoni-modality
+		#Initial input, with dv constraint types, multi-modality
 		if precomputed_input == 'no':
-			T_list_proton, T_proton, H_proton, alpha_proton, gamma_proton, B_proton, D_proton, C_proton = experiments.construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data, modality_names)
-			saving_dir = config_experiment+'_proton_{}_{}'.format(N1, N2)
-			utils.save_obj(T_list_proton, 'T_list_proton', saving_dir)
-			utils.save_obj(T_proton, 'T_proton', saving_dir)
-			utils.save_obj(H_proton, 'H_proton', saving_dir)
-			utils.save_obj(alpha_proton, 'alpha_proton', saving_dir)
-			utils.save_obj(gamma_proton, 'gamma_proton', saving_dir)
-			utils.save_obj(B_proton, 'B_proton', saving_dir)
-			utils.save_obj(D_proton, 'D_proton', saving_dir)
-			utils.save_obj(C_proton, 'C_proton', saving_dir)
-			print('\nInitial input, with dv constraint types, protoni-modality saved to '+saving_dir)
+			T_list_mult, T_mult, H_mult, alpha_mult, gamma_mult, B_mult, D_mult, C_mult = experiments.construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data, modality_names)
+			saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
+			utils.save_obj(T_list_mult, 'T_list_mult', saving_dir)
+			utils.save_obj(T_mult, 'T_mult', saving_dir)
+			utils.save_obj(H_mult, 'H_mult', saving_dir)
+			utils.save_obj(alpha_mult, 'alpha_mult', saving_dir)
+			utils.save_obj(gamma_mult, 'gamma_mult', saving_dir)
+			utils.save_obj(B_mult, 'B_mult', saving_dir)
+			utils.save_obj(D_mult, 'D_mult', saving_dir)
+			utils.save_obj(C_mult, 'C_mult', saving_dir)
+			print('\nInitial input, with dv constraint types, multi-modality saved to '+saving_dir)
 		if precomputed_input == 'yes':
-			loading_dir = config_experiment+'_proton_{}_{}'.format(N1, N2)
-			T_list_proton = utils.load_obj( 'T_list_proton', loading_dir)
-			T_proton = utils.load_obj('T_proton', loading_dir)
-			H_proton = utils.load_obj('H_proton', loading_dir)
-			alpha_proton = utils.load_obj('alpha_proton', loading_dir)
-			gamma_proton = utils.load_obj('gamma_proton', loading_dir)
-			B_proton = utils.load_obj('B_proton', loading_dir)
-			D_proton = utils.load_obj('D_proton', loading_dir)
-			C_proton = utils.load_obj('C_proton', loading_dir)
-			print('\nInitial input, with dv constraint types, protoni-modality loaded from '+loading_dir)
+			loading_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
+			T_list_mult = utils.load_obj( 'T_list_mult', loading_dir)
+			T_mult = utils.load_obj('T_mult', loading_dir)
+			H_mult = utils.load_obj('H_mult', loading_dir)
+			alpha_mult = utils.load_obj('alpha_mult', loading_dir)
+			gamma_mult = utils.load_obj('gamma_mult', loading_dir)
+			B_mult = utils.load_obj('B_mult', loading_dir)
+			D_mult = utils.load_obj('D_mult', loading_dir)
+			C_mult = utils.load_obj('C_mult', loading_dir)
+			print('\nInitial input, with dv constraint types, multi-modality loaded from '+loading_dir)
 
 		
 		end = time.time()
@@ -175,30 +175,30 @@ if __name__ == '__main__':
 
 
 		start = time.time()
-		#Max Dose for dv constrained organs input, protoni-modality
+		#Max Dose for dv constrained organs input, multi-modality
 		if precomputed_input == 'no':
-			T_list_proton_max, T_proton_max, H_proton_max, alpha_proton_max, gamma_proton_max, B_proton_max, D_proton_max, C_proton_max = experiments.construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data_max_dose, modality_names)
-			saving_dir = config_experiment+'_proton_max_{}_{}'.format(N1, N2)
-			utils.save_obj(T_list_proton_max, 'T_list_proton_max', saving_dir)
-			utils.save_obj(T_proton_max, 'T_proton_max', saving_dir)
-			utils.save_obj(H_proton_max, 'H_proton_max', saving_dir)
-			utils.save_obj(alpha_proton_max, 'alpha_proton_max', saving_dir)
-			utils.save_obj(gamma_proton_max, 'gamma_proton_max', saving_dir)
-			utils.save_obj(B_proton_max, 'B_proton_max', saving_dir)
-			utils.save_obj(D_proton_max, 'D_proton_max', saving_dir)
-			utils.save_obj(C_proton_max, 'C_proton_max', saving_dir)
-			print('\nMax Dose input for dv constrained organs input, protoni-modality saved to '+saving_dir)
+			T_list_mult_max, T_mult_max, H_mult_max, alpha_mult_max, gamma_mult_max, B_mult_max, D_mult_max, C_mult_max = experiments.construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data_max_dose, modality_names)
+			saving_dir = config_experiment+'_mult_max_{}_{}'.format(N1, N2)
+			utils.save_obj(T_list_mult_max, 'T_list_mult_max', saving_dir)
+			utils.save_obj(T_mult_max, 'T_mult_max', saving_dir)
+			utils.save_obj(H_mult_max, 'H_mult_max', saving_dir)
+			utils.save_obj(alpha_mult_max, 'alpha_mult_max', saving_dir)
+			utils.save_obj(gamma_mult_max, 'gamma_mult_max', saving_dir)
+			utils.save_obj(B_mult_max, 'B_mult_max', saving_dir)
+			utils.save_obj(D_mult_max, 'D_mult_max', saving_dir)
+			utils.save_obj(C_mult_max, 'C_mult_max', saving_dir)
+			print('\nMax Dose input for dv constrained organs input, multi-modality saved to '+saving_dir)
 		if precomputed_input == 'yes':
-			loading_dir = config_experiment+'_proton_max_{}_{}'.format(N1, N2)
-			T_list_proton_max = utils.load_obj('T_list_proton_max', loading_dir)
-			T_proton_max = utils.load_obj('T_proton_max', loading_dir)
-			H_proton_max = utils.load_obj('H_proton_max', loading_dir)
-			alpha_proton_max = utils.load_obj('alpha_proton_max', loading_dir)
-			gamma_proton_max = utils.load_obj('gamma_proton_max', loading_dir)
-			B_proton_max = utils.load_obj('B_proton_max', loading_dir)
-			D_proton_max = utils.load_obj('D_proton_max', loading_dir)
-			C_proton_max = utils.load_obj('C_proton_max', loading_dir)
-			print('\nMax Dose input for dv constrained organs input, protoni-modality loaded from '+loading_dir)
+			loading_dir = config_experiment+'_mult_max_{}_{}'.format(N1, N2)
+			T_list_mult_max = utils.load_obj('T_list_mult_max', loading_dir)
+			T_mult_max = utils.load_obj('T_mult_max', loading_dir)
+			H_mult_max = utils.load_obj('H_mult_max', loading_dir)
+			alpha_mult_max = utils.load_obj('alpha_mult_max', loading_dir)
+			gamma_mult_max = utils.load_obj('gamma_mult_max', loading_dir)
+			B_mult_max = utils.load_obj('B_mult_max', loading_dir)
+			D_mult_max = utils.load_obj('D_mult_max', loading_dir)
+			C_mult_max = utils.load_obj('C_mult_max', loading_dir)
+			print('\nMax Dose input for dv constrained organs input, multi-modality loaded from '+loading_dir)
 
 		end = time.time()
 		print('Time elapsed:', end - start)
@@ -327,14 +327,14 @@ if __name__ == '__main__':
 
 
 	#######################################
-	#Solution computation, protoni-modality
+	#Solution computation, multi-modality
 	#######################################
-	if compute_proton == 'yes':
+	if compute_mult == 'yes':
 		start = time.time()
-		#Compute initial guess, protoni-modality
+		#Compute initial guess, multi-modality
 		# Rx = 190#80#190#190 160 120 80
-		LHS1 = T_list_proton[0]
-		LHS2 = T_list_proton[1]
+		LHS1 = T_list_mult[0]
+		LHS2 = T_list_mult[1]
 		RHS1 = np.array([Rx/np.sum(N)]*LHS1.shape[0])
 		RHS2 = np.array([Rx/np.sum(N)]*LHS2.shape[0])
 
@@ -345,8 +345,8 @@ if __name__ == '__main__':
 		# u_init11 = np.concatenate([u_conv, np.zeros(u2_guess.shape[0])])
 
 		#Initalize parameters
-		eta_0 =  (1/(2*np.max(B_proton)))*eta0_coef_proton#0.9 #Initialize eta_0
-		eta = np.array([eta_0/len(H_proton)]*len(H_proton))*eta_coef_proton#1e-7
+		eta_0 =  (1/(2*np.max(B_mult)))*eta0_coef_mult#0.9 #Initialize eta_0
+		eta = np.array([eta_0/len(H_mult)]*len(H_mult))*eta_coef_mult#1e-7
 		lambda_smoothing_init = np.copy(lambda_smoothing)
 		#Set up smoothing matrix
 		len_voxels = data['Aphoton'].shape[0]
@@ -361,25 +361,25 @@ if __name__ == '__main__':
 		
 		if precomputed_solution == 'no':
 			print('\nComputing the solution')
-			#First, compute the solution without dv constraint, protoni-modality
-			u_proton_smoothed, eta_0_proton_smoothed, eta_proton_smoothed, lambda_smoothing_proton_smoothed, auto_param_obj_history_proton_smoothed, auto_param_relaxed_obj_history_proton_smoothed = optimization_tools.solver_auto_param(u_init11, 
-				utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_proton, H_proton, alpha_proton, gamma_proton, B_proton, D_proton, C_proton, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
-			saving_dir = config_experiment+'_proton_{}_{}'.format(N1, N2)
-			utils.save_obj(u_proton_smoothed, 'u_proton_smoothed', saving_dir)
-			utils.save_obj(eta_0_proton_smoothed, 'eta_0_proton_smoothed', saving_dir)
-			utils.save_obj(eta_proton_smoothed, 'eta_proton_smoothed', saving_dir)
-			utils.save_obj(lambda_smoothing_proton_smoothed, 'lambda_smoothing_proton_smoothed', saving_dir)
-			utils.save_obj(auto_param_obj_history_proton_smoothed, 'auto_param_obj_history_proton_smoothed', saving_dir)
-			utils.save_obj(auto_param_relaxed_obj_history_proton_smoothed, 'auto_param_relaxed_obj_history_proton_smoothed', saving_dir)
+			#First, compute the solution without dv constraint, multi-modality
+			u_mult_smoothed, eta_0_mult_smoothed, eta_mult_smoothed, lambda_smoothing_mult_smoothed, auto_param_obj_history_mult_smoothed, auto_param_relaxed_obj_history_mult_smoothed = optimization_tools.solver_auto_param(u_init11, 
+				utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_mult, H_mult, alpha_mult, gamma_mult, B_mult, D_mult, C_mult, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
+			saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
+			utils.save_obj(u_mult_smoothed, 'u_mult_smoothed', saving_dir)
+			utils.save_obj(eta_0_mult_smoothed, 'eta_0_mult_smoothed', saving_dir)
+			utils.save_obj(eta_mult_smoothed, 'eta_mult_smoothed', saving_dir)
+			utils.save_obj(lambda_smoothing_mult_smoothed, 'lambda_smoothing_mult_smoothed', saving_dir)
+			utils.save_obj(auto_param_obj_history_mult_smoothed, 'auto_param_obj_history_mult_smoothed', saving_dir)
+			utils.save_obj(auto_param_relaxed_obj_history_mult_smoothed, 'auto_param_relaxed_obj_history_mult_smoothed', saving_dir)
 
 		if precomputed_solution == 'yes':
 			print('\nLoading the solution')
-			loading_dir = config_experiment+'_proton_{}_{}'.format(N1, N2)
-			u_proton_smoothed = utils.load_obj('u_proton_smoothed', loading_dir)
-			eta_0_proton_smoothed = utils.load_obj('eta_0_proton_smoothed', loading_dir)
-			eta_proton_smoothed = utils.load_obj('eta_proton_smoothed', loading_dir)
-			# lambda_smoothing_proton_smoothed = 1e12
-			lambda_smoothing_proton_smoothed = utils.load_obj('lambda_smoothing_proton_smoothed', loading_dir)
+			loading_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
+			u_mult_smoothed = utils.load_obj('u_mult_smoothed', loading_dir)
+			eta_0_mult_smoothed = utils.load_obj('eta_0_mult_smoothed', loading_dir)
+			eta_mult_smoothed = utils.load_obj('eta_mult_smoothed', loading_dir)
+			# lambda_smoothing_mult_smoothed = 1e12
+			lambda_smoothing_mult_smoothed = utils.load_obj('lambda_smoothing_mult_smoothed', loading_dir)
 			#Load lambda smoothing here too
 			#Try with all the same parameters and initialize larger smoothing
 
@@ -387,28 +387,28 @@ if __name__ == '__main__':
 		print('\n Mult without DVC Solution Computed. Time elapsed:', end - start)
 
 
-		#Now with DVH constraints, protoni-modality
-		oar_indices, T_list_proton_dv, T_proton_dv, H_proton_dv, alpha_proton_dv, gamma_proton_dv, B_proton_dv, D_proton_dv, C_proton_dv = utils.generate_dose_volume_input(T_list_proton_max, T_proton_max, H_proton_max, alpha_proton_max, gamma_proton_max, B_proton_max, D_proton_max, C_proton_max, u_proton_smoothed, N, data, Alpha, Beta, Gamma, Delta)
+		#Now with DVH constraints, multi-modality
+		oar_indices, T_list_mult_dv, T_mult_dv, H_mult_dv, alpha_mult_dv, gamma_mult_dv, B_mult_dv, D_mult_dv, C_mult_dv = utils.generate_dose_volume_input(T_list_mult_max, T_mult_max, H_mult_max, alpha_mult_max, gamma_mult_max, B_mult_max, D_mult_max, C_mult_max, u_mult_smoothed, N, data, Alpha, Beta, Gamma, Delta)
 
-		eta_0 =  (1/(2*np.max(B_proton_dv)))*eta0_coef_proton #Initialize eta_0
-		eta = np.array([eta_0/len(H_proton_dv)]*len(H_proton_dv))*eta_coef_proton
+		eta_0 =  (1/(2*np.max(B_mult_dv)))*eta0_coef_mult #Initialize eta_0
+		eta = np.array([eta_0/len(H_mult_dv)]*len(H_mult_dv))*eta_coef_mult
 
 		#Update parameters
 		if update_parameters == 'yes':
-			lambda_smoothing_init = np.copy(lambda_smoothing_proton_smoothed)
-			eta_0 = eta_0_proton_smoothed
-			eta = utils.update_dose_volume_eta(eta, eta_proton_smoothed, oar_indices, data)
+			lambda_smoothing_init = np.copy(lambda_smoothing_mult_smoothed)
+			eta_0 = eta_0_mult_smoothed
+			eta = utils.update_dose_volume_eta(eta, eta_mult_smoothed, oar_indices, data)
 		# lambda_smoothing = 1e5
 
-		u_proton_dv, eta_0_proton_dv, eta_proton_dv, lambda_smoothing_proton_dv, auto_param_obj_history_proton_dv, auto_param_relaxed_obj_history_proton_dv = optimization_tools.solver_auto_param(u_proton_smoothed, 
-			utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_proton_dv, H_proton_dv, alpha_proton_dv, gamma_proton_dv, B_proton_dv, D_proton_dv, C_proton_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
-		saving_dir = config_experiment+'_proton_{}_{}'.format(N1, N2)
-		utils.save_obj(u_proton_dv, 'u_proton_dv', saving_dir)
-		utils.save_obj(eta_0_proton_dv, 'eta_0_proton_dv', saving_dir)
-		utils.save_obj(eta_proton_dv, 'eta_proton_dv', saving_dir)
-		utils.save_obj(lambda_smoothing_proton_dv, 'lambda_smoothing_proton_dv', saving_dir)
-		utils.save_obj(auto_param_obj_history_proton_dv, 'auto_param_obj_history_proton_dv', saving_dir)
-		utils.save_obj(auto_param_relaxed_obj_history_proton_dv, 'auto_param_relaxed_obj_history_proton_dv', saving_dir)
+		u_mult_dv, eta_0_mult_dv, eta_mult_dv, lambda_smoothing_mult_dv, auto_param_obj_history_mult_dv, auto_param_relaxed_obj_history_mult_dv = optimization_tools.solver_auto_param(u_mult_smoothed, 
+			utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_mult_dv, H_mult_dv, alpha_mult_dv, gamma_mult_dv, B_mult_dv, D_mult_dv, C_mult_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
+		saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
+		utils.save_obj(u_mult_dv, 'u_mult_dv', saving_dir)
+		utils.save_obj(eta_0_mult_dv, 'eta_0_mult_dv', saving_dir)
+		utils.save_obj(eta_mult_dv, 'eta_mult_dv', saving_dir)
+		utils.save_obj(lambda_smoothing_mult_dv, 'lambda_smoothing_mult_dv', saving_dir)
+		utils.save_obj(auto_param_obj_history_mult_dv, 'auto_param_obj_history_mult_dv', saving_dir)
+		utils.save_obj(auto_param_relaxed_obj_history_mult_dv, 'auto_param_relaxed_obj_history_mult_dv', saving_dir)
 
 		end = time.time()
 		print('\n Mult DVC Solution Computed. Time elapsed:', end - start)
@@ -420,10 +420,10 @@ if __name__ == '__main__':
 	#######################################
 	if compute_photon == 'yes':
 		start = time.time()
-		#Compute initial guess, protoni-modality
+		#Compute initial guess, multi-modality
 		# Rx = 190#80#190#190 160 120 80
-		# LHS1 = T_list_proton[0]
-		# LHS2 = T_list_proton[1]
+		# LHS1 = T_list_mult[0]
+		# LHS2 = T_list_mult[1]
 		# RHS1 = np.array([Rx/np.sum(N)]*LHS1.shape[0])
 		# RHS2 = np.array([Rx/np.sum(N)]*LHS2.shape[0])
 
@@ -434,8 +434,8 @@ if __name__ == '__main__':
 		# u_init11 = np.concatenate([u_conv, np.zeros(u2_guess.shape[0])])
 
 		#Initalize parameters
-		eta_0 =  (1/(2*np.max(B_proton)))*eta0_coef_photon#0.9 #Initialize eta_0
-		eta = np.array([eta_0/len(H_proton)]*len(H_proton))*eta_coef_photon#1e-7
+		eta_0 =  (1/(2*np.max(B_mult)))*eta0_coef_photon#0.9 #Initialize eta_0
+		eta = np.array([eta_0/len(H_mult)]*len(H_mult))*eta_coef_photon#1e-7
 		lambda_smoothing_init = np.copy(lambda_smoothing)
 		#Set up smoothing matrix
 		len_voxels = data['Aphoton'].shape[0]
@@ -453,7 +453,7 @@ if __name__ == '__main__':
 			#First, compute the solution without dv constraint, photoni-modality
 			u_photon_smoothed, eta_0_photon_smoothed, eta_photon_smoothed, lambda_smoothing_photon_smoothed, auto_param_obj_history_photon_smoothed, auto_param_relaxed_obj_history_photon_smoothed = optimization_tools.solver_auto_param(u1_guess, 
 				utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_photon, H_photon, alpha_photon, gamma_photon, B_photon, D_photon, C_photon, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
-			saving_dir = config_experiment+'_photon_{}_{}'.format(N1, N2)
+			saving_dir = config_experiment+'_photon_{}_{}'.format(N_photon, 0)
 			utils.save_obj(u_photon_smoothed, 'u_photon_smoothed', saving_dir)
 			utils.save_obj(eta_0_photon_smoothed, 'eta_0_photon_smoothed', saving_dir)
 			utils.save_obj(eta_photon_smoothed, 'eta_photon_smoothed', saving_dir)
@@ -463,7 +463,7 @@ if __name__ == '__main__':
 
 		if precomputed_solution == 'yes':
 			print('\nLoading the solution')
-			loading_dir = config_experiment+'_photon_{}_{}'.format(N1, N2)
+			loading_dir = config_experiment+'_photon_{}_{}'.format(N_photon, 0)
 			u_photon_smoothed = utils.load_obj('u_photon_smoothed', loading_dir)
 			eta_0_photon_smoothed = utils.load_obj('eta_0_photon_smoothed', loading_dir)
 			eta_photon_smoothed = utils.load_obj('eta_photon_smoothed', loading_dir)
@@ -491,7 +491,7 @@ if __name__ == '__main__':
 
 		u_photon_dv, eta_0_photon_dv, eta_photon_dv, lambda_smoothing_photon_dv, auto_param_obj_history_photon_dv, auto_param_relaxed_obj_history_photon_dv = optimization_tools.solver_auto_param(u_photon_smoothed, 
 			utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_photon_dv, H_photon_dv, alpha_photon_dv, gamma_photon_dv, B_photon_dv, D_photon_dv, C_photon_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0)
-		saving_dir = config_experiment+'_photon_{}_{}'.format(N1, N2)
+		saving_dir = config_experiment+'_photon_{}_{}'.format(N_photon, 0)
 		utils.save_obj(u_photon_dv, 'u_photon_dv', saving_dir)
 		utils.save_obj(eta_0_photon_dv, 'eta_0_photon_dv', saving_dir)
 		utils.save_obj(eta_photon_dv, 'eta_photon_dv', saving_dir)
@@ -501,6 +501,7 @@ if __name__ == '__main__':
 
 		end = time.time()
 		print('\n Photon DVC Solution Computed. Time elapsed:', end - start)
+
 
 
 	#######################################
@@ -541,7 +542,7 @@ if __name__ == '__main__':
 			#First, compute the solution without dv constraint, protoni-modality
 			u_proton_smoothed, eta_0_proton_smoothed, eta_proton_smoothed, lambda_smoothing_proton_smoothed, auto_param_obj_history_proton_smoothed, auto_param_relaxed_obj_history_proton_smoothed = optimization_tools.solver_auto_param(u2_guess, 
 				utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_proton, H_proton, alpha_proton, gamma_proton, B_proton, D_proton, C_proton, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0,  proton_only = True)
-			saving_dir = config_experiment+'_proton_{}_{}'.format(N1, N2)
+			saving_dir = config_experiment+'_proton_{}_{}'.format(0, N_proton)
 			utils.save_obj(u_proton_smoothed, 'u_proton_smoothed', saving_dir)
 			utils.save_obj(eta_0_proton_smoothed, 'eta_0_proton_smoothed', saving_dir)
 			utils.save_obj(eta_proton_smoothed, 'eta_proton_smoothed', saving_dir)
@@ -551,7 +552,7 @@ if __name__ == '__main__':
 
 		if precomputed_solution == 'yes':
 			print('\nLoading the solution')
-			loading_dir = config_experiment+'_proton_{}_{}'.format(N1, N2)
+			loading_dir = config_experiment+'_proton_{}_{}'.format(0, N_proton)
 			u_proton_smoothed = utils.load_obj('u_proton_smoothed', loading_dir)
 			eta_0_proton_smoothed = utils.load_obj('eta_0_proton_smoothed', loading_dir)
 			eta_proton_smoothed = utils.load_obj('eta_proton_smoothed', loading_dir)
@@ -579,7 +580,7 @@ if __name__ == '__main__':
 
 		u_proton_dv, eta_0_proton_dv, eta_proton_dv, lambda_smoothing_proton_dv, auto_param_obj_history_proton_dv, auto_param_relaxed_obj_history_proton_dv = optimization_tools.solver_auto_param(u_proton_smoothed, 
 			utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_proton_dv, H_proton_dv, alpha_proton_dv, gamma_proton_dv, B_proton_dv, D_proton_dv, C_proton_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0,  proton_only = True)
-		saving_dir = config_experiment+'_proton_{}_{}'.format(N1, N2)
+		saving_dir = config_experiment+'_proton_{}_{}'.format(0, N_proton)
 		utils.save_obj(u_proton_dv, 'u_proton_dv', saving_dir)
 		utils.save_obj(eta_0_proton_dv, 'eta_0_proton_dv', saving_dir)
 		utils.save_obj(eta_proton_dv, 'eta_proton_dv', saving_dir)
@@ -589,6 +590,11 @@ if __name__ == '__main__':
 
 		end = time.time()
 		print('\n Proton DVC Solution Computed. Time elapsed:', end - start)
+
+
+
+
+
 
 
 
