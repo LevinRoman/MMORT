@@ -822,7 +822,7 @@ def solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, 
         u_prev = np.copy(u)
         w_0 = w_0_update(eta_0, u, T, alpha, B) 
         w = w_update(u, H, gamma, D, C)
-        nnls_max_iter = 50 + (max(0,count-10))**(3/2)
+        nnls_max_iter = 50 #+ (max(0,count-10))**(3/2)
         u = u_update(u, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=nnls_max_iter, normalize = normalize)
 #         u = u_update(eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=50)
         #!!!!
