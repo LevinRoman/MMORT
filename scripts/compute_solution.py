@@ -62,6 +62,7 @@ if __name__ == '__main__':
 	parser.add_argument('--max_iter', default = 50.0, type = float)
 	parser.add_argument('--update_parameters', default = 'no', type = str)
 	parser.add_argument('--renormalize', default = 'no', type = str)
+	parser.add_argument('--lambda_step', default = 1.5, type = float)
 
  	# eta_step = 0.1, ftol = 1e-3, max_iter = 50, verbose = 1
 
@@ -95,6 +96,7 @@ if __name__ == '__main__':
 	max_iter = args.max_iter
 	update_parameters = args.update_parameters
 	renormalize = args.renormalize
+	lambda_step = args.lambda_step
 
 	normalize = renormalize == 'yes'
 
@@ -367,7 +369,7 @@ if __name__ == '__main__':
 			print('\nComputing the solution')
 			#First, compute the solution without dv constraint, multi-modality
 			u_mult_smoothed, eta_0_mult_smoothed, eta_mult_smoothed, lambda_smoothing_mult_smoothed, auto_param_obj_history_mult_smoothed, auto_param_relaxed_obj_history_mult_smoothed = optimization_tools.solver_auto_param(u_init11, 
-				utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_mult, H_mult, alpha_mult, gamma_mult, B_mult, D_mult, C_mult, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0, normalize = normalize)
+				utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_mult, H_mult, alpha_mult, gamma_mult, B_mult, D_mult, C_mult, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0, normalize = normalize, lambda_step = lambda_step)
 			saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
 			utils.save_obj(u_mult_smoothed, 'u_mult_smoothed', saving_dir)
 			utils.save_obj(eta_0_mult_smoothed, 'eta_0_mult_smoothed', saving_dir)
@@ -405,7 +407,7 @@ if __name__ == '__main__':
 		# lambda_smoothing = 1e5
 
 		u_mult_dv, eta_0_mult_dv, eta_mult_dv, lambda_smoothing_mult_dv, auto_param_obj_history_mult_dv, auto_param_relaxed_obj_history_mult_dv = optimization_tools.solver_auto_param(u_mult_smoothed, 
-			utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_mult_dv, H_mult_dv, alpha_mult_dv, gamma_mult_dv, B_mult_dv, D_mult_dv, C_mult_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0, normalize = normalize)
+			utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_mult_dv, H_mult_dv, alpha_mult_dv, gamma_mult_dv, B_mult_dv, D_mult_dv, C_mult_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0, normalize = normalize, lambda_step = lambda_step)
 		saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
 		utils.save_obj(u_mult_dv, 'u_mult_dv', saving_dir)
 		utils.save_obj(eta_0_mult_dv, 'eta_0_mult_dv', saving_dir)
@@ -456,7 +458,7 @@ if __name__ == '__main__':
 			print('\nComputing the solution')
 			#First, compute the solution without dv constraint, photoni-modality
 			u_photon_smoothed, eta_0_photon_smoothed, eta_photon_smoothed, lambda_smoothing_photon_smoothed, auto_param_obj_history_photon_smoothed, auto_param_relaxed_obj_history_photon_smoothed = optimization_tools.solver_auto_param(u1_guess, 
-				utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_photon, H_photon, alpha_photon, gamma_photon, B_photon, D_photon, C_photon, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0, normalize = normalize)
+				utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_photon, H_photon, alpha_photon, gamma_photon, B_photon, D_photon, C_photon, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0, normalize = normalize, lambda_step = lambda_step)
 			saving_dir = config_experiment+'_photon_{}_{}'.format(N_photon, 0)
 			utils.save_obj(u_photon_smoothed, 'u_photon_smoothed', saving_dir)
 			utils.save_obj(eta_0_photon_smoothed, 'eta_0_photon_smoothed', saving_dir)
@@ -494,7 +496,7 @@ if __name__ == '__main__':
 		# lambda_smoothing = 1e5
 
 		u_photon_dv, eta_0_photon_dv, eta_photon_dv, lambda_smoothing_photon_dv, auto_param_obj_history_photon_dv, auto_param_relaxed_obj_history_photon_dv = optimization_tools.solver_auto_param(u_photon_smoothed, 
-			utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_photon_dv, H_photon_dv, alpha_photon_dv, gamma_photon_dv, B_photon_dv, D_photon_dv, C_photon_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0, normalize = normalize)
+			utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_photon_dv, H_photon_dv, alpha_photon_dv, gamma_photon_dv, B_photon_dv, D_photon_dv, C_photon_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0, normalize = normalize, lambda_step = lambda_step)
 		saving_dir = config_experiment+'_photon_{}_{}'.format(N_photon, 0)
 		utils.save_obj(u_photon_dv, 'u_photon_dv', saving_dir)
 		utils.save_obj(eta_0_photon_dv, 'eta_0_photon_dv', saving_dir)
@@ -545,7 +547,7 @@ if __name__ == '__main__':
 			print('\nComputing the solution')
 			#First, compute the solution without dv constraint, protoni-modality
 			u_proton_smoothed, eta_0_proton_smoothed, eta_proton_smoothed, lambda_smoothing_proton_smoothed, auto_param_obj_history_proton_smoothed, auto_param_relaxed_obj_history_proton_smoothed = optimization_tools.solver_auto_param(u2_guess, 
-				utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_proton, H_proton, alpha_proton, gamma_proton, B_proton, D_proton, C_proton, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0,  proton_only = True, normalize = normalize)
+				utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_proton, H_proton, alpha_proton, gamma_proton, B_proton, D_proton, C_proton, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0,  proton_only = True, normalize = normalize, lambda_step = lambda_step)
 			saving_dir = config_experiment+'_proton_{}_{}'.format(0, N_proton)
 			utils.save_obj(u_proton_smoothed, 'u_proton_smoothed', saving_dir)
 			utils.save_obj(eta_0_proton_smoothed, 'eta_0_proton_smoothed', saving_dir)
@@ -584,7 +586,7 @@ if __name__ == '__main__':
 
 
 		u_proton_dv, eta_0_proton_dv, eta_proton_dv, lambda_smoothing_proton_dv, auto_param_obj_history_proton_dv, auto_param_relaxed_obj_history_proton_dv = optimization_tools.solver_auto_param(u_proton_smoothed, 
-			utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_proton_dv, H_proton_dv, alpha_proton_dv, gamma_proton_dv, B_proton_dv, D_proton_dv, C_proton_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0,  proton_only = True, normalize = normalize)
+			utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_proton_dv, H_proton_dv, alpha_proton_dv, gamma_proton_dv, B_proton_dv, D_proton_dv, C_proton_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0,  proton_only = True, normalize = normalize, lambda_step = lambda_step)
 		saving_dir = config_experiment+'_proton_{}_{}'.format(0, N_proton)
 		utils.save_obj(u_proton_dv, 'u_proton_dv', saving_dir)
 		utils.save_obj(eta_0_proton_dv, 'eta_0_proton_dv', saving_dir)
