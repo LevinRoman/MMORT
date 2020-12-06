@@ -526,7 +526,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
         lambda_smoothing_ = normalization*lambda_smoothing_
         Atb = A.T.dot(b)
         AA = normalization*AA
-        print('\n Condition number of A AFTER renormalization:', np.linalg.cond(AA)
+        print('\n Condition number of A AFTER renormalization:', np.linalg.cond(AA))
 
 
     x0 = u_cur#np.zeros(AtA.shape[1])
