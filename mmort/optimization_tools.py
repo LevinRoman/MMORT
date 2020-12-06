@@ -496,16 +496,17 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
 
     # from numdifftools import Jacobian, Hessian
     #This part is wrong in terms of protons, will still do smoothin erroneously
-    def fun(x, A, b, AtA, Atb, S, StS, lambda_smoothing):
-        return (1/2)*np.linalg.norm(A.dot(x) - b)**2 + (lambda_smoothing/2)*np.linalg.norm(S.dot(x[:S.shape[1]]))**2 #+ (1/2)*np.linalg.norm
+    def fun(x, A, b, AtA, Atb, S, StS, lambda_smoothing, alpha_l2):
+        return (1/2)*np.linalg.norm(A.dot(x) - b)**2 + (lambda_smoothing/2)*np.linalg.norm(S.dot(x[:S.shape[1]]))**2 + (alpha_l2/2)*np.linalg.norm(x)**2
 
-    def grad(x, A, b, AtA, Atb, S, StS, lambda_smoothing):
+    def grad(x, A, b, AtA, Atb, S, StS, lambda_smoothing, alpha_l2):
         # AA = np.ones((10,10))
         # AA[:5,:5] = AA[:5,:5]+1
         # AA
         #S corresponds only to the first modality, so adding that to a block of A
         photon_shape = StS.shape[0]
         AtA[:photon_shape, :photon_shape] = AtA[:photon_shape, :photon_shape] + lambda_smoothing*StS
+        AtA = AtA + alpha_l2*np.eye(AtA.shape[0])
         return AtA.dot(x) - Atb 
 
 #     def hess(x, A, b, AtA, Atb):
@@ -517,26 +518,29 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     b = b_ls
     Atb = A.T.dot(b)
     lambda_smoothing_ = np.copy(lambda_smoothing) #To avoid changing it inplace
+    alpha_l2 = 1e-5 
+    print('\n Condition number of regularized problem:', np.linalg.cond(AA+alpha_l2*np.eye(AA.shape[0])))
+    #very small ridge penalty #np.min(1/(2*np.concatenate([[eta_0], eta])))#ridge penalty
     # print('\n Condition number of A prior to renormalization:', np.linalg.cond(A.toarray()))
     # print('\n Condition number of A prior to renormalization:', np.linalg.matrix_rank(A.toarray()))
 
-    #Let's try preconditioning:
-    A = A.toarray()
-    U, Si, Vt = np.linalg.svd(A)
-    print('Computed SVD')
-    # Si_nonzero = Si[Si>1e-15]
-    print('rank of A:', np.sum(Si>1e-15))
-    Si_inv = np.zeros((Vt.T.shape[1], U.T.shape[0]))
-    np.fill_diagonal(Si_inv, 1/Si)
-    precond = Vt.T.dot(Si_inv).dot(U.T)
-    # precond = np.linalg.pinv(A)
-    print('\n Preconditioner computed, shapes:{}{}'.format(precond.shape, A.shape))
-    A = precond.dot(A)
-    b = precond.dot(b)
-    AA = A.T.dot(A)
-    Atb = A.T.dot(b)
-    # print('\')
-    print('\n Preconditioned. New condition number of A:', np.linalg.cond(A))
+    # #Let's try preconditioning:
+    # A = A.toarray()
+    # U, Si, Vt = np.linalg.svd(A)
+    # print('Computed SVD')
+    # # Si_nonzero = Si[Si>1e-15]
+    # print('rank of A:', np.sum(Si>1e-15))
+    # Si_inv = np.zeros((Vt.T.shape[1], U.T.shape[0]))
+    # np.fill_diagonal(Si_inv, 1/Si)
+    # precond = Vt.T.dot(Si_inv).dot(U.T)
+    # # precond = np.linalg.pinv(A)
+    # print('\n Preconditioner computed, shapes:{}{}'.format(precond.shape, A.shape))
+    # A = precond.dot(A)
+    # b = precond.dot(b)
+    # AA = A.T.dot(A)
+    # Atb = A.T.dot(b)
+    # # print('\')
+    # print('\n Preconditioned. New condition number of A:', np.linalg.cond(A))
 
     
     if normalize:
@@ -569,7 +573,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
 
     bnds = [(0, np.inf)]*x0.shape[0]
 
-    res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing_), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
+    res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing_, alpha_l2), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
        options = {'maxiter': nnls_max_iter, 'disp':1})
     print(res)
     u_next = res.x
