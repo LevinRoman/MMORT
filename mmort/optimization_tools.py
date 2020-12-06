@@ -489,8 +489,8 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
 
     start = time.time()
     #Renormalize here, could throw away the zero rows
-    w_concat = np.concatenate((1/np.sqrt(2*eta))*np.array(w+[[]])[:-1], axis = 0) #[:-1] Added as a hack to keep it one-dim array of objects  
-    # w_concat = np.concatenate(np.array(w)*(1/np.sqrt(2*eta))[:, None], axis = 0)  
+    # w_concat = np.concatenate((1/np.sqrt(2*eta))*np.array(w+[[]])[:-1], axis = 0) #[:-1] Added as a hack to keep it one-dim array of objects  
+    w_concat = np.concatenate(np.array(w)*(1/np.sqrt(2*eta))[:, None], axis = 0)  
     b_ls = np.concatenate([(1/np.sqrt(2*eta_0))*w_0, w_concat], axis = 0)   
     
 
@@ -529,7 +529,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
         #Filter out zero rows, if infinity norm is less than 1e-20
         #Could happen that we filer out the rows for the target...or the entire target...
         #Never touch target rows
-        rows_norms = np.linalg.norm(AA, np.inf, axis = 1)
+        rows_norms = scipy.sparse.linalg.norm(A, np.inf, axis = 1)
         rows_to_keep = rows_norms >= 1e-20
         #HARD CODED 6782 target voxels!
         print('\n Target rows are problematic?:',np.sum(1-rows_to_keep[:6782]))
