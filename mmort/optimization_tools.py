@@ -548,6 +548,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
         A = np.sqrt(normalization)*A
         b = np.sqrt(normalization)*b
         lambda_smoothing_ = normalization*lambda_smoothing_
+        alpha_l2 = 1e-5*np.min((1/(2*np.concatenate([[eta_0], eta], axis = 0)))/np.max(1/(2*eta)))
         Atb = A.T.dot(b)
         AA = normalization*AA
         #Filter out zero rows, if infinity norm is less than 1e-20
@@ -566,7 +567,8 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
 
         print('\n Threw out {} rows'.format(np.sum(1-rows_to_keep)))
         print('\n Smallest penalty:', np.min((1/(2*np.concatenate([[eta_0], eta], axis = 0)))/np.max(1/(2*eta))))
-        print('\n Condition number of A AFTER renormalization and cleaning:', np.linalg.cond(A.toarray()))
+        print('\n Condition number of regularized problem AFTER renormalization and cleaning:', np.linalg.cond(AA+alpha_l2*np.eye(AA.shape[0])))
+        # print('\n Condition number of A AFTER renormalization and cleaning:', np.linalg.cond(A.toarray()))
 
 
     x0 = u_cur#np.zeros(AtA.shape[1])
@@ -589,7 +591,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
 
             bnds = [(0, np.inf)]*x0.shape[0]
 
-            res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing_), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
+            res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing_, alpha_l2), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
                options = {'maxiter': nnls_max_iter, 'disp':1})
             print(res)
             u_next = res.x
