@@ -518,15 +518,29 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     Atb = A.T.dot(b)
     lambda_smoothing_ = np.copy(lambda_smoothing) #To avoid changing it inplace
     print('\n Condition number of A prior to renormalization:', np.linalg.cond(AA))
-
+    
     if normalize:
-        normalization = 1/np.mean(1/(2*eta))
+        normalization = 1/np.max(1/(2*eta))
         A = np.sqrt(normalization)*A
         b = np.sqrt(normalization)*b
         lambda_smoothing_ = normalization*lambda_smoothing_
         Atb = A.T.dot(b)
         AA = normalization*AA
-        print('\n Condition number of A AFTER renormalization:', np.linalg.cond(AA))
+        #Filter out zero rows, if infinity norm is less than 1e-20
+        #Could happen that we filer out the rows for the target...or the entire target...
+        #Never touch target rows
+        rows_norms = np.linalg.norm(AA, np.inf, axis = 1)
+        rows_to_keep = rows_norms >= 1e-20
+        #HARD CODED 6782 target voxels!
+        print('\n Target rows are problematic?:',np.sum(1-rows_to_keep[:6782]))
+        rows_to_keep[:6782] = True  #always keep target rows
+        #AA = AA[rows_to_keep]
+        A = A[rows_to_keep]
+        b = b[rows_to_keep]
+        AA = A.T.dot(A)
+        Atb = A.T.dot(b)
+
+        print('\n Condition number of A AFTER renormalization and cleaning:', np.linalg.cond(AA))
 
 
     x0 = u_cur#np.zeros(AtA.shape[1])
