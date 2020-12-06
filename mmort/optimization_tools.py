@@ -489,8 +489,8 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
 
     start = time.time()
     #Renormalize here, could throw away the zero rows
-    # w_concat = np.concatenate((1/np.sqrt(2*eta))*np.array(w+[[]])[:-1], axis = 0) #[:-1] Added as a hack to keep it one-dim array of objects  
-    w_concat = np.concatenate(np.array(w)*(1/np.sqrt(2*eta))[:, None], axis = 0)  
+    w_concat = np.concatenate((1/np.sqrt(2*eta))*np.array(w+[[]])[:-1], axis = 0) #[:-1] Added as a hack to keep it one-dim array of objects  
+    # w_concat = np.concatenate(np.array(w)*(1/np.sqrt(2*eta))[:, None], axis = 0)  
     b_ls = np.concatenate([(1/np.sqrt(2*eta_0))*w_0, w_concat], axis = 0)   
     
 
@@ -540,6 +540,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
         AA = A.T.dot(A)
         Atb = A.T.dot(b)
 
+        print('\n Threw out {} rows'.format(np.sum(1-rows_to_keep))
         print('\n Condition number of A AFTER renormalization and cleaning:', np.linalg.cond(AA))
 
 
