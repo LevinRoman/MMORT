@@ -517,7 +517,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     b = b_ls
     Atb = A.T.dot(b)
     lambda_smoothing_ = np.copy(lambda_smoothing) #To avoid changing it inplace
-    print('\n Condition number of A prior to renormalization:', np.linalg.cond(AA))
+    print('\n Condition number of A prior to renormalization:', np.linalg.cond(A.toarray()))
     
     if normalize:
         normalization = 1/np.max(1/(2*eta))
@@ -541,7 +541,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
         Atb = A.T.dot(b)
 
         print('\n Threw out {} rows'.format(np.sum(1-rows_to_keep)))
-        print('\n Condition number of A AFTER renormalization and cleaning:', np.linalg.cond(AA))
+        print('\n Condition number of A AFTER renormalization and cleaning:', np.linalg.cond(A.toarray()))
 
 
     x0 = u_cur#np.zeros(AtA.shape[1])
