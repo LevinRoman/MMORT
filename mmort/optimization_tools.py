@@ -527,7 +527,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     AA = A.T.dot(A)
     Atb = A.T.dot(b)
     # print('\')
-    print('\n Preconditioned. New condition number of A:'np.linalg.cond(A))
+    print('\n Preconditioned. New condition number of A:', np.linalg.cond(A))
 
     
     if normalize:
