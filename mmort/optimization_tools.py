@@ -548,22 +548,22 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
         A = np.sqrt(normalization)*A
         b = np.sqrt(normalization)*b
         lambda_smoothing_ = normalization*lambda_smoothing_
-        alpha_l2 = 1e-5*np.min((1/(2*np.concatenate([[eta_0], eta], axis = 0)))/np.max(1/(2*eta)))
+        alpha_l2 = alpha_l2*normalization#np.min((1/(2*np.concatenate([[eta_0], eta], axis = 0)))/np.max(1/(2*eta)))
         Atb = A.T.dot(b)
         AA = normalization*AA
         #Filter out zero rows, if infinity norm is less than 1e-20
         #Could happen that we filer out the rows for the target...or the entire target...
         #Never touch target rows
-        rows_norms = scipy.sparse.linalg.norm(A, np.inf, axis = 1)
-        rows_to_keep = rows_norms >= 1e-20
+        # rows_norms = scipy.sparse.linalg.norm(A, np.inf, axis = 1)
+        # rows_to_keep = rows_norms >= 1e-20
         #HARD CODED 6782 target voxels!
-        print('\n Target rows are problematic?:',np.sum(1-rows_to_keep[:6782]))
-        rows_to_keep[:6782] = True  #always keep target rows
+        # print('\n Target rows are problematic?:',np.sum(1-rows_to_keep[:6782]))
+        # rows_to_keep[:6782] = True  #always keep target rows
         #AA = AA[rows_to_keep]
-        A = A[rows_to_keep]
-        b = b[rows_to_keep]
-        AA = A.T.dot(A)
-        Atb = A.T.dot(b)
+        # A = A[rows_to_keep]
+        # b = b[rows_to_keep]
+        # AA = A.T.dot(A)
+        # Atb = A.T.dot(b)
 
         print('\n Threw out {} rows'.format(np.sum(1-rows_to_keep)))
         print('\n Smallest penalty:', np.min((1/(2*np.concatenate([[eta_0], eta], axis = 0)))/np.max(1/(2*eta))))
@@ -592,7 +592,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
             bnds = [(0, np.inf)]*x0.shape[0]
 
             res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing_, alpha_l2), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
-               options = {'maxiter': nnls_max_iter, 'disp':1})
+               options = {'maxiter': nnls_max_iter, 'disp':0})
             print(res)
             u_next = res.x
             photon_target_smoothness = check_photon_target_smoothness(target_photon_matrix, u_next, max_min_ratio = max_min_ratio, proton_only = proton_only)
