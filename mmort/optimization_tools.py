@@ -489,7 +489,8 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
 
     start = time.time()
     #Renormalize here, could throw away the zero rows
-    w_concat = np.concatenate((1/np.sqrt(2*eta))*np.array(w+[[]])[:-1], axis = 0) #[:-1] Added as a hack to keep it one-dim array of objects    
+    # w_concat = np.concatenate((1/np.sqrt(2*eta))*np.array(w+[[]])[:-1], axis = 0) #[:-1] Added as a hack to keep it one-dim array of objects  
+    w_concat = np.concatenate(np.array(w)*(1/np.sqrt(2*eta))[:, None], axis = 0)  
     b_ls = np.concatenate([(1/np.sqrt(2*eta_0))*w_0, w_concat], axis = 0)   
     
 
@@ -516,7 +517,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     b = b_ls
     Atb = A.T.dot(b)
     lambda_smoothing_ = np.copy(lambda_smoothing) #To avoid changing it inplace
-    print('\n Condition number of A prior to renormalization:', np.linalg.cond(A.toarray()))
+    print('\n Condition number of A prior to renormalization:', np.linalg.cond(AA))
 
     if normalize:
         normalization = 1/np.mean(1/(2*eta))
@@ -525,7 +526,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
         lambda_smoothing_ = normalization*lambda_smoothing_
         Atb = A.T.dot(b)
         AA = normalization*AA
-        print('\n Condition number of A AFTER renormalization:', np.linalg.cond(A.torray()))
+        print('\n Condition number of A AFTER renormalization:', np.linalg.cond(AA)
 
 
     x0 = u_cur#np.zeros(AtA.shape[1])
