@@ -541,7 +541,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
         Atb = A.T.dot(b)
 
         print('\n Threw out {} rows'.format(np.sum(1-rows_to_keep)))
-        print('\n Smallest correspoding penalty:', np.min((1/(2*np.concatenate([[eta_0], eta])[~rows_to_keep]))/np.max(1/(2*eta))))
+        print('\n Smallest correspoding penalty:', np.min((1/(2*np.concatenate([[eta_0], eta], axis = 0)[~rows_to_keep]))/np.max(1/(2*eta))))
         print('\n Condition number of A AFTER renormalization and cleaning:', np.linalg.cond(A.toarray()))
 
 
