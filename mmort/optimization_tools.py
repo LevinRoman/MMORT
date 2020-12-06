@@ -497,7 +497,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     # from numdifftools import Jacobian, Hessian
     #This part is wrong in terms of protons, will still do smoothin erroneously
     def fun(x, A, b, AtA, Atb, S, StS, lambda_smoothing):
-        return (1/2)*np.linalg.norm(A.dot(x) - b)**2 + (lambda_smoothing/2)*np.linalg.norm(S.dot(x[:S.shape[1]]))**2 + (1/2)*np.linalg.norm
+        return (1/2)*np.linalg.norm(A.dot(x) - b)**2 + (lambda_smoothing/2)*np.linalg.norm(S.dot(x[:S.shape[1]]))**2 #+ (1/2)*np.linalg.norm
 
     def grad(x, A, b, AtA, Atb, S, StS, lambda_smoothing):
         # AA = np.ones((10,10))
