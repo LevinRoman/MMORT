@@ -524,7 +524,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     A = A.toarray()
     U, Si, Vt = np.linalg.svd(A)
     print('Computed SVD')
-    precond = Vt.T.dot(np.diag(Si)).dot(U.T)
+    precond = Vt.T.dot(np.diag(1/Si)).dot(U.T)
     # precond = np.linalg.pinv(A)
     print('\n Preconditioner computed, shapes:{}{}'.format(precond.shape, A.shape))
     A = precond.dot(A)
