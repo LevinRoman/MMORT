@@ -516,6 +516,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     b = b_ls
     Atb = A.T.dot(b)
     lambda_smoothing_ = np.copy(lambda_smoothing) #To avoid changing it inplace
+    print('\n Condition number of A prior to renormalization:', np.linalg.cond(A))
 
     if normalize:
         normalization = 1/np.mean(1/(2*eta))
@@ -524,6 +525,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
         lambda_smoothing_ = normalization*lambda_smoothing_
         Atb = A.T.dot(b)
         AA = normalization*AA
+        print('\n Condition number of A AFTER renormalization:', np.linalg.cond(A))
 
 
     x0 = u_cur#np.zeros(AtA.shape[1])
@@ -547,7 +549,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
             bnds = [(0, np.inf)]*x0.shape[0]
 
             res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing_), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
-               options = {'maxiter': nnls_max_iter, 'disp':0})
+               options = {'maxiter': nnls_max_iter, 'disp':1})
             print(res)
             u_next = res.x
             photon_target_smoothness = check_photon_target_smoothness(target_photon_matrix, u_next, max_min_ratio = max_min_ratio, proton_only = proton_only)
@@ -555,6 +557,8 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     end = time.time()
     print('u update took:', end - start)
     
+    if normalize:
+        lambda_smoothing_ = lambda_smoothing_/normalization
     return u_next, lambda_smoothing_
 
 #update in w0:
