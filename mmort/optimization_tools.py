@@ -521,7 +521,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     # print('\n Condition number of A prior to renormalization:', np.linalg.matrix_rank(A.toarray()))
 
     #Let's try preconditioning:
-    precond = np.linalg.pinv(A)
+    precond = np.linalg.pinv(A.toarray())
     A = precond.dot(A)
     b = precond.dot(b)
     AA = A.T.dot(A)
