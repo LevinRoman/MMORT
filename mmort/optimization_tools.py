@@ -540,7 +540,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
         AA = A.T.dot(A)
         Atb = A.T.dot(b)
 
-        print('\n Threw out {} rows'.format(np.sum(1-rows_to_keep))
+        print('\n Threw out {} rows'.format(np.sum(1-rows_to_keep)))
         print('\n Condition number of A AFTER renormalization and cleaning:', np.linalg.cond(AA))
 
 
