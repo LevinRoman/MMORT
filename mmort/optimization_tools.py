@@ -571,7 +571,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     x0 = u_cur#np.zeros(AtA.shape[1])
 
     bnds = [(0, np.inf)]*x0.shape[0]
-    grad = None
+    # grad = None
 
     res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing_), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
        options = {'maxiter': nnls_max_iter, 'disp':1})
