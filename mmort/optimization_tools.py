@@ -509,10 +509,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
         # AtA = AtA + alpha_l2*np.eye(AtA.shape[0])
         return AtA.dot(x) - Atb 
 
-#     def hess(x, A, b, AtA, Atb):
-#         return AtA
-
-#     A, b = LHS[()], RHS
+    # np.save(S, )
 
     A = eta_T_H_stacked
     b = b_ls
@@ -593,6 +590,16 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
 
             res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing_), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
                options = {'maxiter': nnls_max_iter, 'disp':0})
+            if res.status == 2:
+                np.save(x0, 'x0.npy')
+                np.save(A, 'A.npy')
+                np.save(b, 'b.npy')
+                np.save(AA, 'AA.npy')
+                np.save(Atb, 'Atb.npy')
+                np.save(S, 'S.npy')
+                np.save(StS, 'StS.npy')
+                np.save(lambda_smoothing_, 'lambda_smoothing_.npy')
+                print('\nSaved input to L-BFGS-B!\n')
             print(res)
             u_next = res.x
             photon_target_smoothness = check_photon_target_smoothness(target_photon_matrix, u_next, max_min_ratio = max_min_ratio, proton_only = proton_only)
