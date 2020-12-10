@@ -571,6 +571,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     x0 = u_cur#np.zeros(AtA.shape[1])
 
     bnds = [(0, np.inf)]*x0.shape[0]
+    grad = None
 
     res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing_), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
        options = {'maxiter': nnls_max_iter, 'disp':1})
@@ -590,17 +591,17 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
 
             res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing_), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
                options = {'maxiter': nnls_max_iter, 'disp':0})
-            print('Res status:', res.status)
-            if res.status == 2:
-                np.save('x0.npy', x0)
-                np.save('A.npy', A)
-                np.save('b.npy', b)
-                np.save('AA.npy', AA)
-                np.save('Atb.npy', Atb)
-                np.save('S.npy', S)
-                np.save('StS.npy', StS)
-                np.save('lambda_smoothing_.npy', lambda_smoothing_)
-                print('\nSaved input to L-BFGS-B!\n')
+            # print('Res status:', res.status)
+            # if res.status == 2:
+            #     np.save('x0.npy', x0)
+            #     np.save('A.npy', A)
+            #     np.save('b.npy', b)
+            #     np.save('AA.npy', AA)
+            #     np.save('Atb.npy', Atb)
+            #     np.save('S.npy', S)
+            #     np.save('StS.npy', StS)
+            #     np.save('lambda_smoothing_.npy', lambda_smoothing_)
+            #     print('\nSaved input to L-BFGS-B!\n')
             print(res)
             u_next = res.x
             photon_target_smoothness = check_photon_target_smoothness(target_photon_matrix, u_next, max_min_ratio = max_min_ratio, proton_only = proton_only)
