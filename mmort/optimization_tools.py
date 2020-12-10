@@ -590,6 +590,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
 
             res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing_), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
                options = {'maxiter': nnls_max_iter, 'disp':0})
+            print('Res status:', res.status)
             if res.status == 2:
                 np.save(x0, 'x0.npy')
                 np.save(A, 'A.npy')
