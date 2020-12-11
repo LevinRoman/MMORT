@@ -617,6 +617,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
         count = 0
         while not photon_target_smoothness:
             print('\nTaken {} smoothness iterations'.format(count))
+            print('\n Current lambda: {}'.format(lambda_smoothing_))
             count+=1
             P[:photon_shape, :photon_shape] = P[:photon_shape, :photon_shape] - lambda_smoothing_*SS
             lambda_smoothing_ *= lambda_step
