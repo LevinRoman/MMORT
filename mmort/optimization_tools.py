@@ -515,7 +515,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     A = eta_T_H_stacked
     b = b_ls
     Atb = A.T.dot(b)
-    lambda_smoothing_ = np.copy(lambda_smoothing) #To avoid changing it inplace
+    lambda_smoothing_ = 0.01#np.copy(lambda_smoothing) #To avoid changing it inplace
     # alpha_l2 = 1e-5 
     # print('\n Condition number of regularized problem:', np.linalg.cond(AA+alpha_l2*np.eye(AA.shape[0])))
     #very small ridge penalty #np.min(1/(2*np.concatenate([[eta_0], eta])))#ridge penalty
