@@ -584,7 +584,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     #####################
     alpha_l2 = 0.1
     cvxopt.solvers.options['maxiter'] = 50
-    P = cvxopt.matrix(AA + alpha_l2*np.eye(P.shape[0]), tc='d') #regularization
+    P = cvxopt.matrix(AA + alpha_l2*np.eye(AA.shape[0]), tc='d') #regularization
     SS = cvxopt.matrix(StS, tc = 'd')
     photon_shape = StS.shape[1]
     P[:photon_shape, :photon_shape] = P[:photon_shape, :photon_shape] + lambda_smoothing_*SS
