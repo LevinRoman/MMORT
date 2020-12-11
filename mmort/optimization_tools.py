@@ -874,7 +874,7 @@ def w_s_update(u, S):
 
 
 def solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = 5000, verbose = 0, normalize = False,
-    target_photon_matrix = None, max_min_ratio = 2.0, proton_only = False, lambda_step = 10.0):
+    target_photon_matrix = None, max_min_ratio = 2.0, proton_only = False, lambda_step = 10.0, inf_thresh = 3):
     """Returns the optimal u for the relaxed problem in section 3.2.1 of the paper
 
     Parameters
@@ -929,7 +929,7 @@ def solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, 
     u_prev = u_init + 1
     u = np.copy(u_init)
     count = 0
-    obj_history = []
+    obj_history = [0]
     relaxed_obj_history = [-1, 0.1] #just two initial values to enter the loop
     while np.abs((relaxed_obj_history[-2] - relaxed_obj_history[-1])/relaxed_obj_history[-2]) > ftol and count < max_iter:#np.linalg.norm(u - u_prev, np.inf) > 1e-3 and count < max_iter: #Maybe all of them stop changing
         start = time.time()
@@ -945,10 +945,10 @@ def solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, 
 #         u = u_update(eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=30)
         #!!!!
         count += 1 
-        if count == 10:
+        if count == inf_thresh:
             u_inf = np.copy(u)
-        if count > 10 and np.abs(cur_obj) > 1e+15: #HANDLE THIS BETTER!!!
-            print('INFINITY! RETURNING u at the 10-th iteration to enter the feasibility loop')
+        if count > inf_thresh and np.abs(cur_obj) > 1e+15 and cur_obj < obj_history[-2]: #HANDLE THIS BETTER!!!
+            print('INFINITY! RETURNING u at the inf_thresh iteration to enter the feasibility loop')
             return u_inf, lambda_smoothing, obj_history, relaxed_obj_history
         
         cur_obj = obj_u_opt_N_fixed(u, T, alpha, B)
@@ -1041,7 +1041,7 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
         eta = np.array([eta_0/len(H)]*len(H))*2#*0.01#np.array([eta_0/len(H)]*len(H))*2 
     
     u, lambda_smoothing, obj_history, relaxed_obj_history = solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = max_iter//4.5, verbose = verbose, normalize = normalize,
-        target_photon_matrix = target_photon_matrix, max_min_ratio = smoothing_ratio, proton_only = proton_only, lambda_step = lambda_step)
+        target_photon_matrix = target_photon_matrix, max_min_ratio = smoothing_ratio, proton_only = proton_only, lambda_step = lambda_step, inf_thresh = 10)
     auto_param_obj_history.append(obj_history)
     auto_param_relaxed_obj_history.append(relaxed_obj_history)
     cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
