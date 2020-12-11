@@ -562,6 +562,16 @@ if __name__ == '__main__':
 		plt.title('OAR constraints')
 		plt.savefig(os.path.abspath(os.path.join('obj', saving_dir, 'constraints.png')), dpi = 350, bbox_inches = 'tight')
 
+
+		#Figure 1: Constraints 
+		plt.figure()
+		sns.set()
+		plt.plot(optimization_tools.constraints_all(u_photon_dv, H_photon_max,gamma_photon_max, D_photon_max, C_photon_max, tol = 0.05, verbose = 0)['Constr at u_opt'])
+		plt.plot(optimization_tools.constraints_all(u_photon_dv, H_photon_max,gamma_photon_max, D_photon_max, C_photon_max, tol = 0.05, verbose = 0)['actual constr'], '-.')
+		plt.title('Full OAR constraints')
+		plt.savefig(os.path.abspath(os.path.join('obj', saving_dir, 'constraints_full.png')), dpi = 350, bbox_inches = 'tight')
+		
+
 		#Figure 2: Objective
 		fig, ax = plt.subplots(1, 2)
 		ax[0].plot(np.concatenate(auto_param_obj_history_photon_dv))
@@ -695,6 +705,14 @@ if __name__ == '__main__':
 		plt.plot(optimization_tools.constraints_all(u_proton_dv, H_proton_dv, gamma_proton_dv, D_proton_dv, C_proton_dv, tol = 0.05, verbose = 0)['actual constr'], '-.')
 		plt.title('OAR constraints')
 		plt.savefig(os.path.abspath(os.path.join('obj', saving_dir, 'constraints.png')), dpi = 350, bbox_inches = 'tight')
+
+		# #Figure 1.1: Constraints with max-dose full
+		# plt.figure()
+		# sns.set()
+		# plt.plot(optimization_tools.constraints_all(u_proton_dv, H_proton_dv, gamma_proton_dv, D_proton_dv, C_proton_dv, tol = 0.05, verbose = 0)['Constr at u_opt'])
+		# plt.plot(optimization_tools.constraints_all(u_proton_dv, H_proton_dv, gamma_proton_dv, D_proton_dv, C_proton_dv, tol = 0.05, verbose = 0)['actual constr'], '-.')
+		# plt.title('OAR constraints')
+		# plt.savefig(os.path.abspath(os.path.join('obj', saving_dir, 'constraints.png')), dpi = 350, bbox_inches = 'tight')
 
 		#Figure 2: Objective
 		fig, ax = plt.subplots(1, 2)
