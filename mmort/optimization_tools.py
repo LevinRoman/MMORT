@@ -5,6 +5,7 @@ import scipy.io
 import scipy
 import scipy.sparse
 import time
+import cvxopt
 
 
 #Helper functions
@@ -605,7 +606,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
         
 #     #     h = np.zeros(x0.shape[0])
 #     #     initval = matrix(x0)
-    sol = solvers.qp(P,q,G,h)
+    sol = cvxopt.solvers.qp(P,q,G,h)
     u_next = np.array(sol['x']).flatten()
     # ol['x']
 
@@ -621,7 +622,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
             lambda_smoothing_ *= lambda_step
             P[:photon_shape, :photon_shape] = P[:photon_shape, :photon_shape] + lambda_smoothing_*SS
 
-            sol = solvers.qp(P,q,G,h)
+            sol = cvxopt.solvers.qp(P,q,G,h)
             print(sol)
             u_next = np.array(sol['x']).flatten()
             # x0 = u_next#np.zeros(AtA.shape[1])
