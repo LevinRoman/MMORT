@@ -433,7 +433,9 @@ if __name__ == '__main__':
 		RHS1 = np.array([Rx/N_photon]*LHS1.shape[0])
 		# RHS2 = np.array([Rx/np.sum(N)]*LHS2.shape[0])
 
-		u1_guess = scipy.optimize.lsq_linear(LHS1, RHS1, bounds = (0, np.inf), tol=1e-3, lsmr_tol=1e-2, max_iter=30, verbose=1).x
+		u1_guess = scipy.optimize.lsq_linear(LHS1, RHS1, bounds = (0, np.inf), tol=1e-4, lsmr_tol=1e-4, max_iter=100, verbose=1).x
+
+
 		# u2_guess = scipy.optimize.lsq_linear(LHS2, RHS2, bounds = (0, np.inf), tol=1e-3, lsmr_tol=1e-2, max_iter=30, verbose=1).x
 
 		# u_init11 = np.concatenate([u1_guess, u2_guess])
@@ -495,10 +497,13 @@ if __name__ == '__main__':
 			eta = utils.update_dose_volume_eta(eta, eta_photon_smoothed, oar_indices, data)
 		# lambda_smoothing = 1e5
 
+		u_photon_smoothed = u1_guess
+
 		u_photon_dv, eta_0_photon_dv, eta_photon_dv, lambda_smoothing_photon_dv, auto_param_obj_history_photon_dv, auto_param_relaxed_obj_history_photon_dv = optimization_tools.solver_auto_param(u_photon_smoothed, 
 			utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_photon_dv, H_photon_dv, alpha_photon_dv, gamma_photon_dv, B_photon_dv, D_photon_dv, C_photon_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0, normalize = normalize, lambda_step = lambda_step)
 		saving_dir = config_experiment+'_photon_{}_{}'.format(N_photon, 0)
 		utils.save_obj(u_photon_dv, 'u_photon_dv', saving_dir)
+		utils.save_obj(u1_guess, 'u1_guess', saving_dir)
 		utils.save_obj(eta_0_photon_dv, 'eta_0_photon_dv', saving_dir)
 		utils.save_obj(eta_photon_dv, 'eta_photon_dv', saving_dir)
 		utils.save_obj(lambda_smoothing_photon_dv, 'lambda_smoothing_photon_dv', saving_dir)
