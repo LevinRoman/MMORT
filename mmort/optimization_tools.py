@@ -569,7 +569,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
         # print('\n Condition number of A AFTER renormalization and cleaning:', np.linalg.cond(A.toarray()))
 
 
-    # x0 = u_cur#np.zeros(AtA.shape[1])
+    x0 = u_cur#np.zeros(AtA.shape[1])
 
     # bnds = [(0, np.inf)]*x0.shape[0]
     # # grad = None
