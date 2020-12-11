@@ -949,7 +949,7 @@ def solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, 
             u_inf = np.copy(u)
         if count > 10 and np.abs(cur_obj) > 1e+15: #HANDLE THIS BETTER!!!
             print('INFINITY! RETURNING u at the 10-th iteration to enter the feasibility loop')
-            return u_inf, obj_history, relaxed_obj_history
+            return u_inf, lambda_smoothing, obj_history, relaxed_obj_history
         
         cur_obj = obj_u_opt_N_fixed(u, T, alpha, B)
         obj_history.append(cur_obj)
@@ -1040,7 +1040,7 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
     if eta is None:
         eta = np.array([eta_0/len(H)]*len(H))*2#*0.01#np.array([eta_0/len(H)]*len(H))*2 
     
-    u, lambda_smoothing, obj_history, relaxed_obj_history = solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = max_iter, verbose = verbose, normalize = normalize,
+    u, lambda_smoothing, obj_history, relaxed_obj_history = solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = max_iter//4.5, verbose = verbose, normalize = normalize,
         target_photon_matrix = target_photon_matrix, max_min_ratio = smoothing_ratio, proton_only = proton_only, lambda_step = lambda_step)
     auto_param_obj_history.append(obj_history)
     auto_param_relaxed_obj_history.append(relaxed_obj_history)
