@@ -134,15 +134,15 @@ def generate_dose_volume_input(T_list_mult_max, T_mult_max, H_mult_max, alpha_mu
 		#Take the low 50% of the voxels, should make this more general to handle arbitrary percentage
 
 		cur_oar_number_ = np.arange(len(oar_indices))[data['OAR_constraint_types'] == 'dose_volume'][i]
-		print('\n Min and max index before DV constraint:{}{}',format(np.min(oar_indices[cur_oar_number_]), np.max(oar_indices[cur_oar_number_])))
-		
+		print('\n Min and max index before DV constraint:{}{}'.format(np.min(oar_indices[cur_oar_number_]), np.max(oar_indices[cur_oar_number_])))
+
 		cur_oar_indices_to_max_constrain = np.argsort(oar_BE)[:(oar_BE.shape[0]//2 + oar_BE.shape[0]%2)]
 		# constraint = np.array(C_mult_max)[oar_indices[0]]
 		cur_oar_number = np.arange(len(oar_indices))[data['OAR_constraint_types'] == 'dose_volume'][i]
 		oar_indices[cur_oar_number] = oar_indices[cur_oar_number][cur_oar_indices_to_max_constrain]
 
 		print('\n Current DV OAR:{} Number:{}'.format(name, cur_oar_number))
-		print('\n Min and max index to be DV constrained:{}{}',format(np.min(oar_indices[cur_oar_number]), np.max(oar_indices[cur_oar_number])))
+		print('\n Min and max index to be DV constrained:{}{}'.format(np.min(oar_indices[cur_oar_number]), np.max(oar_indices[cur_oar_number])))
 		print('\n Min and max in all cur_oar_indices_to_max_constrain:{}{}'.format(np.min(np.argsort(oar_BE)), np.max(np.argsort(oar_BE))))
 
 	updated_C = [C_mult_max[i] for oar in oar_indices for i in oar]
