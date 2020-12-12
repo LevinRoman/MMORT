@@ -23,7 +23,7 @@ import scipy.stats as stats
 # # Make data.
 # X = np.arange(-5, 5, 0.25)
 # Y = np.arange(-5, 5, 0.25)
-def plot_beam(ax, x_beam, y_beam, u_beam, z_lim = *stats.describe(u_beam)[1]):
+def plot_beam(ax, x_beam, y_beam, u_beam, z_lim = np.max(u_beam)):
     # fig = plt.figure()
     # ax = fig.gca(projection='3d')
     
@@ -41,7 +41,7 @@ def plot_beam(ax, x_beam, y_beam, u_beam, z_lim = *stats.describe(u_beam)[1]):
 
 
     # Customize the z axis.
-    ax.set_zlim(zlim)#*stats.describe(u_beam)[1])
+    ax.set_zlim(top = zlim, bottom = 0)#*stats.describe(u_beam)[1])
     ax.zaxis.set_major_locator(LinearLocator(10))
     ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
     ax.view_init(30,60)
