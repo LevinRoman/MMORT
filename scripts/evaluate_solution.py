@@ -621,7 +621,7 @@ if __name__ == '__main__':
 			fig.colorbar(plot, ax = ax)
 			# evaluation.plot_beam(ax, x_beam, y_beam, u_beam)
 		fig.savefig(os.path.abspath(os.path.join('obj', saving_dir, 'beams_contour.png')), dpi = 350, bbox_inches = 'tight')
-		plt.contour(X, Y, Z, colors='black');
+		# plt.contour(X, Y, Z, colors='black');
 
 		#Figure 4: DVH
 		fig, axs = plt.subplots(1,2, figsize = (30,10))
