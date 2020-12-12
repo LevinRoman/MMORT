@@ -23,6 +23,7 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib import cm
+import scipy.interpolate
 #Import mmort modules
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..', 'mmort')))
 import experiments
@@ -615,7 +616,7 @@ if __name__ == '__main__':
 			x_mesh, ymesh = np.meshgrid(x_beam, y_beam)
 
 			# Interpolate; there's also method='cubic' for 2-D data such as here
-			z_mesh = scipy.interpolate.griddata((x_beam, y_beam), u_beam, (x_mesh, y_mesh, method='linear'))
+			z_mesh = scipy.interpolate.griddata((x_beam, y_beam), u_beam, (x_mesh, y_mesh), method='linear')
 			plot = ax.contour(x_mesh, y_mesh, z_mesh, colors=cm.coolwarm)
 			fig.colorbar(plot, ax = ax)
 			# evaluation.plot_beam(ax, x_beam, y_beam, u_beam)
