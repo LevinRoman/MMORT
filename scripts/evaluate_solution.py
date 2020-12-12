@@ -617,7 +617,7 @@ if __name__ == '__main__':
 
 			# Interpolate; there's also method='cubic' for 2-D data such as here
 			z_mesh = scipy.interpolate.griddata((x_beam, y_beam), u_beam, (x_mesh, y_mesh), method='linear')
-			plot = ax.contour(x_mesh, y_mesh, z_mesh, colors=cm.coolwarm)
+			plot = ax.contour(x_mesh, y_mesh, z_mesh)
 			fig.colorbar(plot, ax = ax)
 			# evaluation.plot_beam(ax, x_beam, y_beam, u_beam)
 		fig.savefig(os.path.abspath(os.path.join('obj', saving_dir, 'beams_contour.png')), dpi = 350, bbox_inches = 'tight')
