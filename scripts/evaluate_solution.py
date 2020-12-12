@@ -605,7 +605,7 @@ if __name__ == '__main__':
 		fig.savefig(os.path.abspath(os.path.join('obj', saving_dir, 'beams.png')), dpi = 350, bbox_inches = 'tight')
 
 		#Figure 3.1: Countour plots for beams
-		fig, ax = plt.subplots(figsize = 60, 20) #= plt.figure(figsize = (50, 10))
+		# fig, ax = plt.subplots(figsize = 60, 20) #= plt.figure(figsize = (50, 10))
 		for i in range(len(beamlet_indices)):
 			ax = fig.add_subplot(150 + i + 1, projection='3d')
 			x_beam = data['beamlet_pos'][beamlet_indices[i]][:,0]
