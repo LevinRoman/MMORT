@@ -22,6 +22,7 @@ import sys
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
+from matplotlib import cm
 #Import mmort modules
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..', 'mmort')))
 import experiments
@@ -594,13 +595,27 @@ if __name__ == '__main__':
 		beamlet_indices = np.split(np.arange(len_voxels), np.cumsum(np.squeeze(data['num_beamlets'])))[:-1] 
 		# beams = [data['beamlet_pos'][i] for i in beamlet_indices]
 		fig = plt.figure(figsize = (50, 10))
+		zlim = np.max(1.1*np.max(u_photon_dv))
 		for i in range(len(beamlet_indices)):
 			ax = fig.add_subplot(150 + i + 1, projection='3d')
 			x_beam = data['beamlet_pos'][beamlet_indices[i]][:,0]
 			y_beam = data['beamlet_pos'][beamlet_indices[i]][:,1]
 			u_beam = u_photon_dv[:data['Aphoton'].shape[1]][beamlet_indices[i]]
-			evaluation.plot_beam(ax, x_beam, y_beam, u_beam)
+			evaluation.plot_beam(ax, x_beam, y_beam, u_beam, zlim)
 		fig.savefig(os.path.abspath(os.path.join('obj', saving_dir, 'beams.png')), dpi = 350, bbox_inches = 'tight')
+
+		#Figure 3.1: Countour plots for beams
+		fig, ax = plt.subplots(figsize = 60, 20) #= plt.figure(figsize = (50, 10))
+		for i in range(len(beamlet_indices)):
+			ax = fig.add_subplot(150 + i + 1, projection='3d')
+			x_beam = data['beamlet_pos'][beamlet_indices[i]][:,0]
+			y_beam = data['beamlet_pos'][beamlet_indices[i]][:,1]
+			u_beam = u_photon_dv[:data['Aphoton'].shape[1]][beamlet_indices[i]]
+			plot = ax.contour(x_beam, y_beam, u_beam, colors=cm.coolwarm)
+			fig.colorbar(plot, ax = ax)
+			# evaluation.plot_beam(ax, x_beam, y_beam, u_beam)
+		fig.savefig(os.path.abspath(os.path.join('obj', saving_dir, 'beams_contour.png')), dpi = 350, bbox_inches = 'tight')
+		plt.contour(X, Y, Z, colors='black');
 
 		#Figure 4: DVH
 		fig, axs = plt.subplots(1,2, figsize = (30,10))
