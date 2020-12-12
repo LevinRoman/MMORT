@@ -497,13 +497,13 @@ if __name__ == '__main__':
 			eta = utils.update_dose_volume_eta(eta, eta_photon_smoothed, oar_indices, data)
 		# lambda_smoothing = 1e5
 
-		u_photon_smoothed = u1_guess
+		u_photon_smoothed = u1_guess#THIS WORKS BETTER!
 
 		u_photon_dv, eta_0_photon_dv, eta_photon_dv, lambda_smoothing_photon_dv, auto_param_obj_history_photon_dv, auto_param_relaxed_obj_history_photon_dv = optimization_tools.solver_auto_param(u_photon_smoothed, 
 			utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_photon_dv, H_photon_dv, alpha_photon_dv, gamma_photon_dv, B_photon_dv, D_photon_dv, C_photon_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0, normalize = normalize, lambda_step = lambda_step)
 		saving_dir = config_experiment+'_photon_{}_{}'.format(N_photon, 0)
 		utils.save_obj(u_photon_dv, 'u_photon_dv', saving_dir)
-		utils.save_obj(u1_guess, 'u1_guess', saving_dir)
+		# utils.save_obj(u1_guess, 'u1_guess', saving_dir)
 		utils.save_obj(eta_0_photon_dv, 'eta_0_photon_dv', saving_dir)
 		utils.save_obj(eta_photon_dv, 'eta_photon_dv', saving_dir)
 		utils.save_obj(lambda_smoothing_photon_dv, 'lambda_smoothing_photon_dv', saving_dir)
