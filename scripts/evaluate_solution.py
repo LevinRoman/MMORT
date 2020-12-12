@@ -613,7 +613,7 @@ if __name__ == '__main__':
 			y_beam = data['beamlet_pos'][beamlet_indices[i]][:,1]
 			u_beam = u_photon_dv[:data['Aphoton'].shape[1]][beamlet_indices[i]]
 			# xi, yi = np.linspace(x.min(), x.max(), 300), np.linspace(y.min(), y.max(), 300)
-			x_mesh, ymesh = np.meshgrid(x_beam, y_beam)
+			x_mesh, y_mesh = np.meshgrid(x_beam, y_beam)
 
 			# Interpolate; there's also method='cubic' for 2-D data such as here
 			z_mesh = scipy.interpolate.griddata((x_beam, y_beam), u_beam, (x_mesh, y_mesh), method='linear')
