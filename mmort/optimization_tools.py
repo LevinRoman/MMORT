@@ -620,7 +620,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
             print('\n Current lambda: {}'.format(lambda_smoothing_))
             count+=1
             # P[:photon_shape, :photon_shape] = P[:photon_shape, :photon_shape] - lambda_smoothing_*SS
-            # lambda_smoothing_ *= lambda_step
+            lambda_smoothing_ *= lambda_step
             # P[:photon_shape, :photon_shape] = P[:photon_shape, :photon_shape] + lambda_smoothing_*SS
 
             # sol = cvxopt.solvers.qp(P,q,G,h)
@@ -633,16 +633,16 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
             res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing_, alpha_l2), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
                options = {'maxiter': nnls_max_iter, 'disp':0})
             print('Res status:', res.status)
-            if res.status == 2:
-                np.save('x0.npy', x0)
-                np.save('A.npy', A)
-                np.save('b.npy', b)
-                np.save('AA.npy', AA)
-                np.save('Atb.npy', Atb)
-                np.save('S.npy', S)
-                np.save('StS.npy', StS)
-                np.save('lambda_smoothing_.npy', lambda_smoothing_)
-                print('\nSaved input to L-BFGS-B!\n')
+            # if res.status == 2:
+            #     np.save('x0.npy', x0)
+            #     np.save('A.npy', A)
+            #     np.save('b.npy', b)
+            #     np.save('AA.npy', AA)
+            #     np.save('Atb.npy', Atb)
+            #     np.save('S.npy', S)
+            #     np.save('StS.npy', StS)
+            #     np.save('lambda_smoothing_.npy', lambda_smoothing_)
+            #     print('\nSaved input to L-BFGS-B!\n')
             print(res)
             u_next = res.x
             photon_target_smoothness = check_photon_target_smoothness(target_photon_matrix, u_next, max_min_ratio = max_min_ratio, proton_only = proton_only)
