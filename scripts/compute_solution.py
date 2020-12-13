@@ -406,6 +406,8 @@ if __name__ == '__main__':
 			eta = utils.update_dose_volume_eta(eta, eta_mult_smoothed, oar_indices, data)
 		# lambda_smoothing = 1e5
 
+		u_mult_smoothed = np.concatenate([np.zeros(u1_guess.shape[0]), u2_guess])
+
 		u_mult_dv, eta_0_mult_dv, eta_mult_dv, lambda_smoothing_mult_dv, auto_param_obj_history_mult_dv, auto_param_relaxed_obj_history_mult_dv = optimization_tools.solver_auto_param(u_mult_smoothed, 
 			utils.organ_photon_matrix('Target', data), S, StS, lambda_smoothing_init, smoothing_ratio, T_mult_dv, H_mult_dv, alpha_mult_dv, gamma_mult_dv, B_mult_dv, D_mult_dv, C_mult_dv, eta_step = eta_step, ftol = ftol, max_iter = max_iter, verbose = 1, eta = eta, eta_0 = eta_0, normalize = normalize, lambda_step = lambda_step)
 		saving_dir = config_experiment+'_mult_{}_{}'.format(N1, N2)
