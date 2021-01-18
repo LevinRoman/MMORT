@@ -41,7 +41,7 @@ def experiment_2(N1, d):
 	 yield Tu-d as the objective where d is a target uniform dose per fraction"""
 	configurations = {}
 	Alpha = np.array([2*d/N1, 0.0])
-	Beta = np.array([-1/N, 0.0])
+	Beta = np.array([-1/N1, 0.0])
 	Gamma = np.array([np.array([0.35, 0.0]),
 	                  np.array([0.35, 0.0]),
 	                  np.array([0.35, 0.0]),
