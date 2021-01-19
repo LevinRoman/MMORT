@@ -936,9 +936,9 @@ def solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, 
         start = time.time()
         
         u_prev = np.copy(u)
-        print('\n eta0:', eta_0)
-        print('\n u:', u)
-        print('\n B:', B)
+        # print('\n eta0:', eta_0)
+        # print('\n u:', u)
+        # print('\n B:', B)
         w_0 = w_0_update(eta_0, u, T, alpha, B) 
         w = w_update(u, H, gamma, D, C)
         nnls_max_iter = 50 #+ (max(0,count-10))**(3/2)

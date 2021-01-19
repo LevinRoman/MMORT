@@ -1,4 +1,4 @@
-"""Script to compute treatment plan
+"""Script to compute treatment plan for fixed fractionation
 ARGS: 
 	data_path
 	coefficients_path (for Alpha, Beta, Gamma, Delta)
@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
 
 	parser.add_argument('--data_name', default = 'ProstateExample_BODY_not_reduced_with_OAR_constraints.mat', type = str)
-	parser.add_argument('--config_experiment', default = 'Experiment_1', type = str)
+	parser.add_argument('--config_experiment', default = 'Experiment_1', type = str, help = 'Whic experiment to run (Options: Experiment_1, Experiment_2). See config file for details')
 	parser.add_argument('--smoothing_ratio', default = 2.0, type = float)
 	parser.add_argument('--lambda_smoothing', default = 1e5, type = float)
 	parser.add_argument('--precomputed_input', default = 'no', type = str)
@@ -445,6 +445,8 @@ if __name__ == '__main__':
 
 		#Initalize parameters
 		eta_0 =  (1/(2*np.max(B_photon)))*eta0_coef_photon#0.9 #Initialize eta_0
+		if config_experiment == 'Experiment_2':
+			eta_0 = eta0_coef_photon
 		eta = np.array([eta_0/len(H_photon)]*len(H_photon))*eta_coef_photon#1e-7
 		lambda_smoothing_init = np.copy(lambda_smoothing)
 		#Set up smoothing matrix
