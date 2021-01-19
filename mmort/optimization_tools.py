@@ -568,49 +568,41 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
         print('\n Condition number of regularized problem AFTER renormalization and cleaning:', np.linalg.cond(AA+alpha_l2*np.eye(AA.shape[0])))
         # print('\n Condition number of A AFTER renormalization and cleaning:', np.linalg.cond(A.toarray()))
 
+    cvxopt_solver = False
+    if not cvxopt_solver:
+        x0 = u_cur#np.zeros(AtA.shape[1])
+        alpha_l2 = 0.1
+        bnds = [(0, np.inf)]*x0.shape[0]
+        # grad = None
 
-    x0 = u_cur#np.zeros(AtA.shape[1])
-    alpha_l2 = 0.1
-    bnds = [(0, np.inf)]*x0.shape[0]
-    # # grad = None
-
-    # res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing_, alpha_l2), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
-    #    options = {'maxiter': nnls_max_iter, 'disp':1})
-    # print(res)
-    # u_next = res.x
+        res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing_, alpha_l2), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
+           options = {'maxiter': nnls_max_iter, 'disp':1})
+        print(res)
+        u_next = res.x
 
     #####################
     #CVXOPT ATTEMPT
     #####################
-    alpha_l2 = 0.1
-    cvxopt.solvers.options['maxiter'] = 50
-    P = cvxopt.matrix(AA + alpha_l2*np.eye(AA.shape[0]), tc='d') #regularization
-    SS = cvxopt.matrix(StS, tc = 'd')
-    photon_shape = StS.shape[1]
-    P[:photon_shape, :photon_shape] = P[:photon_shape, :photon_shape] + lambda_smoothing_*SS
-    # P = P +  #regularization
-    # P = cvxopt.matrix(P, tc = 'd')
-#     q = -Atb
-    q = cvxopt.matrix(-Atb, tc = 'd')
-    # G = sparse(, tc = 'd')
-    G = -scipy.sparse.eye(x0.shape[0]).tocoo()
-#     G = -np.eye(x0.shape[0])
-    G = cvxopt.spmatrix(G.data, G.row.tolist(), G.col.tolist(), tc = 'd')
-    h = cvxopt.matrix(np.zeros(x0.shape[0]), tc = 'd')
-# def cvxopt_problem(AA, StS, Atb, x0):
-# #     cvxopt.solvers.options['feastol'] = 1e-5
-# #     cvxopt.solvers.options['abstol'] = 1e-5
-# #     cvxopt.solvers.options['feastol'] = 1e-5
-# #     cvxopt.solvers.options['abstol'] = 1e-5
-# #     cvxopt.solvers.options['reltol'] = 1e-4
-        
-#     #     h = np.zeros(x0.shape[0])
-#     #     initval = matrix(x0)
-    sol = cvxopt.solvers.qp(P,q,G,h)
-    u_next = np.array(sol['x']).flatten()
-    # ol['x']
+    if cvxopt_solver:
+        alpha_l2 = 0.1
+        cvxopt.solvers.options['maxiter'] = 50
+        P = cvxopt.matrix(AA + alpha_l2*np.eye(AA.shape[0]), tc='d') #regularization
+        SS = cvxopt.matrix(StS, tc = 'd')
+        photon_shape = StS.shape[1]
+        P[:photon_shape, :photon_shape] = P[:photon_shape, :photon_shape] + lambda_smoothing_*SS
+        # P = P +  #regularization
+        # P = cvxopt.matrix(P, tc = 'd')
+    #     q = -Atb
+        q = cvxopt.matrix(-Atb, tc = 'd')
+        # G = sparse(, tc = 'd')
+        G = -scipy.sparse.eye(x0.shape[0]).tocoo()
+    #     G = -np.eye(x0.shape[0])
+        G = cvxopt.spmatrix(G.data, G.row.tolist(), G.col.tolist(), tc = 'd')
+        h = cvxopt.matrix(np.zeros(x0.shape[0]), tc = 'd')
 
-        # return sol
+        sol = cvxopt.solvers.qp(P,q,G,h)
+        u_next = np.array(sol['x']).flatten()
+
 
     if enforce_smooth_u:
         photon_target_smoothness = check_photon_target_smoothness(target_photon_matrix, u_next, max_min_ratio = max_min_ratio, proton_only = proton_only)
@@ -619,19 +611,21 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
             print('\nTaken {} smoothness iterations'.format(count))
             print('\n Current lambda: {}'.format(lambda_smoothing_))
             count+=1
-            P[:photon_shape, :photon_shape] = P[:photon_shape, :photon_shape] - lambda_smoothing_*SS
-            lambda_smoothing_ *= lambda_step
-            P[:photon_shape, :photon_shape] = P[:photon_shape, :photon_shape] + lambda_smoothing_*SS
+            if cvxopt_solver:
+                P[:photon_shape, :photon_shape] = P[:photon_shape, :photon_shape] - lambda_smoothing_*SS
+                lambda_smoothing_ *= lambda_step
+                P[:photon_shape, :photon_shape] = P[:photon_shape, :photon_shape] + lambda_smoothing_*SS
 
-            sol = cvxopt.solvers.qp(P,q,G,h)
-            print(sol)
-            u_next = np.array(sol['x']).flatten()
-            # x0 = u_next#np.zeros(AtA.shape[1])
+                sol = cvxopt.solvers.qp(P,q,G,h)
+                print(sol)
+                u_next = np.array(sol['x']).flatten()
+            if not cvxopt_solver:
+            x0 = u_next#np.zeros(AtA.shape[1])
 
-            # bnds = [(0, np.inf)]*x0.shape[0]
+            bnds = [(0, np.inf)]*x0.shape[0]
 
-            # res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing_, alpha_l2), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
-               # options = {'maxiter': nnls_max_iter, 'disp':0})
+            res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing_, alpha_l2), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
+               options = {'maxiter': nnls_max_iter, 'disp':0})
             # print('Res status:', res.status)
             # if res.status == 2:
             #     np.save('x0.npy', x0)
