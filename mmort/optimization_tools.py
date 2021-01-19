@@ -620,12 +620,12 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
                 print(sol)
                 u_next = np.array(sol['x']).flatten()
             if not cvxopt_solver:
-            x0 = u_next#np.zeros(AtA.shape[1])
+                x0 = u_next#np.zeros(AtA.shape[1])
 
-            bnds = [(0, np.inf)]*x0.shape[0]
+                bnds = [(0, np.inf)]*x0.shape[0]
 
-            res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing_, alpha_l2), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
-               options = {'maxiter': nnls_max_iter, 'disp':0})
+                res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing_, alpha_l2), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
+                   options = {'maxiter': nnls_max_iter, 'disp':0})
             # print('Res status:', res.status)
             # if res.status == 2:
             #     np.save('x0.npy', x0)
