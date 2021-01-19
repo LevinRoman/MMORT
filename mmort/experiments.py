@@ -106,7 +106,7 @@ def construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data, modali
                 gamma.append(np.repeat(Gamma[constr_type], 1) * np.repeat(N, 1))
                 D.append(np.repeat(Delta[constr_type], 1) * np.repeat(N, 1))
                 #Add the BE constraint for OARs
-                total_N = 45# 45 fractions of Photons is the default #np.sum(N)
+                total_N = 44# 45 fractions of Photons is the default #np.sum(N)
                 d = np.squeeze(OAR_constr_values[constr_type])/total_N
                 lin = Gamma[constr_type][0]*total_N
                 quad = Delta[constr_type][0]*total_N                
@@ -120,7 +120,7 @@ def construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data, modali
             D.append(np.repeat(Delta[constr_type], num_voxels[1:][constr_type]) 
                          * np.repeat(N, num_voxels[1:][constr_type]))
             
-            total_N = 45 # 45 fractions of Photons is the conventional clinical practice #np.sum(N)
+            total_N = 44 # 45 fractions of Photons is the conventional clinical practice #np.sum(N)
             d = np.squeeze(OAR_constr_values[constr_type])/total_N
             lin = Gamma[constr_type][0]*total_N
             quad = Delta[constr_type][0]*total_N                
