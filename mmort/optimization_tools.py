@@ -584,6 +584,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     #CVXOPT ATTEMPT
     #####################
     if cvxopt_solver:
+        x0 = u_cur
         alpha_l2 = 1e-10
         cvxopt.solvers.options['maxiter'] = 50
         P = cvxopt.matrix(AA + alpha_l2*np.eye(AA.shape[0]), tc='d') #regularization
