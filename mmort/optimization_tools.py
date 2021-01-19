@@ -571,7 +571,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     cvxopt_solver = False
     if not cvxopt_solver:
         x0 = u_cur#np.zeros(AtA.shape[1])
-        alpha_l2 = 1e-4
+        alpha_l2 = 1e-10
         bnds = [(0, np.inf)]*x0.shape[0]
         # grad = None
 
@@ -584,7 +584,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     #CVXOPT ATTEMPT
     #####################
     if cvxopt_solver:
-        alpha_l2 = 1e-4
+        alpha_l2 = 1e-10
         cvxopt.solvers.options['maxiter'] = 50
         P = cvxopt.matrix(AA + alpha_l2*np.eye(AA.shape[0]), tc='d') #regularization
         SS = cvxopt.matrix(StS, tc = 'd')
@@ -639,7 +639,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
             #     np.save('lambda_smoothing_.npy', lambda_smoothing_)
             #     print('\nSaved input to L-BFGS-B!\n')
             # print(res)
-            # u_next = res.x
+                u_next = res.x0
             photon_target_smoothness = check_photon_target_smoothness(target_photon_matrix, u_next, max_min_ratio = max_min_ratio, proton_only = proton_only)
 
     end = time.time()
