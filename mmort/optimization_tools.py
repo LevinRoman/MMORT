@@ -6,7 +6,7 @@ import scipy
 import scipy.sparse
 import time
 import cvxopt
-
+# import time
 
 #Helper functions
 def prox(eta_0, y, B):
@@ -486,7 +486,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
                   (create a separate file with it)  
     """ 
     """In the following  +[[]] and [:-1] are added to keep the thing 1dim array of objects and still multiply it elemtwisely""" 
-    import time
+    
 
     start = time.time()
     #Renormalize here, could throw away the zero rows
@@ -627,6 +627,8 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
 
                 res = scipy.optimize.minimize(fun, x0, args=(A, b, AA, Atb, S, StS, lambda_smoothing_, alpha_l2), tol = 1e-5, method='L-BFGS-B', jac=grad, bounds=bnds,
                    options = {'maxiter': nnls_max_iter, 'disp':0})
+                print(res)
+                print('u sum:', np.sum(res.x))
             # print('Res status:', res.status)
             # if res.status == 2:
             #     np.save('x0.npy', x0)
