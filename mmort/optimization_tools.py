@@ -546,7 +546,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
         A = np.sqrt(normalization)*A
         b = np.sqrt(normalization)*b
         lambda_smoothing_ = normalization*lambda_smoothing_
-        alpha_l2 = 1e-4ha_l2*normalization#np.min((1/(2*np.concatenate([[eta_0], eta], axis = 0)))/np.max(1/(2*eta)))
+        alpha_l2 = alpha_l2*normalization#np.min((1/(2*np.concatenate([[eta_0], eta], axis = 0)))/np.max(1/(2*eta)))
         Atb = A.T.dot(b)
         AA = normalization*AA
         #Filter out zero rows, if infinity norm is less than 1e-20
