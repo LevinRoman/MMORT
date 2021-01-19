@@ -568,7 +568,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
         print('\n Condition number of regularized problem AFTER renormalization and cleaning:', np.linalg.cond(AA+alpha_l2*np.eye(AA.shape[0])))
         # print('\n Condition number of A AFTER renormalization and cleaning:', np.linalg.cond(A.toarray()))
 
-    cvxopt_solver = False
+    cvxopt_solver = True
     if not cvxopt_solver:
         x0 = u_cur#np.zeros(AtA.shape[1])
         alpha_l2 = 1e-10
