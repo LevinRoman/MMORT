@@ -620,6 +620,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
                 print(sol)
                 u_next = np.array(sol['x']).flatten()
             if not cvxopt_solver:
+                lambda_smoothing_ *= lambda_step
                 x0 = u_next#np.zeros(AtA.shape[1])
 
                 bnds = [(0, np.inf)]*x0.shape[0]
