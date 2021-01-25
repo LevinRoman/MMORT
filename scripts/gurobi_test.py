@@ -61,7 +61,7 @@ b = np.array([2,0,0])
 
 # Set objective: x^2 + x*y + y^2 + y*z + z^2 + 2 x
 # obj = x**2 + x*y + y**2 + y*z + z**2 + 2*x
-obj = x.T@A@x + b@x
+obj = x@A@x + b@x
 m.setObjective(obj)
 
 # Add constraint: x + 2 y + 3 z <= 4
