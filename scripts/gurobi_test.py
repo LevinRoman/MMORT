@@ -29,17 +29,17 @@ data = scipy.io.loadmat(data_path)
 Alpha = np.array([0.35, 0.35])
 Beta = np.array([0.175, 0.175])
 Gamma = np.array([np.array([0.35, 0.35]),
-                  np.array([0.35, 0.35]),
-                  np.array([0.35, 0.35]),
-                  np.array([0.35, 0.35]),
-                  np.array([0.35, 0.35])               
-                 ])
+				  np.array([0.35, 0.35]),
+				  np.array([0.35, 0.35]),
+				  np.array([0.35, 0.35]),
+				  np.array([0.35, 0.35])               
+				 ])
 Delta = np.array([np.array([0.07, 0.07]),
-                  np.array([0.07, 0.07]),
-                  np.array([0.175, 0.175]),
-                  np.array([0.175, 0.175]),
-                  np.array([0.175, 0.175])                
-                 ])
+				  np.array([0.07, 0.07]),
+				  np.array([0.175, 0.175]),
+				  np.array([0.175, 0.175]),
+				  np.array([0.175, 0.175])                
+				 ])
 modality_names = np.array(['Aphoton', 'Aproton'])
 
 num_body_voxels = 683189
@@ -103,9 +103,7 @@ data['Aproton'][-1] = data['Aproton'][-1]/num_body_voxels
 # D_photon = utils.load_obj('D_photon', loading_dir)
 # C_photon = utils.load_obj('C_photon', loading_dir)
 def fixed_N_qcqp(N, dose_deposition_dict, constraint_dict, radbio_dict, S, alpha_smoothing):
-"""In every dict, keys are organ names
-So far, we are doing this for photons only
-S is the smoothing matrix"""
+"""In every dict, keys are organ namesSo far, we are doing this for photons onlyS is the smoothing matrix"""
 	T = dose_deposition_dict['Target']
 	m = gp.Model("Fixed-N-QCQP")
 	u = m.addMVar(T.shape[1], vtype=GRB.CONTINUOUS, lb=0.0, name="u")
@@ -136,7 +134,7 @@ S is the smoothing matrix"""
 
 	m.optimize()
 	for v in m.getVars():
-    	print('%s %g' % (v.varName, v.x))
+		print('%s %g' % (v.varName, v.x))
 
 	print('Obj: %g' % obj.getValue())
 	utils.save_obj(u.x, 'u_photon_gurobi', '')
