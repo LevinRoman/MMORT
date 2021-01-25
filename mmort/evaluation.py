@@ -151,7 +151,7 @@ def evaluation_function(u, N, data, organ_name, Alpha, Beta, Gamma, Delta, max_B
     organ_BE = organ_photon_BE + organ_proton_BE #shape of this is num_voxels(for this OAR/organ)
     #Now we would need to compute the RHS for different d and compare each voxel to it
     #This is a TODO for tomorrow
-    total_N = 45 #Standard practice - 45 fractions of Photons
+    total_N = 44 #Standard practice - 45 fractions of Photons
 #     d = np.linspace(0, max_, resolution)/total_N
 #     if organ_name != 'Target':
 #         lin = Gamma[organ_number_no_target][0]*total_N
