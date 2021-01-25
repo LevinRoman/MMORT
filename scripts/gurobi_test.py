@@ -51,19 +51,28 @@ data['Aproton'][-1] = data['Aproton'][-1]/num_body_voxels
 m = gp.Model("qp")
 
 # Create variables
-x = m.addVar(ub=1.0, name="x")
-y = m.addVar(ub=1.0, name="y")
-z = m.addVar(ub=1.0, name="z")
+x = m.addMVar(3, ub=1.0, name="x")
+A = np.array([[1,1/2,0],
+	          [1/2, 1, 1/2],
+	          [0,1/2,1]])
+b = np.array([2,0,0])
+# y = m.addVar(ub=1.0, name="y")
+# z = m.addVar(ub=1.0, name="z")
 
 # Set objective: x^2 + x*y + y^2 + y*z + z^2 + 2 x
-obj = x**2 + x*y + y**2 + y*z + z**2 + 2*x
+# obj = x**2 + x*y + y**2 + y*z + z**2 + 2*x
+obj = x.T@A@x + b@x
 m.setObjective(obj)
 
 # Add constraint: x + 2 y + 3 z <= 4
-m.addConstr(x + 2 * y + 3 * z >= 4, "c0")
+# m.addConstr(x + 2 * y + 3 * z >= 4, "c0")
+c0 = np.array([1,2,3])
+m.addConstr(c0@x >= 4, "c0")
 
 # Add constraint: x + y >= 1
-m.addConstr(x + y >= 1, "c1")
+# m.addConstr(x + y >= 1, "c1")
+c1 = np.array([1,1,0])
+m.addConstr(c1@x >= 1, "c1")
 
 m.optimize()
 
