@@ -110,7 +110,7 @@ def fixed_N_qcqp(N, dose_deposition_dict, constraint_dict, radbio_dict, S, alpha
 	
 	target_dose = T@u #Dose
 	smoothing_term = S@u
-	alpha, beta = radbio_dict['Target'] #Linear and quadratic coefficients
+	alpha, beta = radbio_dict['Target'] # Linear and quadratic coefficients
 	obj = -N*(alpha*target_dose.sum() + beta*target_dose@target_dose) + alpha_smoothing*smoothing_term@smoothing_term
 	m.setObjective(obj)
 
