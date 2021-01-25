@@ -111,7 +111,7 @@ def fixed_N_qcqp(N, dose_deposition_dict, constraint_dict, radbio_dict, S, alpha
 	target_dose = T@u #Dose
 	smoothing_term = S@u
 	alpha, beta = radbio_dict['Target'] #Linear and quadratic coefficients
-	obj = -N*(alpha*(np.ones(T.shape[0])@T)@u + beta*u@(T.T@T)@u) + alpha_smoothing*u@(S.T@S)@u
+	obj = -N*((alpha*np.ones(T.shape[0])@T)@u + u@(beta*T.T@T)@u) + u@(alpha_smoothing*S.T@S)@u
 	m.setObjective(obj)
 
 	OAR_names = list(dose_deposition_dict.keys())[1:] #Not including Target
