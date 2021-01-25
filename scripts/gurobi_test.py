@@ -103,7 +103,7 @@ data['Aproton'][-1] = data['Aproton'][-1]/num_body_voxels
 # D_photon = utils.load_obj('D_photon', loading_dir)
 # C_photon = utils.load_obj('C_photon', loading_dir)
 def fixed_N_qcqp(N, dose_deposition_dict, constraint_dict, radbio_dict, S, alpha_smoothing):
-"""In every dict, keys are organ namesSo far, we are doing this for photons onlyS is the smoothing matrix"""
+	"""In every dict, keys are organ namesSo far, we are doing this for photons onlyS is the smoothing matrix"""
 	T = dose_deposition_dict['Target']
 	m = gp.Model("Fixed-N-QCQP")
 	u = m.addMVar(T.shape[1], vtype=GRB.CONTINUOUS, lb=0.0, name="u")
