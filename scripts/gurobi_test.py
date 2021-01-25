@@ -159,7 +159,7 @@ for organ_name in organ_names:
 		radbio_dict[organ_name] = Alpha[0], Beta[0] #So far, only photons
 	if organ_name != 'Target':
 		constraint_type = OAR_constr_types[oar_number].strip()
-		constraint_dose = OAR_constraint_values[oar_number]
+		constraint_dose = OAR_constr_values[oar_number]
 		constaint_N = 44
 		constraint_dict[organ_name] = (constraint_type, constraint_dose, constraint_N)
 		radbio_dict[organ_name] = Gamma[oar_number][0], Delta[oar_number][0]
