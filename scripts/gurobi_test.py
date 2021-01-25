@@ -82,8 +82,8 @@ for v in m.getVars():
 print('Obj: %g' % obj.getValue())
 
 x.vType = GRB.INTEGER
-y.vType = GRB.INTEGER
-z.vType = GRB.INTEGER
+# y.vType = GRB.INTEGER
+# z.vType = GRB.INTEGER
 
 m.optimize()
 
