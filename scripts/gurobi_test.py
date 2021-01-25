@@ -111,7 +111,7 @@ def fixed_N_qcqp(N, dose_deposition_dict, constraint_dict, radbio_dict, S, alpha
 	target_dose = T@u #Dose
 	smoothing_term = S@u
 	alpha, beta = radbio_dict['Target'] #Linear and quadratic coefficients
-	obj = -N*(alpha*gp.quicksum(target_dose) + beta*target_dose@target_dose) + alpha_smoothing*smoothing_term@smoothing_term
+	obj = -N*(alpha*sum(target_dose) + beta*target_dose@target_dose) + alpha_smoothing*smoothing_term@smoothing_term
 	m.setObjective(obj)
 
 	OAR_names = list(dose_deposition_dict.keys())[1:] #Not including Target
@@ -129,7 +129,7 @@ def fixed_N_qcqp(N, dose_deposition_dict, constraint_dict, radbio_dict, S, alpha
 			#Sum the constr BEs across voxels:
 			mean_constraint_BE = H.shape[0]*constraint_N*(gamma*constraint_dose + delta*constraint_dose**2)
 			#The sum of BEs across voxels
-			mean_constr = N*(gamma*gp.quicksum(oar_dose) + delta*oar_dose@oar_dose)
+			mean_constr = N*(gamma*sum(oar_dose) + delta*oar_dose@oar_dose)
 			m.addConstr(mean_constr <= mean_constraint_BE, "{} max constraint".format(oar))
 
 	m.optimize()
