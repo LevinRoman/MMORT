@@ -117,14 +117,15 @@ def fixed_N_qcqp(N, dose_deposition_dict, constraint_dict, radbio_dict, S, alpha
 	OAR_names = list(dose_deposition_dict.keys())[1:] #Not including Target
 	for oar in OAR_names:
 		H = dose_deposition_dict[oar]
-		oar_dose = H@u
+		oar_dose =  m.addMVar(H.shape[0], name="oar_dose") #H@u
+		m.addConstr(H@u == oar_dose, "{} dose".format(oar))
 		constraint_type, constraint_dose, constraint_N = constraint_dict[oar]
 		constraint_dose = constraint_dose/constraint_N #Dose per fraction
 		gamma, delta = radbio_dict[oar]
 		if constraint_type == 'max_dose':
 			max_constraint_BE = constraint_N*(gamma*constraint_dose + delta*constraint_dose**2)
 			# max_constr = N*(gamma*oar_dose + delta*oar_dose*oar_dose)
-			m.addConstrs((N*(gamma*H[voxel]@u + delta*(H[voxel]@u)*(H[voxel]@u)) <= max_constraint_BE for voxel in range(oar_dose.shape[0])),\
+			m.addConstrs((N*(gamma*oar_dose[voxel] + delta*oar_dose[voxel]*oar_dose[voxel]) <= max_constraint_BE for voxel in range(oar_dose.shape[0])),\
 				name="{} max constraint".format(oar))
 			# m.addConstr(max_constr <= max_constraint_BE, "{} max constraint".format(oar))
 		if constraint_type == 'mean_dose':
