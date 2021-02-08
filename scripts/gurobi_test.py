@@ -123,8 +123,10 @@ def fixed_N_qcqp(N, dose_deposition_dict, constraint_dict, radbio_dict, S, alpha
 		gamma, delta = radbio_dict[oar]
 		if constraint_type == 'max_dose':
 			max_constraint_BE = constraint_N*(gamma*constraint_dose + delta*constraint_dose**2)
-			max_constr = N*(gamma*oar_dose + delta*oar_dose*oar_dose)
-			m.addConstr(max_constr <= max_constraint_BE, "{} max constraint".format(oar))
+			# max_constr = N*(gamma*oar_dose + delta*oar_dose*oar_dose)
+			m.addConstrs((N*(gamma*oar_dose[voxel] + delta*oar_dose[voxel]*oar_dose[voxel]) <= max_constraint_BE for voxel in range(oar_dose.shape[0])),\
+				name="{} max constraint".format(oar))
+			# m.addConstr(max_constr <= max_constraint_BE, "{} max constraint".format(oar))
 		if constraint_type == 'mean_dose':
 			#Sum the constr BEs across voxels:
 			mean_constraint_BE = H.shape[0]*constraint_N*(gamma*constraint_dose + delta*constraint_dose**2)
