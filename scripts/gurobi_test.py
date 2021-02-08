@@ -153,7 +153,7 @@ OAR_constr_types = np.squeeze(data['OAR_constraint_types'])
 OAR_constr_values = np.squeeze(data['OAR_constraint_values'])
 for organ_name in organ_names:
 	organ_number = organ_names.index(organ_name)
-	oar_number = organ_number - 1
+	oar_number = organ_number - 1 #Because Target is also an organ
 	dose_deposition_dict[organ_name] = data['Aphoton'][organ_indices[organ_number]]
 	if organ_name == 'Target':
 		radbio_dict[organ_name] = Alpha[0], Beta[0] #So far, only photons
