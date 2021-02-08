@@ -106,6 +106,7 @@ def fixed_N_qcqp(N, dose_deposition_dict, constraint_dict, radbio_dict, S, alpha
 	"""In every dict, keys are organ namesSo far, we are doing this for photons onlyS is the smoothing matrix"""
 	T = dose_deposition_dict['Target']
 	m = gp.Model("Fixed-N-QCQP")
+	m.params.NonConvex = 2
 	u = m.addMVar(T.shape[1], vtype=GRB.CONTINUOUS, lb=0.0, name="u")
 	
 	target_dose = T@u #Dose
