@@ -38,7 +38,7 @@ def experiment_1():
 #Experiment 2: IMRT objective using our code
 def experiment_2(N1, d):
 	"""Config for Experiment 2: This experiment should
-	 yield Tu-d as the objective where d is a target uniform dose per fraction"""
+	 yield Tu-d as the objective where d is the target uniform dose per fraction"""
 	configurations = {}
 	Alpha = np.array([2*d/N1, 0.0])
 	Beta = np.array([-1/N1, 0.0])
@@ -65,4 +65,4 @@ def experiment_2(N1, d):
 	return configurations
 
 configurations['Experiment_1'] = experiment_1()
-configurations['Experiment_2'] = experiment_2(44.0, 100.0/44.0)
+configurations['Experiment_2'] = experiment_2(44.0, 81.0/44.0)
