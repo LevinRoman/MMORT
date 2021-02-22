@@ -1091,9 +1091,10 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
         obj_prev = obj_u_opt_N_fixed(u, T, alpha, B)
         u_prev = np.copy(u)
         eta_0 *= eta_step
-        if not photon_target_smoothness:
-            print('Smoothing Warning: Smoothing violated, increasing penalty')
-            lambda_smoothing *= (1/eta_step)
+        if enforce_smooth_u:
+            if not photon_target_smoothness:
+                print('Smoothing Warning: Smoothing violated, increasing penalty')
+                lambda_smoothing *= (1/eta_step)
         
         #Could do a while loop for smoothing here since we have the objective check later anyway
         u, lambda_smoothing, obj_history, relaxed_obj_history = solver(u, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C,\
