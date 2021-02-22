@@ -67,6 +67,7 @@ if __name__ == '__main__':
 	parser.add_argument('--renormalize', default = 'no', type = str)
 	parser.add_argument('--lambda_step', default = 1.5, type = float)
 	parser.add_argument('--enforce_smooth_u', action = 'store_true', help = 'Whether to enforce smooth u')
+	parser.add_argument('--IMRT', action = 'store_true', help = 'Whether this is an IMRT experiment (affects eta_0)')
  	# eta_step = 0.1, ftol = 1e-3, max_iter = 50, verbose = 1
 
 
@@ -450,8 +451,8 @@ if __name__ == '__main__':
 
 		#Initalize parameters
 		eta_0 =  (1/(2*np.max(B_photon)))*eta0_coef_photon#0.9 #Initialize eta_0
-		if config_experiment == 'Experiment_2':
-			print('Experiment_2, setting eta_0 to args')
+		if args.IMRT:
+			print('IMRT, setting eta_0 to args')
 			eta_0 = eta0_coef_photon
 		eta = np.array([eta_0/len(H_photon)]*len(H_photon))*eta_coef_photon#1e-7
 		lambda_smoothing_init = np.copy(lambda_smoothing)
