@@ -1057,7 +1057,7 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
     count = 0
     num_violated = -1
     while (len(H) - cnstr['Relaxed'].sum() > 0) or (not photon_target_smoothness and enforce_smooth_u):
-        if (float(len(H) - cnstr['Relaxed'].sum()))/len(H) > 0.9:
+        if (float(len(H) - cnstr['Relaxed'].sum()))/len(H) > 0.1:
             eta_step = eta_step_0**2
             max_iter = max_iter_warm_start
         else:
