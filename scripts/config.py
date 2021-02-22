@@ -65,4 +65,4 @@ def experiment_2(N1, d):
 	return configurations
 
 configurations['Experiment_1'] = experiment_1()
-configurations['Experiment_2'] = experiment_2(44.0, 81.0/44.0)
+configurations['Experiment_2'] = experiment_2(44.0, 85.0/44.0)
