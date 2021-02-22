@@ -500,7 +500,7 @@ if __name__ == '__main__':
 		oar_indices, T_list_photon_dv, T_photon_dv, H_photon_dv, alpha_photon_dv, gamma_photon_dv, B_photon_dv, D_photon_dv, C_photon_dv = utils.generate_dose_volume_input(T_list_photon_max, T_photon_max, H_photon_max, alpha_photon_max, gamma_photon_max, B_photon_max, D_photon_max, C_photon_max, u_photon_smoothed, np.array([N_photon, 0]), data, Alpha, Beta, Gamma, Delta, photon_only = True)
 
 		eta_0 =  (1/(2*np.max(B_photon_dv)))*eta0_coef_photon #Initialize eta_0
-		if config_experiment == 'Experiment_2':
+		if args.IMRT:
 			eta_0 = eta0_coef_photon
 		eta = np.array([eta_0/len(H_photon_dv)]*len(H_photon_dv))*eta_coef_photon
 
