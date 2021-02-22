@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
 
 	parser.add_argument('--data_name', default = 'ProstateExample_BODY_not_reduced_with_OAR_constraints.mat', type = str)
-	parser.add_argument('--config_experiment', default = 'Experiment_1', type = str, help = 'Whic experiment to run (Options: Experiment_1, Experiment_2). See config file for details')
+	parser.add_argument('--config_experiment', default = 'Experiment_1', type = str, help = 'Which experiment to run (Options: Experiment_1, Experiment_2). See config file for details')
 	parser.add_argument('--smoothing_ratio', default = 2.0, type = float)
 	parser.add_argument('--lambda_smoothing', default = 1e5, type = float)
 	parser.add_argument('--precomputed_input', default = 'no', type = str)
@@ -66,7 +66,7 @@ if __name__ == '__main__':
 	parser.add_argument('--update_parameters', default = 'no', type = str)
 	parser.add_argument('--renormalize', default = 'no', type = str)
 	parser.add_argument('--lambda_step', default = 1.5, type = float)
-
+	parser.add_argument('--enforce_smooth_u', action = 'store_true', help = 'Whether to enforce smooth u')
  	# eta_step = 0.1, ftol = 1e-3, max_iter = 50, verbose = 1
 
 
