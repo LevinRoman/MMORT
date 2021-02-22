@@ -1037,6 +1037,7 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
         Relaxed objective histories
     """
     eta_step_0 = np.copy(eta_step)
+    max_iter_0 = np.copy(max_iter)
     auto_param_obj_history = []
     auto_param_relaxed_obj_history = []
     if eta_0 is None:
@@ -1056,10 +1057,12 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
     count = 0
     num_violated = -1
     while (len(H) - cnstr['Relaxed'].sum() > 0) or (not photon_target_smoothness and enforce_smooth_u):
-        if (float(len(H) - cnstr['Relaxed'].sum()))/len(H) > 0.5:
+        if (float(len(H) - cnstr['Relaxed'].sum()))/len(H) > 0.9:
             eta_step = eta_step_0**2
+            max_iter = max_iter_warm_start
         else:
             eta_step = eta_step_0
+            max_iter = max_iter_0
         count += 1
         num_violated_prev = np.copy(num_violated)
         num_violated = cnstr['Relaxed'].sum() - len(H)
