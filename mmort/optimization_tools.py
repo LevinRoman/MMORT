@@ -1054,7 +1054,7 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
     print('Enforcing Feasibility')
     count = 0
     num_violated = -1
-    while (cnstr['Relaxed'].sum()-len(H)) or (not photon_target_smoothness):
+    while (len(H) - cnstr['Relaxed'].sum() > 0) or (not photon_target_smoothness and enforce_smooth_u):
         count += 1
         num_violated_prev = np.copy(num_violated)
         num_violated = cnstr['Relaxed'].sum() - len(H)
@@ -1062,17 +1062,19 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
         print('\n Iter ', count, '# of violated constr:', cnstr['Relaxed'].sum()-len(H), '\n Smoothness: {}'.format(photon_target_smoothness))
         eta[cnstr['Relaxed'] == False] *= eta_step
         
-        if not photon_target_smoothness:
-            lambda_smoothing *= (1/eta_step)
-            print('Lambda Smoothing:', lambda_smoothing)
-            
-        if num_violated == num_violated_prev:
-            print('Increase enforcement')
-            eta[cnstr['Relaxed'] == False] *= eta_step
+        if enforce_smooth_u:
             if not photon_target_smoothness:
                 lambda_smoothing *= (1/eta_step)
                 print('Lambda Smoothing:', lambda_smoothing)
-            
+                
+        if (num_violated == num_violated_prev) and (num_violated > 0):
+            print('Increase enforcement')
+            eta[cnstr['Relaxed'] == False] *= eta_step
+            if enforce_smooth_u:
+                if not photon_target_smoothness:
+                    lambda_smoothing *= (1/eta_step)
+                    print('Lambda Smoothing:', lambda_smoothing)
+                
         u, lambda_smoothing, obj_history, relaxed_obj_history = solver(u, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, \
             ftol = ftol, max_iter = max_iter, verbose = verbose, normalize = normalize, target_photon_matrix = target_photon_matrix,\
             max_min_ratio = smoothing_ratio, proton_only = proton_only, lambda_step = lambda_step, enforce_smooth_u = enforce_smooth_u)
