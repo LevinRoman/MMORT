@@ -983,7 +983,7 @@ def check_photon_target_smoothness(target_photon_matrix, u_mult_smoothed, max_mi
 
 def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, smoothing_ratio, T, H, alpha, gamma, B, D, C,\
     eta_step = 0.5, ftol = 1e-3, max_iter = 300, eta_0 = None, eta = None, verbose = 0,\
-     proton_only = False, normalize = False, lambda_step = 10.0, enforce_smooth_u = False):
+     proton_only = False, normalize = False, lambda_step = 10.0, enforce_smooth_u = False, max_iter_warm_start = 10):
     """Returns the optimal u for the relaxed problem in section 3.2.1 of the paper
     with the automated parameter selection
 
@@ -1036,6 +1036,7 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
     auto_param_relaxed_obj_history : list of lists
         Relaxed objective histories
     """
+    eta_step_0 = np.copy(eta_step)
     auto_param_obj_history = []
     auto_param_relaxed_obj_history = []
     if eta_0 is None:
@@ -1044,7 +1045,7 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
         eta = np.array([eta_0/len(H)]*len(H))*2#*0.01#np.array([eta_0/len(H)]*len(H))*2 
     
     u, lambda_smoothing, obj_history, relaxed_obj_history = solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, \
-        ftol = 1e-3, max_iter = max_iter//4.5, verbose = verbose, normalize = normalize, target_photon_matrix = target_photon_matrix, \
+        ftol = 1e-3, max_iter = max_iter_warm_start, verbose = verbose, normalize = normalize, target_photon_matrix = target_photon_matrix, \
         max_min_ratio = smoothing_ratio, proton_only = proton_only, lambda_step = lambda_step, inf_thresh = 10, enforce_smooth_u = enforce_smooth_u)
     auto_param_obj_history.append(obj_history)
     auto_param_relaxed_obj_history.append(relaxed_obj_history)
@@ -1055,6 +1056,10 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
     count = 0
     num_violated = -1
     while (len(H) - cnstr['Relaxed'].sum() > 0) or (not photon_target_smoothness and enforce_smooth_u):
+        if (float(len(H) - cnstr['Relaxed'].sum()))/len(H) > 0.5:
+            eta_step = eta_step_0**2
+        else:
+            eta_step = eta_step_0
         count += 1
         num_violated_prev = np.copy(num_violated)
         num_violated = cnstr['Relaxed'].sum() - len(H)
