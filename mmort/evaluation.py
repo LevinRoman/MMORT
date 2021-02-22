@@ -230,7 +230,10 @@ def evaluation_photon_plot_BE(path, ax_BE, ax_dose, u, N, data, Alpha, Beta, Gam
     ax_BE.set_xlabel('BE')
     ax_BE.set_title('BE DVH: {} Photons'.format(N[0]))
     
-    ax_dose.vlines(85, 0, 100, ls = ls, colors = 'r', label = '81 Gy')
+    ax_dose.vlines(81, 0, 100, ls = ls, colors = 'r', label = '81 Gy')
+    ax_dose.vlines(85, 0, 100, ls = ls, colors = 'r', label = '85 Gy')
+    ax_dose.vlines(60, 0, 100, ls = ls, colors = 'r', label = '60 Gy')
+    ax_dose.vlines(100, 0, 100, ls = ls, colors = 'r', label = '100 Gy')
     ax_dose.set_ylim(ymin=-0.01, ymax = 1.01)
     ax_dose.set_xlim(xmin=-1, xmax = max_dose)
     ax_dose.legend()
