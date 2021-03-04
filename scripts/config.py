@@ -71,3 +71,5 @@ configurations['Experiment_3'] = experiment_2(44.0, 85.0/44.0)
 configurations['Experiment_4'] = experiment_2(44.0, 60.0/44.0)
 configurations['Experiment_5'] = experiment_2(44.0, 100.0/44.0)
 
+#Try breaking the uniform dose:
+configurations['Experiment_6'] = experiment_2(44.0, 150.0/44.0)
