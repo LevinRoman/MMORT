@@ -108,7 +108,7 @@ def construct_beam_neighbor_relative_difference_matrix(beam, k, eps = 5):
 	rhs_beam = np.array(rhs_beam)
 	beam_smoothing = np.vstack([neighbor_difference_beam - rhs_beam, -neighbor_difference_beam - rhs_beam])
 	#Multiply by 1/eps to get the finite difference-ish
-	return np.array(neighbor_difference_beam)
+	return beam_smoothing#np.array(neighbor_difference_beam)
 
 
 def construct_smoothing_matrix_relative(beams, k, eps = 5):
