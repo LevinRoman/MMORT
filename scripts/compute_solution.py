@@ -475,6 +475,7 @@ if __name__ == '__main__':
 		else:
 			S = utils.construct_smoothing_matrix_relative(beams, args.smoothing_k, eps = 5)
 			S = S.toarray()
+			StS = S.T.dot(S)
 		# lambda_smoothing = 1e5#1e7#1e-3 #1e-2
 
 		#Compute the solution:
