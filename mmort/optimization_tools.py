@@ -600,6 +600,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
         G = scipy.sparse.coo_matrix(G)
     #     G = -np.eye(x0.shape[0])
         G = cvxopt.spmatrix(G.data, G.row.tolist(), G.col.tolist(), tc = 'd')
+        print(np.zeros(x0.shape[0]).shape, np.zeros(S.shape[0]).shape)
         h = np.vstack([np.zeros(x0.shape[0]), np.zeros(S.shape[0])])
         h = cvxopt.matrix(h, tc = 'd')
 
