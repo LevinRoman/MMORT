@@ -69,6 +69,8 @@ if __name__ == '__main__':
 	parser.add_argument('--lambda_step', default = 1.5, type = float)
 	parser.add_argument('--enforce_smooth_u', action = 'store_true', help = 'Whether to enforce smooth u')
 	parser.add_argument('--IMRT', action = 'store_true', help = 'Whether this is an IMRT experiment (affects eta_0)')
+	parser.add_argument('--relative_smoothing', action = 'store_true', help = 'Whether to use relative smoothing')
+	parser.add_argument('--smoothing_k', default = 1.5, type = float, help = 'smoothing parameter for relative smoothing')
  	# eta_step = 0.1, ftol = 1e-3, max_iter = 50, verbose = 1
 
 
@@ -363,9 +365,14 @@ if __name__ == '__main__':
 		len_voxels = data['Aphoton'].shape[0]
 		beamlet_indices = np.split(np.arange(len_voxels), np.cumsum(np.squeeze(data['num_beamlets'])))[:-1] 
 		beams = [data['beamlet_pos'][i] for i in beamlet_indices]
-		S = utils.construct_smoothing_matrix(beams, eps = 5)
-		S = S.toarray()
-		StS = S.T.dot(S)
+		if not args.relative_smoothing:
+			S = utils.construct_smoothing_matrix(beams, eps = 5)
+			S = S.toarray()
+			StS = S.T.dot(S)
+		else:
+			S = utils.construct_smoothing_matrix_relative(beams, args.smoothing_k, eps = 5)
+			S = S.toarray()
+			StS = S.T.dot(S)
 		# lambda_smoothing = 1e5#1e7#1e-3 #1e-2
 
 		#Compute the solution:
@@ -461,9 +468,13 @@ if __name__ == '__main__':
 		len_voxels = data['Aphoton'].shape[0]
 		beamlet_indices = np.split(np.arange(len_voxels), np.cumsum(np.squeeze(data['num_beamlets'])))[:-1] 
 		beams = [data['beamlet_pos'][i] for i in beamlet_indices]
-		S = utils.construct_smoothing_matrix(beams, eps = 5)
-		S = S.toarray()
-		StS = S.T.dot(S)
+		if not args.relative_smoothing:
+			S = utils.construct_smoothing_matrix(beams, eps = 5)
+			S = S.toarray()
+			StS = S.T.dot(S)
+		else:
+			S = utils.construct_smoothing_matrix_relative(beams, args.smoothing_k, eps = 5)
+			S = S.toarray()
 		# lambda_smoothing = 1e5#1e7#1e-3 #1e-2
 
 		#Compute the solution:
@@ -558,9 +569,14 @@ if __name__ == '__main__':
 		len_voxels = data['Aphoton'].shape[0]
 		beamlet_indices = np.split(np.arange(len_voxels), np.cumsum(np.squeeze(data['num_beamlets'])))[:-1] 
 		beams = [data['beamlet_pos'][i] for i in beamlet_indices]
-		S = utils.construct_smoothing_matrix(beams, eps = 5)
-		S = S.toarray()
-		StS = S.T.dot(S)
+		if not args.relative_smoothing:
+			S = utils.construct_smoothing_matrix(beams, eps = 5)
+			S = S.toarray()
+			StS = S.T.dot(S)
+		else:
+			S = utils.construct_smoothing_matrix_relative(beams, args.smoothing_k, eps = 5)
+			S = S.toarray()
+			StS = S.T.dot(S)
 		# lambda_smoothing = 1e5#1e7#1e-3 #1e-2
 
 		#Compute the solution:

@@ -585,21 +585,23 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     #####################
     if cvxopt_solver:
         x0 = u_cur
-        alpha_l2 = 1e-10
+        alpha_l2 = 0
         cvxopt.solvers.options['maxiter'] = 50
         P = cvxopt.matrix(AA + alpha_l2*np.eye(AA.shape[0]), tc='d') #regularization
-        SS = cvxopt.matrix(StS, tc = 'd')
+        # SS = cvxopt.matrix(StS, tc = 'd')
         photon_shape = StS.shape[1]
-        P[:photon_shape, :photon_shape] = P[:photon_shape, :photon_shape] + lambda_smoothing_*SS
+        P[:photon_shape, :photon_shape] = P[:photon_shape, :photon_shape] #+ lambda_smoothing_*SS
         # P = P +  #regularization
         # P = cvxopt.matrix(P, tc = 'd')
     #     q = -Atb
         q = cvxopt.matrix(-Atb, tc = 'd')
         # G = sparse(, tc = 'd')
-        G = -scipy.sparse.eye(x0.shape[0]).tocoo()
+        G = np.vstack([-np.eye(x0.shape[0]), S])
+        G = scipy.sparse.coo_matrix(G)
     #     G = -np.eye(x0.shape[0])
         G = cvxopt.spmatrix(G.data, G.row.tolist(), G.col.tolist(), tc = 'd')
-        h = cvxopt.matrix(np.zeros(x0.shape[0]), tc = 'd')
+        h = np.vstack([np.zeros(x0.shape[0]), S.shape[0]])
+        h = cvxopt.matrix(h, tc = 'd')
 
         sol = cvxopt.solvers.qp(P,q,G,h)
         u_next = np.array(sol['x']).flatten()
