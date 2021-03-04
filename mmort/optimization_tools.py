@@ -541,32 +541,32 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     # print('\n Preconditioned. New condition number of A:', np.linalg.cond(A))
 
     
-    if normalize:
-        normalization = 1/np.max(1/(2*eta))
-        A = np.sqrt(normalization)*A
-        b = np.sqrt(normalization)*b
-        lambda_smoothing_ = normalization*lambda_smoothing_
-        alpha_l2 = alpha_l2*normalization#np.min((1/(2*np.concatenate([[eta_0], eta], axis = 0)))/np.max(1/(2*eta)))
-        Atb = A.T.dot(b)
-        AA = normalization*AA
-        #Filter out zero rows, if infinity norm is less than 1e-20
-        #Could happen that we filer out the rows for the target...or the entire target...
-        #Never touch target rows
-        # rows_norms = scipy.sparse.linalg.norm(A, np.inf, axis = 1)
-        # rows_to_keep = rows_norms >= 1e-20
-        #HARD CODED 6782 target voxels!
-        # print('\n Target rows are problematic?:',np.sum(1-rows_to_keep[:6782]))
-        # rows_to_keep[:6782] = True  #always keep target rows
-        #AA = AA[rows_to_keep]
-        # A = A[rows_to_keep]
-        # b = b[rows_to_keep]
-        # AA = A.T.dot(A)
-        # Atb = A.T.dot(b)
+    # if normalize:
+    #     normalization = 1/np.max(1/(2*eta))
+    #     A = np.sqrt(normalization)*A
+    #     b = np.sqrt(normalization)*b
+    #     lambda_smoothing_ = normalization*lambda_smoothing_
+    #     alpha_l2 = alpha_l2*normalization#np.min((1/(2*np.concatenate([[eta_0], eta], axis = 0)))/np.max(1/(2*eta)))
+    #     Atb = A.T.dot(b)
+    #     AA = normalization*AA
+    #     #Filter out zero rows, if infinity norm is less than 1e-20
+    #     #Could happen that we filer out the rows for the target...or the entire target...
+    #     #Never touch target rows
+    #     # rows_norms = scipy.sparse.linalg.norm(A, np.inf, axis = 1)
+    #     # rows_to_keep = rows_norms >= 1e-20
+    #     #HARD CODED 6782 target voxels!
+    #     # print('\n Target rows are problematic?:',np.sum(1-rows_to_keep[:6782]))
+    #     # rows_to_keep[:6782] = True  #always keep target rows
+    #     #AA = AA[rows_to_keep]
+    #     # A = A[rows_to_keep]
+    #     # b = b[rows_to_keep]
+    #     # AA = A.T.dot(A)
+    #     # Atb = A.T.dot(b)
 
-        # print('\n Threw out {} rows'.format(np.sum(1-rows_to_keep)))
-        print('\n Smallest penalty:', np.min((1/(2*np.concatenate([[eta_0], eta], axis = 0)))/np.max(1/(2*eta))))
-        print('\n Condition number of regularized problem AFTER renormalization and cleaning:', np.linalg.cond(AA+alpha_l2*np.eye(AA.shape[0])))
-        # print('\n Condition number of A AFTER renormalization and cleaning:', np.linalg.cond(A.toarray()))
+    #     # print('\n Threw out {} rows'.format(np.sum(1-rows_to_keep)))
+    #     print('\n Smallest penalty:', np.min((1/(2*np.concatenate([[eta_0], eta], axis = 0)))/np.max(1/(2*eta))))
+    #     print('\n Condition number of regularized problem AFTER renormalization and cleaning:', np.linalg.cond(AA+alpha_l2*np.eye(AA.shape[0])))
+    #     # print('\n Condition number of A AFTER renormalization and cleaning:', np.linalg.cond(A.toarray()))
 
     cvxopt_solver = True
     if not cvxopt_solver:
@@ -600,7 +600,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
         G = scipy.sparse.coo_matrix(G)
     #     G = -np.eye(x0.shape[0])
         G = cvxopt.spmatrix(G.data, G.row.tolist(), G.col.tolist(), tc = 'd')
-        h = np.vstack([np.zeros(x0.shape[0]), S.shape[0]])
+        h = np.vstack([np.zeros(x0.shape[0]), np.zeros(S.shape[0])])
         h = cvxopt.matrix(h, tc = 'd')
 
         sol = cvxopt.solvers.qp(P,q,G,h)
