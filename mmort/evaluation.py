@@ -199,15 +199,13 @@ def evaluation_photon_plot_BE(path, ax_BE, ax_dose, u, N, data, Alpha, Beta, Gam
     list_of_BEs_and_names = []
     list_of_doses_and_names = []
     for organ in organ_names:
-        organ_constraint_dose, organ_constraint_BE, organ_constraint_fraction = organ_constraint(N, data, organ, Alpha, Beta, Gamma, Delta)
-        
-        BE_levels, DV_fractions, organ_BE, organ_photon_dose, organ_photon_BE = evaluation_function_photon(u, N, data, organ, Alpha, Beta, Gamma, Delta, 1.1*np.max(organ_constraint_BE), resolution)
+        BE_levels, DV_fractions, organ_BE, organ_photon_dose, organ_photon_BE = evaluation_function_photon(u, N, data, organ, Alpha, Beta, Gamma, Delta, max_BE, resolution)
         list_of_BEs_and_names.append([organ, organ_BE])
         
-        d, d_fractions = dose_dvh(1.1*np.max(organ_constraint_dose), dose_resolution, N[0]*organ_photon_dose)
+        d, d_fractions = dose_dvh(max_dose, dose_resolution, N[0]*organ_photon_dose)
         list_of_doses_and_names.append([organ, organ_photon_dose])
         
-        
+        organ_constraint_dose, organ_constraint_BE, organ_constraint_fraction = organ_constraint(N, data, organ, Alpha, Beta, Gamma, Delta)
         
         
         ax_BE.plot(BE_levels, DV_fractions, label = organ)
@@ -226,7 +224,7 @@ def evaluation_photon_plot_BE(path, ax_BE, ax_dose, u, N, data, Alpha, Beta, Gam
             
             
     ax_BE.set_ylim(ymin=-0.01, ymax = 1.01)
-    ax_BE.set_xlim(xmin=-1, xmax = 1.1*np.max(organ_constraint_BE))#max_BE)  
+    ax_BE.set_xlim(xmin=-1, xmax = max_BE)  
     ax_BE.legend()
     ax_BE.set_ylabel('Fraction')
     ax_BE.set_xlabel('BE')
@@ -237,7 +235,7 @@ def evaluation_photon_plot_BE(path, ax_BE, ax_dose, u, N, data, Alpha, Beta, Gam
     ax_dose.vlines(60, 0, 100, ls = ls, colors = 'r', label = '60 Gy')
     ax_dose.vlines(100, 0, 100, ls = ls, colors = 'r', label = '100 Gy')
     ax_dose.set_ylim(ymin=-0.01, ymax = 1.01)
-    ax_dose.set_xlim(xmin=-1, xmax = 1.1*np.max(organ_constraint_dose))#max_dose)
+    ax_dose.set_xlim(xmin=-1, xmax = max_dose)
     ax_dose.legend()
     ax_dose.set_ylabel('Fraction')
     ax_dose.set_xlabel('Dose (Gy)')
