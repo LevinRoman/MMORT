@@ -71,6 +71,7 @@ if __name__ == '__main__':
 	parser.add_argument('--IMRT', action = 'store_true', help = 'Whether this is an IMRT experiment (affects eta_0)')
 	parser.add_argument('--relative_smoothing', action = 'store_true', help = 'Whether to use relative smoothing')
 	parser.add_argument('--smoothing_k', default = 1.5, type = float, help = 'smoothing parameter for relative smoothing')
+	parser.add_argument('--body_multiplier', default = 1.0, type = float, help = 'Multiplier to increase the initial 90 for the BODY BE constraint')
  	# eta_step = 0.1, ftol = 1e-3, max_iter = 50, verbose = 1
 
 
@@ -120,9 +121,14 @@ if __name__ == '__main__':
 	data = scipy.io.loadmat(data_path)
 	
 	#Adjust the last row of the dose matrices to make sure the BODY is not the sum row but the mean row
-	num_body_voxels = 683189 #It is very bad that this is hard coded, will adjust the data file permanently later
-	data['Aphoton'][-1] = data['Aphoton'][-1]/num_body_voxels
-	data['Aproton'][-1] = data['Aproton'][-1]/num_body_voxels
+	# num_body_voxels = 683189 #It is very bad that this is hard coded, will adjust the data file permanently later
+	# data['Aphoton'][-1] = data['Aphoton'][-1]#/num_body_voxels
+	# data['Aproton'][-1] = data['Aproton'][-1]#/num_body_voxels
+	# if precomputed_input == 'yes':
+	#Increase the constraint value for BODY
+	data['OAR_constraint_values'] = np.squeeze(data['OAR_constraint_values'])
+	data['OAR_constraint_values'][-1] *= args.body_multiplier
+
 	data['OAR_constraint_fraction'] = [0.5, 0.5, 1.0, 1.0, 1.0] #Added dv constraint fraction (1.0 for max-dose) for evaluation
 
 	print('\nData loaded from '+data_path)
