@@ -51,6 +51,7 @@ if __name__ == '__main__':
 	parser.add_argument('--compute_mult', default = 'no', type = str)
 	parser.add_argument('--compute_photon', default = 'no', type = str)
 	parser.add_argument('--compute_proton', default = 'no', type = str)
+	parser.add_argument('--body_multiplier', default = 1.0, type = float, help = 'Multiplier to increase the initial 90 for the BODY BE constraint')
 	# parser.add_argument('--Rx', default = 190.0, type = float)
 	# parser.add_argument('--eta0_coef_mult', default = 0.9, type = float)
 	# parser.add_argument('--eta_coef_mult', default = 1e-7, type = float)
@@ -106,11 +107,17 @@ if __name__ == '__main__':
 	data_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'data', data_name))
 	data = scipy.io.loadmat(data_path)
 	
-	#Adjust the last row of the dose matrices to make sure the BODY is not the sum row but the mean row
-	num_body_voxels = 683189 #It is very bad that this is hard coded, will adjust the data file permanently later
-	data['Aphoton'][-1] = data['Aphoton'][-1]/num_body_voxels
-	data['Aproton'][-1] = data['Aproton'][-1]/num_body_voxels
+	
 	data['OAR_constraint_fraction'] = [0.5, 0.5, 1.0, 1.0, 1.0] #Added dv constraint fraction (1.0 for max-dose) for evaluation
+
+	if args.body_multiplier > 1.0:
+		data['OAR_constraint_values'] = np.squeeze(data['OAR_constraint_values'])
+		data['OAR_constraint_values'][-1] *= args.body_multiplier
+	else:
+		#Adjust the last row of the dose matrices to make sure the BODY is not the sum row but the mean row
+		num_body_voxels = 683189 #It is very bad that this is hard coded, will adjust the data file permanently later
+		data['Aphoton'][-1] = data['Aphoton'][-1]/num_body_voxels
+		data['Aproton'][-1] = data['Aproton'][-1]/num_body_voxels
 
 	print('\nData loaded from '+data_path)
 
