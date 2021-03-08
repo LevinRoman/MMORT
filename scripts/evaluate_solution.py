@@ -638,7 +638,7 @@ if __name__ == '__main__':
 		saving_df_path = os.path.abspath(os.path.join('obj', saving_dir))
 		# evaluation.evaluation_photon_plot_BE(saving_df_path, axs[0,0], axs[0,1], u_photon_dv, N, data, Alpha, Beta, Gamma, Delta, max_BE = 200, resolution = 500, max_dose = 45*5.0, dose_resolution = 500)
 		if args.body_multiplier > 1.0:
-			evaluation.evaluation_photon_plot_BE(saving_df_path, axs[0], axs[1], u_photon_dv, np.array([N_photon, 0]), data, Alpha, Beta, Gamma, Delta, max_BE = 200, resolution = 500, max_dose = np.max(data['OAR_constraint_values']), dose_resolution = 500)
+			evaluation.evaluation_photon_plot_BE(saving_df_path, axs[0], axs[1], u_photon_dv, np.array([N_photon, 0]), data, Alpha, Beta, Gamma, Delta, max_BE = 200, resolution = 500, max_dose = 1.1*np.max(data['OAR_constraint_values']), dose_resolution = 500)
 		else:
 			evaluation.evaluation_photon_plot_BE(saving_df_path, axs[0], axs[1], u_photon_dv, np.array([N_photon, 0]), data, Alpha, Beta, Gamma, Delta, max_BE = 200, resolution = 500, max_dose = 45*5.0, dose_resolution = 500)
 		# evaluation.evaluation_proton_plot_BE(saving_df_path, axs[2,0], axs[2,1], u_photon_dv, N, data, Alpha, Beta, Gamma, Delta, max_BE = 10, resolution = 500, max_dose = 45*0.5, dose_resolution = 500)
