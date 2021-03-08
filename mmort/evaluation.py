@@ -199,13 +199,15 @@ def evaluation_photon_plot_BE(path, ax_BE, ax_dose, u, N, data, Alpha, Beta, Gam
     list_of_BEs_and_names = []
     list_of_doses_and_names = []
     for organ in organ_names:
-        BE_levels, DV_fractions, organ_BE, organ_photon_dose, organ_photon_BE = evaluation_function_photon(u, N, data, organ, Alpha, Beta, Gamma, Delta, max_BE, resolution)
+        organ_constraint_dose, organ_constraint_BE, organ_constraint_fraction = organ_constraint(N, data, organ, Alpha, Beta, Gamma, Delta)
+        
+        BE_levels, DV_fractions, organ_BE, organ_photon_dose, organ_photon_BE = evaluation_function_photon(u, N, data, organ, Alpha, Beta, Gamma, Delta, 1.1*np.max(organ_constraint_BE), resolution)
         list_of_BEs_and_names.append([organ, organ_BE])
         
-        d, d_fractions = dose_dvh(max_dose, dose_resolution, N[0]*organ_photon_dose)
+        d, d_fractions = dose_dvh(1.1*np.max(organ_constraint_dose), dose_resolution, N[0]*organ_photon_dose)
         list_of_doses_and_names.append([organ, organ_photon_dose])
         
-        organ_constraint_dose, organ_constraint_BE, organ_constraint_fraction = organ_constraint(N, data, organ, Alpha, Beta, Gamma, Delta)
+        
         
         
         ax_BE.plot(BE_levels, DV_fractions, label = organ)
