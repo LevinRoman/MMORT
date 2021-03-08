@@ -224,7 +224,7 @@ def evaluation_photon_plot_BE(path, ax_BE, ax_dose, u, N, data, Alpha, Beta, Gam
             
             
     ax_BE.set_ylim(ymin=-0.01, ymax = 1.01)
-    ax_BE.set_xlim(xmin=-1, xmax = max_BE)  
+    ax_BE.set_xlim(xmin=-1, xmax = 1.1*np.max(organ_constraint_BE))#max_BE)  
     ax_BE.legend()
     ax_BE.set_ylabel('Fraction')
     ax_BE.set_xlabel('BE')
@@ -235,7 +235,7 @@ def evaluation_photon_plot_BE(path, ax_BE, ax_dose, u, N, data, Alpha, Beta, Gam
     ax_dose.vlines(60, 0, 100, ls = ls, colors = 'r', label = '60 Gy')
     ax_dose.vlines(100, 0, 100, ls = ls, colors = 'r', label = '100 Gy')
     ax_dose.set_ylim(ymin=-0.01, ymax = 1.01)
-    ax_dose.set_xlim(xmin=-1, xmax = max_dose)
+    ax_dose.set_xlim(xmin=-1, xmax = 1.1*np.max(organ_constraint_dose))#max_dose)
     ax_dose.legend()
     ax_dose.set_ylabel('Fraction')
     ax_dose.set_xlabel('Dose (Gy)')
