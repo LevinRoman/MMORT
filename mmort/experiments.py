@@ -92,7 +92,7 @@ def construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data, modali
     D = []
     C = []
 #     generalized_num_voxels = [num_voxels[0]]
-    #[:-1] because we don't wabt the last isolated voxel
+    #[:-1] because we don't want the last isolated voxel
     organ_indices = np.split(np.arange(data['Aphoton'].shape[0]), np.cumsum(np.squeeze(data['num_voxels'])))[:-1]
     generalized_organ_voxels = []
     OAR_constr_types = np.squeeze(data['OAR_constraint_types'])
@@ -130,7 +130,7 @@ def construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data, modali
             generalized_organ_voxels.append(organ_indices[constr_type+1])
 #             generalized_num_voxels.append(num_voxels[1:][constr_type])
             
-    #Construct the dose-deposition matrices for our generalized OARs!
+    #Construct the dose-deposition matrices for our generalized OARs
     cur_OAR_index = 0
     OAR_indeces = []
     print('getting through {} matrices'.format(len(generalized_organ_voxels)))
