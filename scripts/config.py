@@ -64,6 +64,35 @@ def experiment_2(N1, d):
 
 	return configurations
 
+#tumor max dose (tmd) experiment
+def experiment_tmd():
+	"""Config for Experiment 1: Two modality, dosimetric difference"""
+	configurations = {}
+	Alpha = np.array([0.35, 0.35])
+	Beta = np.array([0.175, 0.175])
+	Gamma = np.array([np.array([0.35, 0.35]),
+	                  np.array([0.35, 0.35]),
+	                  np.array([0.35, 0.35]),
+	                  np.array([0.35, 0.35]),
+	                  np.array([0.35, 0.35]),
+	                  np.array([0.35, 0.35])              
+	                 ])
+	Delta = np.array([np.array([0.07, 0.07]),
+	                  np.array([0.07, 0.07]),
+	                  np.array([0.175, 0.175]),
+	                  np.array([0.175, 0.175]),
+	                  np.array([0.175, 0.175]),
+	                  np.array([0.175, 0.175])            
+	                 ])
+	modality_names = np.array(['Aphoton', 'Aproton'])
+
+	configurations['Alpha'] = Alpha
+	configurations['Beta'] = Beta
+	configurations['Gamma'] = Gamma
+	configurations['Delta'] = Delta
+	configurations['modality_names'] = modality_names
+	return configurations
+
 configurations['Experiment_1'] = experiment_1()
 configurations['Experiment_2'] = experiment_2(44.0, 81.0/44.0)
 
@@ -75,6 +104,6 @@ configurations['Experiment_5'] = experiment_2(44.0, 100.0/44.0)
 configurations['Experiment_6'] = experiment_2(44.0, 150.0/44.0)
 
 #Experiment with tumor max dose (tmd)
-configurations['tmd_experiment_1'] = experiment_1()
+configurations['tmd_experiment_1'] = experiment_tmd()
 #IMRT experiment with tumor max dose (tmd)
-configurations['tmd_imrt_experiment_1'] = experiment_2(44.0, 81.0/44.0)
+configurations['tmd_imrt_experiment_1'] = experiment_tmd(44.0, 81.0/44.0)
