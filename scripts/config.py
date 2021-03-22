@@ -73,3 +73,8 @@ configurations['Experiment_5'] = experiment_2(44.0, 100.0/44.0)
 
 #Try breaking the uniform dose:
 configurations['Experiment_6'] = experiment_2(44.0, 150.0/44.0)
+
+#Experiment with tumor max dose (tmd)
+configurations['tmd_experiment_1'] = experiment_1()
+#IMRT experiment with tumor max dose (tmd)
+configurations['tmd_imrt_experiment_1'] = experiment_2(44.0, 81.0/44.0)
