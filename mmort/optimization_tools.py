@@ -571,7 +571,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     cvxopt_solver = True
     if not cvxopt_solver:
         x0 = u_cur#np.zeros(AtA.shape[1])
-        alpha_l2 = 1e-3
+        alpha_l2 = 1e-1
         bnds = [(0, np.inf)]*x0.shape[0]
         # grad = None
 
