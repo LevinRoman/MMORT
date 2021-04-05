@@ -604,6 +604,13 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
             G = np.vstack([np.eye(x0.shape[0]), -np.eye(x0.shape[0]), S_mult])
         else:
             G = np.vstack([-np.eye(x0.shape[0]), S_mult])
+        
+        if proton_only:
+            if u_max is not None:
+                G = np.vstack([np.eye(x0.shape[0]), -np.eye(x0.shape[0])])
+            else:
+                G = np.vstack([-np.eye(x0.shape[0])])
+                
         G = scipy.sparse.coo_matrix(G)
     #     G = -np.eye(x0.shape[0])
         G = cvxopt.spmatrix(G.data, G.row.tolist(), G.col.tolist(), tc = 'd')
@@ -613,6 +620,13 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
             h = np.hstack([u_max*np.ones(x0.shape[0]), np.zeros(x0.shape[0]), np.zeros(S_mult.shape[0])])
         else:
             h = np.hstack([np.zeros(x0.shape[0]), np.zeros(S_mult.shape[0])])
+
+        if proton_only:
+            if u_max is not None:
+                h = np.hstack([u_max*np.ones(x0.shape[0]), np.zeros(x0.shape[0])])
+            else:
+                h = np.hstack([np.zeros(x0.shape[0])])
+
         h = cvxopt.matrix(h, tc = 'd')
 
         sol = cvxopt.solvers.qp(P,q,G,h)
