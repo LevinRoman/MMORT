@@ -585,7 +585,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
     #####################
     if cvxopt_solver:
         x0 = u_cur
-        alpha_l2 = 0
+        alpha_l2 = 1e-7
         cvxopt.solvers.options['maxiter'] = 50
         P = cvxopt.matrix(AA + alpha_l2*np.eye(AA.shape[0]), tc='d') #regularization
         # SS = cvxopt.matrix(StS, tc = 'd')
@@ -610,7 +610,7 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
                 G = np.vstack([np.eye(x0.shape[0]), -np.eye(x0.shape[0])])
             else:
                 G = np.vstack([-np.eye(x0.shape[0])])
-                
+
         G = scipy.sparse.coo_matrix(G)
     #     G = -np.eye(x0.shape[0])
         G = cvxopt.spmatrix(G.data, G.row.tolist(), G.col.tolist(), tc = 'd')
