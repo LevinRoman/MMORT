@@ -70,6 +70,8 @@ def construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data, modali
     modality_names = modality_names[active_modalities]
     N = N[active_modalities]
     
+    for modality in modality_names:
+        data[modality] = scipy.sparse.csr_matrix(data[modality])
     #Construct the tumor dose deposition matrices
     #assuming num_voxels[0] is ALWAYS the tumor!
     num_voxels = np.squeeze(data['num_voxels'])
