@@ -35,7 +35,7 @@ def experiment_1():
 	configurations['modality_names'] = modality_names
 	return configurations
 
-#Experiment 2: IMRT objective using our code
+#Experiment 2: photon IMRT objective using our code
 def experiment_2(N1, d):
 	"""Config for Experiment 2: This experiment should
 	 yield Tu-d as the objective where d is the target uniform dose per fraction"""
@@ -53,6 +53,35 @@ def experiment_2(N1, d):
 	                  np.array([0.175, 0.0]),
 	                  np.array([0.175, 0.0]),
 	                  np.array([0.175, 0.0])                
+	                 ])
+	modality_names = np.array(['Aphoton', 'Aproton'])
+
+	configurations['Alpha'] = Alpha
+	configurations['Beta'] = Beta
+	configurations['Gamma'] = Gamma
+	configurations['Delta'] = Delta
+	configurations['modality_names'] = modality_names
+
+	return configurations
+
+#Experiment 3: proton IMRT objective using our code
+def experiment_3(N1, d):
+	"""Config for Experiment 3: This experiment should
+	 yield Tu-d as the objective where d is the target uniform dose per fraction and T is the second modality dose matrix"""
+	configurations = {}
+	Alpha = np.array([0.0, 2*d/N1])
+	Beta = np.array([0.0, -1/N1])
+	Gamma = np.array([np.array([0.0, 0.35]),
+	                  np.array([0.0, 0.35]),
+	                  np.array([0.0, 0.35]),
+	                  np.array([0.0, 0.35]),
+	                  np.array([0.0, 0.35])               
+	                 ])
+	Delta = np.array([np.array([0.0, 0.07]),
+	                  np.array([0.0, 0.07]),
+	                  np.array([0.0, 0.175]),
+	                  np.array([0.0, 0.175]),
+	                  np.array([0.0, 0.175])                
 	                 ])
 	modality_names = np.array(['Aphoton', 'Aproton'])
 
@@ -146,6 +175,9 @@ configurations['tmd_imrt_experiment_1'] = experiment_tmd_imrt(44.0, 81.0/44.0)
 #Experiments with u_max:
 configurations['mmort_photon_u_max'] = experiment_1()
 
-#IMRT experiments with different target dose
-configurations['IMRT_u_max'] = experiment_2(44.0, 81.0/44.0)
+#IMRT with photon
+configurations['IMRT_photon_u_max'] = experiment_2(44.0, 81.0/44.0)
+
+#IMRT with proton
+configurations['IMRT_proton_u_max'] = experiment_3(44.0, 81.0/44.0) 
 #######################################################
