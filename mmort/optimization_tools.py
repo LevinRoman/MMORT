@@ -598,8 +598,8 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
         # G = sparse(, tc = 'd')
         #u< u_max, -u < 0, Su <0 
         
-        S_mult = np.zeros((x0.shape[0], x0.shape[0]))
-        S_mult[:photon_shape, :photon_shape] = S
+        S_mult = np.zeros((S.shape[0], x0.shape[0]))
+        S_mult[:, :photon_shape] = S
         if u_max is not None:
             G = np.vstack([np.eye(x0.shape[0]), -np.eye(x0.shape[0]), S_mult])
         else:

@@ -141,3 +141,11 @@ configurations['Experiment_6'] = experiment_2(44.0, 150.0/44.0)
 configurations['tmd_experiment_1'] = experiment_tmd()
 #IMRT experiment with tumor max dose (tmd)
 configurations['tmd_imrt_experiment_1'] = experiment_tmd_imrt(44.0, 81.0/44.0)
+
+################################################
+#Experiments with u_max:
+configurations['mmort_photon_u_max'] = experiment_1()
+
+#IMRT experiments with different target dose
+configurations['IMRT_u_max'] = experiment_2(44.0, 81.0/44.0)
+#######################################################
