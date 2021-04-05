@@ -442,7 +442,7 @@ def constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0):
 
 
 def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=100, normalize = False,
-    target_photon_matrix = None, max_min_ratio = 2.0, proton_only = False, lambda_step = 10.0, enforce_smooth_u = False):  
+    target_photon_matrix = None, max_min_ratio = 2.0, proton_only = False, lambda_step = 10.0, enforce_smooth_u = False, u_max = None):  
     # PREMULTIPLIED LHS IS AN EXTRA ARGUMENT! Set it to None and add solver!    
     """Compute the sparse least squares update for u per section 3.2.1 of the paper 
     The rhs of the ls problem needs to be recomputed every time since w_0 and w are variables   
@@ -590,17 +590,29 @@ def u_update(u_cur, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T
         P = cvxopt.matrix(AA + alpha_l2*np.eye(AA.shape[0]), tc='d') #regularization
         # SS = cvxopt.matrix(StS, tc = 'd')
         photon_shape = StS.shape[1]
-        P[:photon_shape, :photon_shape] = P[:photon_shape, :photon_shape] #+ lambda_smoothing_*SS
+        # P[:photon_shape, :photon_shape] = P[:photon_shape, :photon_shape] #+ lambda_smoothing_*SS
         # P = P +  #regularization
         # P = cvxopt.matrix(P, tc = 'd')
     #     q = -Atb
         q = cvxopt.matrix(-Atb, tc = 'd')
         # G = sparse(, tc = 'd')
-        G = np.vstack([-np.eye(x0.shape[0]), S])
+        #u< u_max, -u < 0, Su <0 
+        
+        S_mult = np.zeros((x0.shape[0], x0.shape[0]))
+        S_mult[:photon_shape, :photon_shape] = S
+        if u_max is not None:
+            G = np.vstack([np.eye(x0.shape[0]), -np.eye(x0.shape[0]), S_mult])
+        else:
+            G = np.vstack([-np.eye(x0.shape[0]), S_mult])
         G = scipy.sparse.coo_matrix(G)
     #     G = -np.eye(x0.shape[0])
         G = cvxopt.spmatrix(G.data, G.row.tolist(), G.col.tolist(), tc = 'd')
-        h = np.hstack([np.zeros(x0.shape[0]), np.zeros(S.shape[0])])
+        if u_max is not None:
+            print('\n u_max is {} \n'.format(u_max))
+            #potentially we could have different bounds for two modalities
+            h = np.hstack([u_max*np.ones(x0.shape[0]), np.zeros(x0.shape[0]), np.zeros(S_mult.shape[0])])
+        else:
+            h = np.hstack([np.zeros(x0.shape[0]), np.zeros(S_mult.shape[0])])
         h = cvxopt.matrix(h, tc = 'd')
 
         sol = cvxopt.solvers.qp(P,q,G,h)
@@ -875,7 +887,7 @@ def w_s_update(u, S):
 
 
 def solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, ftol = 1e-3, max_iter = 5000, verbose = 0, normalize = False,
-    target_photon_matrix = None, max_min_ratio = 2.0, proton_only = False, lambda_step = 10.0, inf_thresh = 3, enforce_smooth_u = False):
+    target_photon_matrix = None, max_min_ratio = 2.0, proton_only = False, lambda_step = 10.0, inf_thresh = 3, enforce_smooth_u = False, u_max = None):
     """Returns the optimal u for the relaxed problem in section 3.2.1 of the paper
 
     Parameters
@@ -943,7 +955,7 @@ def solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, 
         w = w_update(u, H, gamma, D, C)
         nnls_max_iter = 50 #+ (max(0,count-10))**(3/2)
         u, lambda_smoothing = u_update(u, AtA, AA, S, StS, lambda_smoothing, eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=nnls_max_iter, normalize = normalize,
-            target_photon_matrix = target_photon_matrix, max_min_ratio = max_min_ratio, proton_only = proton_only, lambda_step = lambda_step, enforce_smooth_u = enforce_smooth_u)
+            target_photon_matrix = target_photon_matrix, max_min_ratio = max_min_ratio, proton_only = proton_only, lambda_step = lambda_step, enforce_smooth_u = enforce_smooth_u, u_max = u_max)
 #         u = u_update(eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=50)
         #!!!!
 #         u = u_update(eta_0, eta, w_0, w, eta_T_H_stacked, nnls_max_iter=30)
@@ -985,7 +997,7 @@ def check_photon_target_smoothness(target_photon_matrix, u_mult_smoothed, max_mi
 
 def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, smoothing_ratio, T, H, alpha, gamma, B, D, C,\
     eta_step = 0.5, ftol = 1e-3, max_iter = 300, eta_0 = None, eta = None, verbose = 0,\
-     proton_only = False, normalize = False, lambda_step = 10.0, enforce_smooth_u = False, max_iter_warm_start = 10):
+     proton_only = False, normalize = False, lambda_step = 10.0, enforce_smooth_u = False, max_iter_warm_start = 10, u_max = None):
     """Returns the optimal u for the relaxed problem in section 3.2.1 of the paper
     with the automated parameter selection
 
@@ -1049,7 +1061,7 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
     
     u, lambda_smoothing, obj_history, relaxed_obj_history = solver(u_init, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, \
         ftol = 1e-3, max_iter = max_iter_warm_start, verbose = verbose, normalize = normalize, target_photon_matrix = target_photon_matrix, \
-        max_min_ratio = smoothing_ratio, proton_only = proton_only, lambda_step = lambda_step, inf_thresh = 10, enforce_smooth_u = enforce_smooth_u)
+        max_min_ratio = smoothing_ratio, proton_only = proton_only, lambda_step = lambda_step, inf_thresh = 10, enforce_smooth_u = enforce_smooth_u, u_max = u_max)
     auto_param_obj_history.append(obj_history)
     auto_param_relaxed_obj_history.append(relaxed_obj_history)
     cnstr = constraints_all(u, H, gamma, D, C, tol = 0.05, verbose = 0)
@@ -1087,7 +1099,7 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
                 
         u, lambda_smoothing, obj_history, relaxed_obj_history = solver(u, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C, \
             ftol = ftol, max_iter = max_iter, verbose = verbose, normalize = normalize, target_photon_matrix = target_photon_matrix,\
-            max_min_ratio = smoothing_ratio, proton_only = proton_only, lambda_step = lambda_step, enforce_smooth_u = enforce_smooth_u)
+            max_min_ratio = smoothing_ratio, proton_only = proton_only, lambda_step = lambda_step, enforce_smooth_u = enforce_smooth_u, u_max = u_max)
         
         auto_param_obj_history.append(obj_history)
         auto_param_relaxed_obj_history.append(relaxed_obj_history)
@@ -1111,7 +1123,7 @@ def solver_auto_param(u_init, target_photon_matrix, S, StS, lambda_smoothing, sm
         #Could do a while loop for smoothing here since we have the objective check later anyway
         u, lambda_smoothing, obj_history, relaxed_obj_history = solver(u, S, StS, lambda_smoothing, eta_0, eta, T, H, alpha, gamma, B, D, C,\
         ftol = ftol, max_iter = max_iter, verbose = verbose, normalize = normalize, target_photon_matrix = target_photon_matrix, \
-        max_min_ratio = smoothing_ratio, proton_only = proton_only, lambda_step = lambda_step, enforce_smooth_u = enforce_smooth_u)
+        max_min_ratio = smoothing_ratio, proton_only = proton_only, lambda_step = lambda_step, enforce_smooth_u = enforce_smooth_u, u_max = u_max)
         auto_param_obj_history.append(obj_history)
         #Note that smoothing is currently not counted in the relaxed objective
         auto_param_relaxed_obj_history.append(relaxed_obj_history)

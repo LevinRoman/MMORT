@@ -124,7 +124,10 @@ def experiment_tmd_imrt(N1, d):
 
 	return configurations
 
+#MMORT
 configurations['Experiment_1'] = experiment_1()
+
+#IMRT experiments with different target dose
 configurations['Experiment_2'] = experiment_2(44.0, 81.0/44.0)
 
 configurations['Experiment_3'] = experiment_2(44.0, 85.0/44.0)
