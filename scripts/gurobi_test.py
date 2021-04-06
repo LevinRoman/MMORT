@@ -114,8 +114,8 @@ def u_projection_fixed_N(u_to_project, N, dose_deposition_dict, constraint_dict,
 	# smoothing_term = S@u
 	# alpha, beta = radbio_dict['Target'] #Linear and quadratic coefficients
 	# obj = -N*((alpha*np.ones(T.shape[0])@T)@u + u@(beta*T.T@T)@u) #+ u@(alpha_smoothing*S.T@S)@u
-	difference_vector = u - u_to_project
-	obj = difference_vector@difference_vector
+	# difference_vector = u - u_to_project
+	obj = u@u - 2*u_to_project@u + u_to_project@u_to_project#difference_vector@difference_vector
 	m.setObjective(obj)
 
 	OAR_names = list(dose_deposition_dict.keys())[1:] #Not including Target
