@@ -49,7 +49,7 @@ def relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, la
 			if oar in lambdas:
 				loss += lambdas[oar]@F.relu(max_constr - max_constraint_BE)
 			else:
-				lambdas[oar] = 1e5
+				lambdas[oar] = torch.ones(max_constr.shape[0])*1e5
 				loss += lambdas[oar]@F.relu(max_constr - max_constraint_BE)
 		if constraint_type == 'mean_dose':
 			#Mean constr BE across voxels:
@@ -66,13 +66,13 @@ def relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, la
 	if 'smoothing' in lambdas:
 		loss += lambdas['smoothing']@F.relu(S@u)
 	else:
-		lambdas['smoothing'] = 1e5
+		lambdas['smoothing'] = torch.ones(S.shape[0])*1e5
 		loss += lambdas['smoothing']@F.relu(S@u)
 	return loss, lambdas, num_violated, objective
 
 
 
-def create_coefficient_dicts(data):
+def create_coefficient_dicts(data, device):
 	"""So far only creates coefficients for the first modality"""
 	dose_deposition_dict = {}
 	constraint_dict = {}
@@ -88,7 +88,7 @@ def create_coefficient_dicts(data):
 	for organ_number, organ_name in enumerate(organ_names):
 		oar_number = organ_number - 1 #Because Target is also an organ
 		# dose_deposition_dict[organ_name] = torch.from_numpy(data['Aphoton'][organ_indices[organ_number]])
-		dose_deposition_dict[organ_name] = csr_matrix_to_coo_tensor(data['Aphoton'][organ_indices[organ_number]])
+		dose_deposition_dict[organ_name] = csr_matrix_to_coo_tensor(data['Aphoton'][organ_indices[organ_number]]).to(device)
 		if organ_name == 'Target':
 			radbio_dict[organ_name] = Alpha[0], Beta[0] #So far, only photons
 			# coefficient_dict[organ_name] = alpha*torch.ones(T.shape[0])@T
@@ -115,6 +115,7 @@ def csr_matrix_to_coo_tensor(matrix):
 
 if __name__ == '__main__':
 	args = parser.parse_args()
+	device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 	data_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'data', 'ProstateExample_BODY_not_reduced_with_OAR_constraints.mat'))
 	# data_no_body_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'data', 'ProstateExample.mat'))
@@ -149,9 +150,9 @@ if __name__ == '__main__':
 	beamlet_indices = np.split(np.arange(len_voxels), np.cumsum(np.squeeze(data['num_beamlets'])))[:-1] 
 	beams = [data['beamlet_pos'][i] for i in beamlet_indices]
 	# S = torch.from_numpy(utils.construct_smoothing_matrix_relative(beams, 0.25, eps = 5).todense())
-	S = csr_matrix_to_coo_tensor(utils.construct_smoothing_matrix_relative(beams, 0.25, eps = 5))
+	S = csr_matrix_to_coo_tensor(utils.construct_smoothing_matrix_relative(beams, 0.25, eps = 5)).to(device)
 
-	dose_deposition_dict, constraint_dict, radbio_dict = create_coefficient_dicts(data)
+	dose_deposition_dict, constraint_dict, radbio_dict = create_coefficient_dicts(data, device)
 
 	print('\nDose_deposition_dict:', dose_deposition_dict)
 	print('\nConstraint dict:', constraint_dict)
@@ -164,7 +165,7 @@ if __name__ == '__main__':
 	LHS1 = data['Aphoton']
 	RHS1 = np.array([Rx/N]*LHS1.shape[0])
 	u = torch.from_numpy(scipy.optimize.lsq_linear(LHS1, RHS1, bounds = (0, np.inf), tol=1e-4, lsmr_tol=1e-4, max_iter=100, verbose=1).x)
-
+	u.to(device)
 	u.requires_grad_()
 
 	
