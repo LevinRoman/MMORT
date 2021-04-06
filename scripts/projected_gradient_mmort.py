@@ -182,5 +182,5 @@ if __name__ == '__main__':
 		loss.backward()
 		optimizer.step()
 		#Box constraint
-		u.data = torch.maximum(torch.minimum(u, 0), args.u_max)
+		u.data = torch.maximum(torch.minimum(u, torch.zeros_like(u)), torch.ones_like(u)*args.u_max)
 
