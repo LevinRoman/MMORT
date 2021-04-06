@@ -1,7 +1,7 @@
 from scipy.optimize import SR1, BFGS
 import copy
 import scipy.optimize
-from optimization_tools import *
+# from optimization_tools import *
 import argparse
 from tqdm import tqdm
 
@@ -184,93 +184,93 @@ if __name__ == '__main__':
     modality_names = np.array(['Aphoton', 'Aproton'])
 
 
-    def objective_N(N,  Alpha = Alpha, Beta = Beta, Gamma = Gamma, Delta = Delta, data = data, modality_names = modality_names):
-        """Value function of N as per section 3.1 of the paper
+    # def objective_N(N,  Alpha = Alpha, Beta = Beta, Gamma = Gamma, Delta = Delta, data = data, modality_names = modality_names):
+    #     """Value function of N as per section 3.1 of the paper
 
-        Parameters
-        ----------
-        N : np.array of shape (M,), where M is the number of modalities
-            Current vector of fractions, if zeroes are encountered, they will be thrown away
-        Alpha : np.array of shape (M,), where M is the number of modalities
-            Linear tumor-deposition coefficients for each modality
-        Beta : np.array of shape (M,), where M is the number of modalities
-            Quadratic tumor-deposition coefficients for each modality
-        Gamma : List of np.arrays of shape (M,), where M is the number of modalities
-            Linear OAR-deposition coefficients for each modality
-        Delta : List of np.arrays of shape (M,), where M is the number of modalities
-            Quadratic OAR-deposition coefficients for each modality
-        data : dictionary
-            Dictionary of the matlab input data from MatRad (citation here!) with 
-            example keys: 'Aproton', 'Aphoton', 'Organ', 'num_beamlets', 'num_voxels', 
-            'OAR_constraint_types', 'OAR_constraint_values'
-        modality_names : list
-            List of modality names to extract the dose deposition matrices from the data
+    #     Parameters
+    #     ----------
+    #     N : np.array of shape (M,), where M is the number of modalities
+    #         Current vector of fractions, if zeroes are encountered, they will be thrown away
+    #     Alpha : np.array of shape (M,), where M is the number of modalities
+    #         Linear tumor-deposition coefficients for each modality
+    #     Beta : np.array of shape (M,), where M is the number of modalities
+    #         Quadratic tumor-deposition coefficients for each modality
+    #     Gamma : List of np.arrays of shape (M,), where M is the number of modalities
+    #         Linear OAR-deposition coefficients for each modality
+    #     Delta : List of np.arrays of shape (M,), where M is the number of modalities
+    #         Quadratic OAR-deposition coefficients for each modality
+    #     data : dictionary
+    #         Dictionary of the matlab input data from MatRad (citation here!) with 
+    #         example keys: 'Aproton', 'Aphoton', 'Organ', 'num_beamlets', 'num_voxels', 
+    #         'OAR_constraint_types', 'OAR_constraint_values'
+    #     modality_names : list
+    #         List of modality names to extract the dose deposition matrices from the data
 
-        Returns
-        -------
-        float
-            value function V (from the section 3.1 of the paper) evaluated at N
-        """
-        T_list, T, H, alpha, gamma, B, D, C = construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data, modality_names)
-        num_tumor_voxels = np.squeeze(data['num_voxels'])[0]
-        #Assuming N>0, and two-modality case
-        Rx = 80
-        LHS1 = T_list[0]
-        LHS2 = T_list[1]
-        RHS1 = np.array([Rx/(np.sum(N))]*LHS1.shape[0])
-        RHS2 = np.array([Rx/(np.sum(N))]*LHS2.shape[0])
-
-
-        u1_guess = scipy.optimize.lsq_linear(LHS1, RHS1, bounds = (0, np.inf), tol=1e-4, lsmr_tol=1e-2, max_iter=30, verbose=1).x
-        u2_guess = scipy.optimize.lsq_linear(LHS2, RHS2, bounds = (0, np.inf), tol=1e-4, lsmr_tol=1e-2, max_iter=30, verbose=1).x
+    #     Returns
+    #     -------
+    #     float
+    #         value function V (from the section 3.1 of the paper) evaluated at N
+    #     """
+    #     T_list, T, H, alpha, gamma, B, D, C = construct_auto_param_solver_input(N, Alpha, Beta, Gamma, Delta, data, modality_names)
+    #     num_tumor_voxels = np.squeeze(data['num_voxels'])[0]
+    #     #Assuming N>0, and two-modality case
+    #     Rx = 80
+    #     LHS1 = T_list[0]
+    #     LHS2 = T_list[1]
+    #     RHS1 = np.array([Rx/(np.sum(N))]*LHS1.shape[0])
+    #     RHS2 = np.array([Rx/(np.sum(N))]*LHS2.shape[0])
 
 
-        u_init11 = np.concatenate([u1_guess, u2_guess])
+    #     u1_guess = scipy.optimize.lsq_linear(LHS1, RHS1, bounds = (0, np.inf), tol=1e-4, lsmr_tol=1e-2, max_iter=30, verbose=1).x
+    #     u2_guess = scipy.optimize.lsq_linear(LHS2, RHS2, bounds = (0, np.inf), tol=1e-4, lsmr_tol=1e-2, max_iter=30, verbose=1).x
 
 
-        u, eta_0, eta, auto_param_obj_history, auto_param_relaxed_obj_history = solver_auto_param(u_init11, T, H, alpha, gamma, B, D, C, eta_step = 0.1, ftol = 1e-3, max_iter = 300, verbose = 1)
+    #     u_init11 = np.concatenate([u1_guess, u2_guess])
 
-        return obj_u_opt_N_opt(u, T, alpha, B, N, num_tumor_voxels, Td = 10)
+
+    #     u, eta_0, eta, auto_param_obj_history, auto_param_relaxed_obj_history = solver_auto_param(u_init11, T, H, alpha, gamma, B, D, C, eta_step = 0.1, ftol = 1e-3, max_iter = 300, verbose = 1)
+
+    #     return obj_u_opt_N_opt(u, T, alpha, B, N, num_tumor_voxels, Td = 10)
 
 
         
 
-    def optimize_N(N_init, N_SUM_MAX = 45, max_iter = 6):
-        """Value function of N optimization as per Algorithm 1 of the paper.
-        Uses trust-region-constrained from scipy
+    # def optimize_N(N_init, N_SUM_MAX = 45, max_iter = 6):
+    #     """Value function of N optimization as per Algorithm 1 of the paper.
+    #     Uses trust-region-constrained from scipy
 
-        Parameters
-        ----------
-        N_init : np.array of shape (M,), where M is the number of modalities
-            Initial array of fractions
-        N_SUM_MAX : float
-            Max treatment course length, the bound on the sum of N
-        max_iter : int
-            Max number of iterations
+    #     Parameters
+    #     ----------
+    #     N_init : np.array of shape (M,), where M is the number of modalities
+    #         Initial array of fractions
+    #     N_SUM_MAX : float
+    #         Max treatment course length, the bound on the sum of N
+    #     max_iter : int
+    #         Max number of iterations
 
-        Returns
-        -------
-        x : np.array of shape (M,)
-            Optimal fractionation schedule N
-        res : OptimizationResult from scipy
-            Metadata of the algorithm
-        Nk_hist : list
-            Iterates N history 
-        """
-        Nk_hist = []
-        def callback(xk, OptRes):
-            Nk_hist.append(xk)
-            return 0
+    #     Returns
+    #     -------
+    #     x : np.array of shape (M,)
+    #         Optimal fractionation schedule N
+    #     res : OptimizationResult from scipy
+    #         Metadata of the algorithm
+    #     Nk_hist : list
+    #         Iterates N history 
+    #     """
+    #     Nk_hist = []
+    #     def callback(xk, OptRes):
+    #         Nk_hist.append(xk)
+    #         return 0
 
-        bounds =  scipy.optimize.Bounds([1, 1], [np.inf, np.inf]) #or 0,0
-        linear_constraint = scipy.optimize.LinearConstraint(np.array([1,1]), -np.inf, N_SUM_MAX)
+    #     bounds =  scipy.optimize.Bounds([1, 1], [np.inf, np.inf]) #or 0,0
+    #     linear_constraint = scipy.optimize.LinearConstraint(np.array([1,1]), -np.inf, N_SUM_MAX)
 
-        x0 = np.array(N_init)
-        res = scipy.optimize.minimize(objective_N, x0, method='trust-constr',  jac="2-point", hess=BFGS(), 
-                             constraints=[linear_constraint], options={'verbose': 4, 'maxiter': max_iter}, bounds=bounds, 
-                             callback = callback)
-        x = res.x
-        print('NEW N rounded:', np.rint(x), 'EXACT new N:', x)
-        return x, res, Nk_hist
+    #     x0 = np.array(N_init)
+    #     res = scipy.optimize.minimize(objective_N, x0, method='trust-constr',  jac="2-point", hess=BFGS(), 
+    #                          constraints=[linear_constraint], options={'verbose': 4, 'maxiter': max_iter}, bounds=bounds, 
+    #                          callback = callback)
+    #     x = res.x
+    #     print('NEW N rounded:', np.rint(x), 'EXACT new N:', x)
+    #     return x, res, Nk_hist
 
-    x, res, Nk_hist = optimize_N(np.array([44,1]), N_SUM_MAX = 45, max_iter = 6)
+    # x, res, Nk_hist = optimize_N(np.array([44,1]), N_SUM_MAX = 45, max_iter = 6)
