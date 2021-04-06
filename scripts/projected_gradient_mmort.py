@@ -134,7 +134,7 @@ if __name__ == '__main__':
 	len_voxels = data['Aphoton'].shape[0]
 	beamlet_indices = np.split(np.arange(len_voxels), np.cumsum(np.squeeze(data['num_beamlets'])))[:-1] 
 	beams = [data['beamlet_pos'][i] for i in beamlet_indices]
-	S = torch.from_numpy(utils.construct_smoothing_matrix_relative(beams, 0.25, eps = 5))
+	S = torch.from_numpy(utils.construct_smoothing_matrix_relative(beams, 0.25, eps = 5).todense())
 
 
 	dose_deposition_dict, constraint_dict, radbio_dict = create_coefficient_dicts(data)
