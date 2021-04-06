@@ -174,7 +174,7 @@ if __name__ == '__main__':
 	
 	optimizer = optim.SGD([u], lr=args.lr, momentum=0.9, nesterov = True)
 
-	lambdas = None
+	lambdas = {}
 	for epoch in range(args.num_epochs):
 		optimizer.zero_grad()
 		loss, lambdas, num_violated, objective = relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, lambdas = lambdas)
