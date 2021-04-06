@@ -28,7 +28,7 @@ parser.add_argument('--num_epochs', default=100, type=int, help='Number of epoch
 parser.add_argument('--u_max', default=1000, type=float, help='Upper bound on u')
 
 
-def relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, lambdas = None):
+def relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, device = 'cuda', lambdas = None):
 	num_violated = 0
 	alpha, beta = radbio_dict['Target'] #Linear and quadratic coefficients
 	T = dose_deposition_dict['Target']
@@ -177,10 +177,10 @@ if __name__ == '__main__':
 	lambdas = {}
 	for epoch in range(args.num_epochs):
 		optimizer.zero_grad()
-		loss, lambdas, num_violated, objective = relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, lambdas = lambdas)
+		loss, lambdas, num_violated, objective = relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, device = device, lambdas = lambdas)
 		print('\n Loss {} \n Objective {} \n Num Violated {}'.format(loss, objective, num_violated))
 		loss.backward()
 		optimizer.step()
 		#Box constraint
-		u.data = torch.max(torch.min(u, 0), args.u_max)
+		u.data = torch.max(torch.min(u, 0)[0], args.u_max)[0]
 
