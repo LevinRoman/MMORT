@@ -87,7 +87,8 @@ def create_coefficient_dicts(data):
 	OAR_constr_values = np.squeeze(data['OAR_constraint_values'])
 	for organ_number, organ_name in enumerate(organ_names):
 		oar_number = organ_number - 1 #Because Target is also an organ
-		dose_deposition_dict[organ_name] = torch.from_numpy(data['Aphoton'][organ_indices[organ_number]])
+		# dose_deposition_dict[organ_name] = torch.from_numpy(data['Aphoton'][organ_indices[organ_number]])
+		dose_deposition_dict[organ_name] = csr_matrix_to_coo_tensor(data['Aphoton'][organ_indices[organ_number]])
 		if organ_name == 'Target':
 			radbio_dict[organ_name] = Alpha[0], Beta[0] #So far, only photons
 			# coefficient_dict[organ_name] = alpha*torch.ones(T.shape[0])@T
@@ -98,6 +99,19 @@ def create_coefficient_dicts(data):
 			constraint_dict[organ_name] = constraint_type, constraint_dose, constraint_N
 			radbio_dict[organ_name] = Gamma[oar_number][0], Delta[oar_number][0]
 	return dose_deposition_dict, constraint_dict, radbio_dict
+
+
+def csr_matrix_to_coo_tensor(matrix):
+	coo = scipy.sparse.coo_matrix(matrix)
+
+	values = coo.data
+	indices = np.vstack((coo.row, coo.col))
+
+	i = torch.LongTensor(indices)
+	v = torch.FloatTensor(values)
+	shape = coo.shape
+
+	return torch.sparse.FloatTensor(i, v, torch.Size(shape))
 
 if __name__ == '__main__':
 	args = parser.parse_args()
@@ -134,8 +148,8 @@ if __name__ == '__main__':
 	len_voxels = data['Aphoton'].shape[0]
 	beamlet_indices = np.split(np.arange(len_voxels), np.cumsum(np.squeeze(data['num_beamlets'])))[:-1] 
 	beams = [data['beamlet_pos'][i] for i in beamlet_indices]
-	S = torch.from_numpy(utils.construct_smoothing_matrix_relative(beams, 0.25, eps = 5).todense())
-
+	# S = torch.from_numpy(utils.construct_smoothing_matrix_relative(beams, 0.25, eps = 5).todense())
+	S = csr_matrix_to_coo_tensor(utils.construct_smoothing_matrix_relative(beams, 0.25, eps = 5))
 
 	dose_deposition_dict, constraint_dict, radbio_dict = create_coefficient_dicts(data)
 
