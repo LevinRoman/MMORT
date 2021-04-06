@@ -47,7 +47,7 @@ def relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, de
 		if constraint_type == 'max_dose':
 			max_constraint_BE = constraint_N*(gamma*constraint_dose + delta*constraint_dose**2)
 			max_constr = N*(gamma*oar_dose + delta*oar_dose**2)
-			num_violated += ((max_constr - max_constraint_BE) > 0).sum()
+			num_violated += ((max_constr - max_constraint_BE)/max_constraint_BE > 0.05).sum()
 			if oar in lambdas:
 				loss += lambdas[oar]@F.relu(max_constr - max_constraint_BE)
 			else:
