@@ -92,14 +92,14 @@ def create_coefficient_dicts(data, device):
 		# dose_deposition_dict[organ_name] = torch.from_numpy(data['Aphoton'][organ_indices[organ_number]])
 		dose_deposition_dict[organ_name] = csr_matrix_to_coo_tensor(data['Aphoton'][organ_indices[organ_number]]).to(device)
 		if organ_name == 'Target':
-			radbio_dict[organ_name] = Alpha[0], Beta[0] #So far, only photons
+			radbio_dict[organ_name] = torch.Tensor(Alpha[0]).to(device), torch.Tensor(Beta[0]).to(device) #So far, only photons
 			# coefficient_dict[organ_name] = alpha*torch.ones(T.shape[0])@T
 		if organ_name != 'Target':
 			constraint_type = OAR_constr_types[oar_number].strip()
 			constraint_dose = OAR_constr_values[oar_number]
 			constraint_N = 44
-			constraint_dict[organ_name] = constraint_type, constraint_dose, constraint_N
-			radbio_dict[organ_name] = Gamma[oar_number][0], Delta[oar_number][0]
+			constraint_dict[organ_name] = torch.Tensor(constraint_type).to(device), torch.Tensor(constraint_dose).to(device), torch.Tensor(constraint_N).to(device)
+			radbio_dict[organ_name] = torch.Tensor(Gamma[oar_number][0]).to(device), torch.Tensor(Delta[oar_number][0]).to(device)
 	return dose_deposition_dict, constraint_dict, radbio_dict
 
 
