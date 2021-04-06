@@ -11,16 +11,13 @@ import time
 import sys
 import os
 import matplotlib.pyplot as plt
-import seaborn as sns
 #Import mmort modules
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..', 'mmort')))
 import experiments
-import optimization_tools
+# import optimization_tools
 import evaluation
 import utils
 from config import configurations
-import gurobipy as gp
-from gurobipy import GRB
 import torch
 import torch.nn.functional as F
 
