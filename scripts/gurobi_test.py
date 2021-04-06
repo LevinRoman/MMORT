@@ -22,13 +22,14 @@ from config import configurations
 import gurobipy as gp
 from gurobipy import GRB
 
-# data_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'data', 'ProstateExample_BODY_not_reduced_with_OAR_constraints.mat'))
-data_no_body_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'data', 'ProstateExample.mat'))
-# data = scipy.io.loadmat(data_path)
-data =  scipy.io.loadmat(data_no_body_path)
+data_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'data', 'ProstateExample_BODY_not_reduced_with_OAR_constraints.mat'))
+# data_no_body_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'data', 'ProstateExample.mat'))
+data = scipy.io.loadmat(data_path)
+# data =  scipy.io.loadmat(data_no_body_path)
 Alpha = np.array([0.35, 0.35])
 Beta = np.array([0.175, 0.175])
 Gamma = np.array([np.array([0.35, 0.35]),
+				  np.array([0.35, 0.35]),
 				  np.array([0.35, 0.35]),
 				  np.array([0.35, 0.35]),
 				  np.array([0.35, 0.35])               
@@ -36,13 +37,14 @@ Gamma = np.array([np.array([0.35, 0.35]),
 Delta = np.array([np.array([0.07, 0.07]),
 				  np.array([0.07, 0.07]),
 				  np.array([0.175, 0.175]),
+				  np.array([0.175, 0.175]),
 				  np.array([0.175, 0.175])                
 				 ])
 modality_names = np.array(['Aphoton', 'Aproton'])
 
-# num_body_voxels = 683189
-# data['Aphoton'][-1] = data['Aphoton'][-1]/num_body_voxels
-# data['Aproton'][-1] = data['Aproton'][-1]/num_body_voxels
+num_body_voxels = 683189
+data['Aphoton'][-1] = data['Aphoton'][-1]/num_body_voxels
+data['Aproton'][-1] = data['Aproton'][-1]/num_body_voxels
 
 for modality in modality_names:
         data[modality] = scipy.sparse.csr_matrix(data[modality])
