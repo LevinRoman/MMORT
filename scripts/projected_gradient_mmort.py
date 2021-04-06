@@ -49,10 +49,10 @@ def relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, de
 			max_constr = N*(gamma*oar_dose + delta*oar_dose**2)
 			num_violated += ((max_constr - max_constraint_BE)/max_constraint_BE > 0.05).sum()
 			if oar in lambdas:
-				loss += lambdas[oar]@F.relu(max_constr - max_constraint_BE)
+				loss += lambdas[oar]@F.relu(max_constr - max_constraint_BE)**2
 			else:
 				lambdas[oar] = torch.ones(max_constr.shape[0]).to(device)*args.lambda_init
-				loss += lambdas[oar]@F.relu(max_constr - max_constraint_BE)
+				loss += lambdas[oar]@F.relu(max_constr - max_constraint_BE)**2
 		if constraint_type == 'mean_dose':
 			#Mean constr BE across voxels:
 			mean_constraint_BE = constraint_N*(gamma*constraint_dose + delta*constraint_dose**2)
@@ -60,18 +60,18 @@ def relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, de
 			mean_constr = N*(gamma*oar_dose.sum() + delta*(oar_dose**2).sum())/H.shape[0]
 			num_violated += ((mean_constr - mean_constraint_BE) > 0).sum()
 			if oar in lambdas:
-				loss += lambdas[oar]*F.relu(mean_constr - mean_constraint_BE)
+				loss += lambdas[oar]*F.relu(mean_constr - mean_constraint_BE)**2
 			else:
 				lambdas[oar] = args.lambda_init
-				loss += lambdas[oar]*F.relu(mean_constr - mean_constraint_BE)
+				loss += lambdas[oar]*F.relu(mean_constr - mean_constraint_BE)**2
 	#smoothing constraint:
 	smoothing_constr = S@u
 	num_violated_smoothing = (smoothing_constr > 0).sum()
 	if 'smoothing' in lambdas:
-		loss += lambdas['smoothing']@F.relu(smoothing_constr)
+		loss += lambdas['smoothing']@F.relu(smoothing_constr)**2
 	else:
 		lambdas['smoothing'] = torch.ones(S.shape[0]).to(device)*args.lambda_init
-		loss += lambdas['smoothing']@F.relu(smoothing_constr)
+		loss += lambdas['smoothing']@F.relu(smoothing_constr)**2
 	return loss, lambdas, num_violated, num_violated_smoothing, objective
 
 
