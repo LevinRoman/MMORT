@@ -65,12 +65,14 @@ def relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, de
 				lambdas[oar] = 1e5
 				loss += lambdas[oar]*F.relu(mean_constr - mean_constraint_BE)
 	#smoothing constraint:
+	smoothing_constr = S@u
+	num_violated_smoothing = (smoothing_constr > 0).sum()
 	if 'smoothing' in lambdas:
-		loss += lambdas['smoothing']@F.relu(S@u)
+		loss += lambdas['smoothing']@F.relu(smoothing_constr)
 	else:
 		lambdas['smoothing'] = torch.ones(S.shape[0]).to(device)*1e5
-		loss += lambdas['smoothing']@F.relu(S@u)
-	return loss, lambdas, num_violated, objective
+		loss += lambdas['smoothing']@F.relu(smoothing_constr)
+	return loss, lambdas, num_violated, num_violated_smoothing, objective
 
 
 
@@ -177,8 +179,8 @@ if __name__ == '__main__':
 	lambdas = {}
 	for epoch in range(args.num_epochs):
 		optimizer.zero_grad()
-		loss, lambdas, num_violated, objective = relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, device = device, lambdas = lambdas)
-		print('\n Loss {} \n Objective {} \n Num Violated {}'.format(loss, objective, num_violated))
+		loss, lambdas, num_violated, num_violated_smoothing, objective = relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, device = device, lambdas = lambdas)
+		print('\n Loss {} \n Objective {} \n Num Violated {} \n Num Violated Smoothing {}'.format(loss, objective, num_violated, num_violated_smoothing))
 		loss.backward()
 		optimizer.step()
 		#Box constraint
