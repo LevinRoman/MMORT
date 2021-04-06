@@ -31,6 +31,7 @@ parser.add_argument('--u_max', default=1000, type=float, help='Upper bound on u'
 def relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, lambdas = None):
 	num_violated = 0
 	alpha, beta = radbio_dict['Target'] #Linear and quadratic coefficients
+	T = dose_deposition_dict['Target']
 	tumor_dose = T@u
 	#tumor BE: division to compute average BE, to be on the same scale with max dose
 	loss = -N*(alpha*tumor_dose.sum() + beta*(tumor_dose**2).sum())/T.shape[0]
