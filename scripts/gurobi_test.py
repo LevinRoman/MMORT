@@ -193,7 +193,7 @@ print('\nS shape:', S.shape)
 
 print('\n Running optimization...')
 Rx = 81
-LHS1 = data['Aphoton']
+LHS1 = data['Aphoton'][:np.squeeze(data['num_voxels'])[0]]
 RHS1 = np.array([Rx/N]*LHS1.shape[0])
 u_to_project = scipy.optimize.lsq_linear(LHS1, RHS1, bounds = (0, np.inf), tol=1e-4, lsmr_tol=1e-4, max_iter=100, verbose=1).x
 u_projection_fixed_N(u_to_project, N, dose_deposition_dict, constraint_dict, radbio_dict, S, u_max = 1000)

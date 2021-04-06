@@ -20,6 +20,7 @@ import utils
 from config import configurations
 import torch
 import torch.nn.functional as F
+import torch.optim as optim
 
 parser = argparse.ArgumentParser(description='MMORT')
 parser.add_argument('--lr', default=0.1, type=float, help='Lr for Adam or SGD')
