@@ -126,7 +126,7 @@ if __name__ == '__main__':
 	args = parser.parse_args()
 	device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-	experiment = Experiment(api_key='P63wSM91MmVDh80ZBZbcylZ8L', project_name=mmort_torch)
+	experiment = Experiment(api_key='P63wSM91MmVDh80ZBZbcylZ8L', project_name='mmort_torch')
 
 	data_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'data', 'ProstateExample_BODY_not_reduced_with_OAR_constraints.mat'))
 	# data_no_body_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'data', 'ProstateExample.mat'))
