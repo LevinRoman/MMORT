@@ -26,7 +26,7 @@ parser = argparse.ArgumentParser(description='MMORT')
 parser.add_argument('--lr', default=0.1, type=float, help='Lr for Adam or SGD')
 parser.add_argument('--num_epochs', default=100, type=int, help='Number of epochs')
 parser.add_argument('--u_max', default=1000, type=float, help='Upper bound on u')
-
+parser.add_argument('--lambda_init', default=1e5, type=float, help='Initial value for lambda')
 
 def relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, device = 'cuda', lambdas = None):
 	num_violated = 0
@@ -51,7 +51,7 @@ def relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, de
 			if oar in lambdas:
 				loss += lambdas[oar]@F.relu(max_constr - max_constraint_BE)
 			else:
-				lambdas[oar] = torch.ones(max_constr.shape[0]).to(device)*1e5
+				lambdas[oar] = torch.ones(max_constr.shape[0]).to(device)*args.lambda_init
 				loss += lambdas[oar]@F.relu(max_constr - max_constraint_BE)
 		if constraint_type == 'mean_dose':
 			#Mean constr BE across voxels:
@@ -62,7 +62,7 @@ def relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, de
 			if oar in lambdas:
 				loss += lambdas[oar]*F.relu(mean_constr - mean_constraint_BE)
 			else:
-				lambdas[oar] = 1e5
+				lambdas[oar] = args.lambda_init
 				loss += lambdas[oar]*F.relu(mean_constr - mean_constraint_BE)
 	#smoothing constraint:
 	smoothing_constr = S@u
@@ -70,7 +70,7 @@ def relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, de
 	if 'smoothing' in lambdas:
 		loss += lambdas['smoothing']@F.relu(smoothing_constr)
 	else:
-		lambdas['smoothing'] = torch.ones(S.shape[0]).to(device)*1e5
+		lambdas['smoothing'] = torch.ones(S.shape[0]).to(device)*args.lambda_init
 		loss += lambdas['smoothing']@F.relu(smoothing_constr)
 	return loss, lambdas, num_violated, num_violated_smoothing, objective
 
