@@ -194,3 +194,6 @@ if __name__ == '__main__':
 		u.data = torch.maximum(torch.minimum(u, torch.ones_like(u)*args.u_max), torch.zeros_like(u))
 
 	print(u)
+
+	#To run:  python3 projected_gradient_mmort.py --lr 1e-6 --lambda_init 1e3 --num_epochs 10000
+	utils.save_obj(u.detach().cpu().numpy(), 'u_photon_pytorch', '')
