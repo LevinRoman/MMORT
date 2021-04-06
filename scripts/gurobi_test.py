@@ -171,7 +171,7 @@ def create_coefficient_dicts(data):
 			constraint_N = 44
 			constraint_dict[organ_name] = constraint_type, constraint_dose, constraint_N
 			radbio_dict[organ_name] = Gamma[oar_number][0], Delta[oar_number][0]
-return dose_deposition_dict, constraint_dict, radbio_dict
+	return dose_deposition_dict, constraint_dict, radbio_dict
 
 N = 44
 #Set up smoothing matrix
