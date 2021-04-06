@@ -1,4 +1,5 @@
 import argparse
+from comet_ml import Experiment
 import numpy as np
 import copy
 import scipy.optimize
@@ -28,7 +29,7 @@ parser.add_argument('--num_epochs', default=100, type=int, help='Number of epoch
 parser.add_argument('--u_max', default=1000, type=float, help='Upper bound on u')
 parser.add_argument('--lambda_init', default=1e5, type=float, help='Initial value for lambda')
 
-def relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, device = 'cuda', lambdas = None):
+def relaxed_loss(epoch, u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = 'cuda', lambdas = None):
 	num_violated = 0
 	alpha, beta = radbio_dict['Target'] #Linear and quadratic coefficients
 	T = dose_deposition_dict['Target']
@@ -36,6 +37,7 @@ def relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, de
 	#tumor BE: division to compute average BE, to be on the same scale with max dose
 	loss = -N*(alpha*tumor_dose.sum() + beta*(tumor_dose**2).sum())/T.shape[0]
 	objective = loss.item()
+	experiment.log_metric("Objective", objective, step=epoch)
 	OAR_names = list(dose_deposition_dict.keys())[1:] #Not including Target
 	#Create penalties and add to the loss
 	for oar in OAR_names:
@@ -65,6 +67,7 @@ def relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, de
 				lambdas[oar] = args.lambda_init
 				loss += lambdas[oar]*F.relu(mean_constr - mean_constraint_BE)**2
 	#smoothing constraint:
+	experiment.log_metric("Num violated", num_violated, step=epoch)
 	smoothing_constr = S@u
 	num_violated_smoothing = (smoothing_constr > 0).sum()
 	if 'smoothing' in lambdas:
@@ -72,6 +75,8 @@ def relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, de
 	else:
 		lambdas['smoothing'] = torch.ones(S.shape[0]).to(device)*args.lambda_init
 		loss += lambdas['smoothing']@F.relu(smoothing_constr)**2
+	experiment.log_metric("Num violated smoothing", num_violated_smoothing, step=epoch)
+	experiment.log_metric("Loss", loss.item(), step=epoch)
 	return loss, lambdas, num_violated, num_violated_smoothing, objective
 
 
@@ -120,6 +125,8 @@ def csr_matrix_to_coo_tensor(matrix):
 if __name__ == '__main__':
 	args = parser.parse_args()
 	device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+	experiment = Experiment(api_key='P63wSM91MmVDh80ZBZbcylZ8L', project_name=mmort_torch)
 
 	data_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'data', 'ProstateExample_BODY_not_reduced_with_OAR_constraints.mat'))
 	# data_no_body_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'data', 'ProstateExample.mat'))
@@ -179,7 +186,7 @@ if __name__ == '__main__':
 	lambdas = {}
 	for epoch in range(args.num_epochs):
 		optimizer.zero_grad()
-		loss, lambdas, num_violated, num_violated_smoothing, objective = relaxed_loss(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, device = device, lambdas = lambdas)
+		loss, lambdas, num_violated, num_violated_smoothing, objective = relaxed_loss(epoch, u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = device, lambdas = lambdas)
 		print('\n Loss {} \n Objective {} \n Num Violated {} \n Num Violated Smoothing {}'.format(loss, objective, num_violated, num_violated_smoothing))
 		loss.backward()
 		optimizer.step()
