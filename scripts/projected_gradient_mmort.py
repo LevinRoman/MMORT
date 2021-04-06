@@ -163,7 +163,7 @@ if __name__ == '__main__':
 	print('\n Running optimization...')
 	Rx = 81
 	print(data['num_voxels'][0])
-	LHS1 = data['Aphoton'][:data['num_voxels'][0]]
+	LHS1 = data['Aphoton'][:np.squeeze(data['num_voxels'])[0]]
 	RHS1 = np.array([Rx/N]*LHS1.shape[0])
 	u = torch.from_numpy(scipy.optimize.lsq_linear(LHS1, RHS1, bounds = (0, np.inf), tol=1e-4, lsmr_tol=1e-4, max_iter=100, verbose=1).x)
 	u.to(device)
