@@ -33,7 +33,7 @@ parser.add_argument('--data_name', default = 'ProstateExample_BODY_not_reduced_w
 parser.add_argument('--precomputed', action='store_true', help='Use precomputed smoothed u for DVC initial guess')
 parser.add_argument('--initial_guess_for_dv', action='store_true', help='use initial guess for dvc solution')
 parser.add_argument('--save_dir', default = 'save_dir', type = str)
-
+parser.add_argument('--optimizer', default = 'Adam', type = str, help='Which optimizer to use (SGD, Adam, LBFGS)')
 def relaxed_loss(epoch, u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = 'cuda', lambdas = None):
 	num_violated = 0
 	alpha, beta = radbio_dict['Target'] #Linear and quadratic coefficients
@@ -230,8 +230,12 @@ if __name__ == '__main__':
 		u = u.to(device)
 		u.requires_grad_()
 
-		
-		optimizer = optim.SGD([u], lr=args.lr, momentum=0.9, nesterov = True)
+		if args.optimizer == 'SGD':
+			optimizer = optim.SGD([u], lr=args.lr, momentum=0.9, nesterov = True)
+		elif args.optimizer == 'Adam':
+			optimizer = optim.Adam([u], lr=args.lr)
+		elif args.optimizer == 'LBFGS':
+			optimizer = optim.LBFGS([u])
 
 		lambdas = {}
 		for epoch in range(args.num_epochs):
@@ -289,9 +293,14 @@ if __name__ == '__main__':
 		u = u.to(device)
 		u.requires_grad_()
 
-	optimizer = optim.SGD([u], lr=args.lr, momentum=0.9, nesterov = True)
+		if args.optimizer == 'SGD':
+			optimizer = optim.SGD([u], lr=args.lr, momentum=0.9, nesterov = True)
+		elif args.optimizer == 'Adam':
+			optimizer = optim.Adam([u], lr=args.lr)
+		elif args.optimizer == 'LBFGS':
+			optimizer = optim.LBFGS([u])
 
-	lambdas = {}
+	lambdas = {dv_organ: args.lambda_init/10 for dv_organ in dv_to_max_oar_ind_dict}#{}
 	for epoch in range(args.num_epochs):
 		optimizer.zero_grad()
 		loss, lambdas, num_violated, num_violated_smoothing, objective = relaxed_loss(epoch, u, N, dose_deposition_dict_dv, constraint_dict_dv, radbio_dict_dv, S, experiment, device = device, lambdas = lambdas)
