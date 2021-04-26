@@ -31,6 +31,8 @@ parser.add_argument('--u_max', default=1000, type=float, help='Upper bound on u'
 parser.add_argument('--lambda_init', default=1e5, type=float, help='Initial value for lambda')
 parser.add_argument('--data_name', default = 'ProstateExample_BODY_not_reduced_with_OAR_constraints.mat', type = str)
 parser.add_argument('--precomputed', action='store_true', help='Use precomputed smoothed u for DVC initial guess')
+parser.add_argument('--initial_guess_for_dv', action='store_true', help='use initial guess for dvc solution')
+parser.add_argument('--save_dir', default = 'save_dir', type = str)
 
 def relaxed_loss(epoch, u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = 'cuda', lambdas = None):
 	num_violated = 0
@@ -302,7 +304,7 @@ if __name__ == '__main__':
 	print(u)
 
 	#To run:  python3 projected_gradient_mmort.py --lr 1e-6 --lambda_init 1e3 --num_epochs 10000
-	utils.save_obj(u.detach().cpu().numpy(), 'u_photon_dv_pytorch')
+	utils.save_obj(u.detach().cpu().numpy(), 'u_photon_dv_pytorch', args.save_dir)
 	#
 	#TODO:
 	#dvh
