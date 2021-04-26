@@ -153,19 +153,6 @@ if __name__ == '__main__':
 	# 				 ])
 	# modality_names = np.array(['Aphoton', 'Aproton'])
 
-	num_body_voxels = 683189
-	data['Aphoton'][-1] = data['Aphoton'][-1]/num_body_voxels
-	data['Aproton'][-1] = data['Aproton'][-1]/num_body_voxels
-
-	for modality in modality_names:
-	        data[modality] = scipy.sparse.csr_matrix(data[modality])
-
-	#Data with max dose (to be used with DVC):
-	data_max_dose = copy.deepcopy(data)
-	data_max_dose['OAR_constraint_types'][data_max_dose['OAR_constraint_types'] == 'dose_volume'] = 'max_dose'
-
-	print('\nData loaded from '+data_path)
-	
 	###########################
 	#Experimental Setup Part
 	###########################
@@ -181,6 +168,21 @@ if __name__ == '__main__':
 	modality_names = experiment_setup['modality_names']
 
 	print('\nExperimental Setup: \nAlpha={} \nBeta={} \nGamma={} \nDelta={} \nModality Names: {}'.format(Alpha, Beta, Gamma, Delta, modality_names))
+	
+	num_body_voxels = 683189
+	data['Aphoton'][-1] = data['Aphoton'][-1]/num_body_voxels
+	data['Aproton'][-1] = data['Aproton'][-1]/num_body_voxels
+
+	for modality in modality_names:
+	        data[modality] = scipy.sparse.csr_matrix(data[modality])
+
+	#Data with max dose (to be used with DVC):
+	data_max_dose = copy.deepcopy(data)
+	data_max_dose['OAR_constraint_types'][data_max_dose['OAR_constraint_types'] == 'dose_volume'] = 'max_dose'
+
+	print('\nData loaded from '+data_path)
+	
+	
 	
 	###################################
 	##Solution: photons
