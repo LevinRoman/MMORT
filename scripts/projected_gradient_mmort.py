@@ -24,7 +24,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 parser = argparse.ArgumentParser(description='MMORT')
-parser.add_argument('--args.config_experiment', default = 'Experiment_1', type = str, help = 'Which experiment to run (Options: Experiment_1, Experiment_2). See config file for details')
+parser.add_argument('--config_experiment', default = 'Experiment_1', type = str, help = 'Which experiment to run (Options: Experiment_1, Experiment_2). See config file for details')
 parser.add_argument('--lr', default=0.1, type=float, help='Lr for Adam or SGD')
 parser.add_argument('--num_epochs', default=100, type=int, help='Number of epochs')
 parser.add_argument('--u_max', default=1000, type=float, help='Upper bound on u')
