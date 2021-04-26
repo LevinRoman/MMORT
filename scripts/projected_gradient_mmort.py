@@ -300,7 +300,7 @@ if __name__ == '__main__':
 		elif args.optimizer == 'LBFGS':
 			optimizer = optim.LBFGS([u])
 
-	lambdas = {dv_organ: args.lambda_init/10 for dv_organ in dv_to_max_oar_ind_dict}#{}
+	lambdas = {dv_organ: torch.ones(dv_to_max_oar_ind_dict[dv_organ].shape[0]).to(device)*args.lambda_init/10 for dv_organ in dv_to_max_oar_ind_dict}#{}
 	for epoch in range(args.num_epochs):
 		optimizer.zero_grad()
 		loss, lambdas, num_violated, num_violated_smoothing, objective = relaxed_loss(epoch, u, N, dose_deposition_dict_dv, constraint_dict_dv, radbio_dict_dv, S, experiment, device = device, lambdas = lambdas)
