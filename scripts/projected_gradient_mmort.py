@@ -24,6 +24,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 parser = argparse.ArgumentParser(description='MMORT')
+parser.add_argument('--args.config_experiment', default = 'Experiment_1', type = str, help = 'Which experiment to run (Options: Experiment_1, Experiment_2). See config file for details')
 parser.add_argument('--lr', default=0.1, type=float, help='Lr for Adam or SGD')
 parser.add_argument('--num_epochs', default=100, type=int, help='Number of epochs')
 parser.add_argument('--u_max', default=1000, type=float, help='Upper bound on u')
@@ -158,7 +159,7 @@ if __name__ == '__main__':
 	###########################
 
 	#Load experimental setup from config
-	experiment_setup = configurations[config_experiment]
+	experiment_setup = configurations[args.config_experiment]
 
 	Alpha = experiment_setup['Alpha']
 	Beta = experiment_setup['Beta']
@@ -168,7 +169,7 @@ if __name__ == '__main__':
 	modality_names = experiment_setup['modality_names']
 
 	print('\nExperimental Setup: \nAlpha={} \nBeta={} \nGamma={} \nDelta={} \nModality Names: {}'.format(Alpha, Beta, Gamma, Delta, modality_names))
-	
+
 	num_body_voxels = 683189
 	data['Aphoton'][-1] = data['Aphoton'][-1]/num_body_voxels
 	data['Aproton'][-1] = data['Aproton'][-1]/num_body_voxels
