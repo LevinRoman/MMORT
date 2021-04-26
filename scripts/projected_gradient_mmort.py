@@ -242,7 +242,7 @@ if __name__ == '__main__':
 	####################
 	print('Setting up DVC data...')
 	#Setup input
-	oar_indices, dv_to_max_oar_ind_dict = generate_dose_volume_input_torch(u.detach().cpu().numpy(), np.array([N, 0]), data, Alpha, Beta, Gamma, Delta, photon_only = True, proton_only = False)
+	oar_indices, dv_to_max_oar_ind_dict = utils.generate_dose_volume_input_torch(u.detach().cpu().numpy(), np.array([N, 0]), data, Alpha, Beta, Gamma, Delta, photon_only = True, proton_only = False)
 
 	dose_deposition_dict_dv, constraint_dict_dv, radbio_dict_dv = create_coefficient_dicts(data_max_dose, device)
 	
