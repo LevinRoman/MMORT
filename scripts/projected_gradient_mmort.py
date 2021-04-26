@@ -249,7 +249,7 @@ if __name__ == '__main__':
 	for organ in dv_to_max_oar_ind_dict:
 		print('\n DVC organ {} with constr: {}'.format(organ, constraint_dict_dv[organ]))
 		print('\n Old len:', dose_deposition_dict_dv[organ].shape[0])
-		dose_deposition_dict_dv[organ] = dose_deposition_dict_dv[organ][dv_to_max_oar_ind_dict[organ]]
+		dose_deposition_dict_dv[organ] = dose_deposition_dict_dv[organ][torch.from_numpy(dv_to_max_oar_ind_dict[organ]).to(device)]
 		print('\n New len:', dose_deposition_dict_dv[organ].shape[0])
 
 	#Compute solution
