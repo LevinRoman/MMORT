@@ -278,13 +278,14 @@ if __name__ == '__main__':
 	#Setup optimization
 	print('\n Running optimization...')
 	#Uncomment this to setup an initial guess on u from scratch
-	# Rx = 81
-	# print(data['num_voxels'][0])
-	# LHS1 = data['Aphoton'][:np.squeeze(data['num_voxels'])[0]]
-	# RHS1 = np.array([Rx/N]*LHS1.shape[0])
-	# u = torch.Tensor(scipy.optimize.lsq_linear(LHS1, RHS1, bounds = (0, np.inf), tol=1e-4, lsmr_tol=1e-4, max_iter=100, verbose=1).x)
-	# u = u.to(device)
-	# u.requires_grad_()
+	if args.initial_guess_for_dv:
+		Rx = 81
+		print(data['num_voxels'][0])
+		LHS1 = data['Aphoton'][:np.squeeze(data['num_voxels'])[0]]
+		RHS1 = np.array([Rx/N]*LHS1.shape[0])
+		u = torch.Tensor(scipy.optimize.lsq_linear(LHS1, RHS1, bounds = (0, np.inf), tol=1e-4, lsmr_tol=1e-4, max_iter=100, verbose=1).x)
+		u = u.to(device)
+		u.requires_grad_()
 
 	optimizer = optim.SGD([u], lr=args.lr, momentum=0.9, nesterov = True)
 
