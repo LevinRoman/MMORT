@@ -295,14 +295,14 @@ if __name__ == '__main__':
 		u = u.to(device)
 		u.requires_grad_()
 
-		if args.optimizer == 'SGD':
-			optimizer = optim.SGD([u], lr=args.lr, momentum=0.9, nesterov = True)
-		elif args.optimizer == 'Adam':
-			optimizer = optim.Adam([u], lr=args.lr)
-		elif args.optimizer == 'LBFGS':
-			optimizer = optim.LBFGS([u])
-		else:
-			raise ValueError('The optimizer option {} is not supported'.format(args.optimizer))
+	if args.optimizer == 'SGD':
+		optimizer = optim.SGD([u], lr=args.lr, momentum=0.9, nesterov = True)
+	elif args.optimizer == 'Adam':
+		optimizer = optim.Adam([u], lr=args.lr)
+	elif args.optimizer == 'LBFGS':
+		optimizer = optim.LBFGS([u])
+	else:
+		raise ValueError('The optimizer option {} is not supported'.format(args.optimizer))
 
 	# lambdas = {dv_organ: torch.ones(dv_to_max_oar_ind_dict[dv_organ].shape[0]).to(device)*args.lambda_init/10 for dv_organ in dv_to_max_oar_ind_dict}#{}
 	lambdas = {}
