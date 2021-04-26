@@ -117,6 +117,9 @@ def create_coefficient_dicts(data, device):
 def dv_adjust_coefficient_dicts(data, dose_deposition_dict, dv_to_max_oar_ind_dict, device):
 	"""So far only creates coefficients for the first modality"""
 	organ_names = [str(i[0]) for i in np.squeeze(data['Organ'])]
+	len_voxels = data['Aphoton'].shape[0]
+	#[:-1] because we don't want the last isolated voxel
+	organ_indices = np.split(np.arange(len_voxels), np.cumsum(np.squeeze(data['num_voxels'])))[:-1]
 	for organ_number, organ_name in enumerate(organ_names):
 		if organ_name in dv_to_max_oar_ind_dict:
 			print('\n Old len:', dose_deposition_dict[organ_name].shape[0])
