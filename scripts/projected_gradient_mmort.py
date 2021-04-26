@@ -75,14 +75,14 @@ def relaxed_loss(epoch, u, N, dose_deposition_dict, constraint_dict, radbio_dict
 	experiment.log_metric("Num violated", num_violated, step=epoch)
 	smoothing_constr = S@u
 	num_violated_smoothing = (smoothing_constr > 0).sum()
-	avg_smoothing_violation = (smoothing_constr[smoothing_constr > 0]).mean()
+	avg_smoothing_violation = (smoothing_constr[smoothing_constr > 0]).max()
 	if 'smoothing' in lambdas:
 		loss += lambdas['smoothing']@F.relu(smoothing_constr)**2
 	else:
 		lambdas['smoothing'] = torch.ones(S.shape[0]).to(device)*args.lambda_init
 		loss += lambdas['smoothing']@F.relu(smoothing_constr)**2
 	experiment.log_metric("Num violated smoothing", num_violated_smoothing, step=epoch)
-	experiment.log_metric("Avg violation smoothing", avg_smoothing_violation, step=epoch)
+	experiment.log_metric("Max violation smoothing", avg_smoothing_violation, step=epoch)
 	experiment.log_metric("Loss", loss.item(), step=epoch)
 	return loss, lambdas, num_violated, num_violated_smoothing, objective
 
