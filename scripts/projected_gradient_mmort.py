@@ -123,7 +123,7 @@ def dv_adjust_coefficient_dicts(data, dose_deposition_dict, dv_to_max_oar_ind_di
 	for organ_number, organ_name in enumerate(organ_names):
 		if organ_name in dv_to_max_oar_ind_dict:
 			print('\n Old len:', dose_deposition_dict[organ_name].shape[0])
-			dose_matrix = data['Aphoton'][organ_indices[organ_number]][dv_to_max_oar_ind_dict[organ]]
+			dose_matrix = data['Aphoton'][organ_indices[organ_number]][dv_to_max_oar_ind_dict[organ_name]]
 			dose_deposition_dict[organ_name] = csr_matrix_to_coo_tensor(dose_matrix).to(device)
 			print('\n New len:', dose_deposition_dict[organ_name].shape[0])
 	return dose_deposition_dict
