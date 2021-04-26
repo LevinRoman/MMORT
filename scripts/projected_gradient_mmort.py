@@ -28,6 +28,8 @@ parser.add_argument('--lr', default=0.1, type=float, help='Lr for Adam or SGD')
 parser.add_argument('--num_epochs', default=100, type=int, help='Number of epochs')
 parser.add_argument('--u_max', default=1000, type=float, help='Upper bound on u')
 parser.add_argument('--lambda_init', default=1e5, type=float, help='Initial value for lambda')
+parser.add_argument('--data_name', default = 'ProstateExample_BODY_not_reduced_with_OAR_constraints.mat', type = str)
+parser.add_argument('--precomputed', action='store_true', help='Use precomputed smoothed u for DVC initial guess')
 
 def relaxed_loss(epoch, u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = 'cuda', lambdas = None):
 	num_violated = 0
@@ -70,12 +72,14 @@ def relaxed_loss(epoch, u, N, dose_deposition_dict, constraint_dict, radbio_dict
 	experiment.log_metric("Num violated", num_violated, step=epoch)
 	smoothing_constr = S@u
 	num_violated_smoothing = (smoothing_constr > 0).sum()
+	avg_smoothing_violation = (smoothing_constr[smoothing_constr > 0]).mean()
 	if 'smoothing' in lambdas:
 		loss += lambdas['smoothing']@F.relu(smoothing_constr)**2
 	else:
 		lambdas['smoothing'] = torch.ones(S.shape[0]).to(device)*args.lambda_init
 		loss += lambdas['smoothing']@F.relu(smoothing_constr)**2
 	experiment.log_metric("Num violated smoothing", num_violated_smoothing, step=epoch)
+	experiment.log_metric("Avg violation smoothing", avg_smoothing_violation, step=epoch)
 	experiment.log_metric("Loss", loss.item(), step=epoch)
 	return loss, lambdas, num_violated, num_violated_smoothing, objective
 
@@ -128,25 +132,26 @@ if __name__ == '__main__':
 
 	experiment = Experiment(api_key='P63wSM91MmVDh80ZBZbcylZ8L', project_name='mmort_torch')
 
-	data_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'data', 'ProstateExample_BODY_not_reduced_with_OAR_constraints.mat'))
-	# data_no_body_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'data', 'ProstateExample.mat'))
+	#########################
+	##Load raw data
+	#########################
+	data_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'data', args.data_name))
 	data = scipy.io.loadmat(data_path)
-	# data =  scipy.io.loadmat(data_no_body_path)
-	Alpha = np.array([0.35, 0.35])
-	Beta = np.array([0.175, 0.175])
-	Gamma = np.array([np.array([0.35, 0.35]),
-					  np.array([0.35, 0.35]),
-					  np.array([0.35, 0.35]),
-					  np.array([0.35, 0.35]),
-					  np.array([0.35, 0.35])               
-					 ])
-	Delta = np.array([np.array([0.07, 0.07]),
-					  np.array([0.07, 0.07]),
-					  np.array([0.175, 0.175]),
-					  np.array([0.175, 0.175]),
-					  np.array([0.175, 0.175])                
-					 ])
-	modality_names = np.array(['Aphoton', 'Aproton'])
+	# Alpha = np.array([0.35, 0.35])
+	# Beta = np.array([0.175, 0.175])
+	# Gamma = np.array([np.array([0.35, 0.35]),
+	# 				  np.array([0.35, 0.35]),
+	# 				  np.array([0.35, 0.35]),
+	# 				  np.array([0.35, 0.35]),
+	# 				  np.array([0.35, 0.35])               
+	# 				 ])
+	# Delta = np.array([np.array([0.07, 0.07]),
+	# 				  np.array([0.07, 0.07]),
+	# 				  np.array([0.175, 0.175]),
+	# 				  np.array([0.175, 0.175]),
+	# 				  np.array([0.175, 0.175])                
+	# 				 ])
+	# modality_names = np.array(['Aphoton', 'Aproton'])
 
 	num_body_voxels = 683189
 	data['Aphoton'][-1] = data['Aphoton'][-1]/num_body_voxels
@@ -155,12 +160,37 @@ if __name__ == '__main__':
 	for modality in modality_names:
 	        data[modality] = scipy.sparse.csr_matrix(data[modality])
 
+	#Data with max dose (to be used with DVC):
+	data_max_dose = copy.deepcopy(data)
+	data_max_dose['OAR_constraint_types'][data_max_dose['OAR_constraint_types'] == 'dose_volume'] = 'max_dose'
+
+	print('\nData loaded from '+data_path)
+	
+	###########################
+	#Experimental Setup Part
+	###########################
+
+	#Load experimental setup from config
+	experiment_setup = configurations[config_experiment]
+
+	Alpha = experiment_setup['Alpha']
+	Beta = experiment_setup['Beta']
+	Gamma = experiment_setup['Gamma']
+	Delta = experiment_setup['Delta']
+
+	modality_names = experiment_setup['modality_names']
+
+	print('\nExperimental Setup: \nAlpha={} \nBeta={} \nGamma={} \nDelta={} \nModality Names: {}'.format(Alpha, Beta, Gamma, Delta, modality_names))
+	
+	###################################
+	##Solution: photons
+	###################################
+	#No dose volume
 	N = 44
 	#Set up smoothing matrix
 	len_voxels = data['Aphoton'].shape[0]
 	beamlet_indices = np.split(np.arange(len_voxels), np.cumsum(np.squeeze(data['num_beamlets'])))[:-1] 
 	beams = [data['beamlet_pos'][i] for i in beamlet_indices]
-	# S = torch.from_numpy(utils.construct_smoothing_matrix_relative(beams, 0.25, eps = 5).todense())
 	S = csr_matrix_to_coo_tensor(utils.construct_smoothing_matrix_relative(beams, 0.25, eps = 5)).to(device)
 
 	dose_deposition_dict, constraint_dict, radbio_dict = create_coefficient_dicts(data, device)
@@ -171,22 +201,80 @@ if __name__ == '__main__':
 	print('\nN:', N)
 	print('\nS shape:', S.shape)
 
-	print('\n Running optimization...')
-	Rx = 81
-	print(data['num_voxels'][0])
-	LHS1 = data['Aphoton'][:np.squeeze(data['num_voxels'])[0]]
-	RHS1 = np.array([Rx/N]*LHS1.shape[0])
-	u = torch.Tensor(scipy.optimize.lsq_linear(LHS1, RHS1, bounds = (0, np.inf), tol=1e-4, lsmr_tol=1e-4, max_iter=100, verbose=1).x)
-	u = u.to(device)
-	u.requires_grad_()
+	#Setup optimization
+	if not args.precomputed:
+		print('\n Running optimization...')
+		Rx = 81
+		print(data['num_voxels'][0])
+		LHS1 = data['Aphoton'][:np.squeeze(data['num_voxels'])[0]]
+		RHS1 = np.array([Rx/N]*LHS1.shape[0])
+		u = torch.Tensor(scipy.optimize.lsq_linear(LHS1, RHS1, bounds = (0, np.inf), tol=1e-4, lsmr_tol=1e-4, max_iter=100, verbose=1).x)
+		u = u.to(device)
+		u.requires_grad_()
 
+		
+		optimizer = optim.SGD([u], lr=args.lr, momentum=0.9, nesterov = True)
+
+		lambdas = {}
+		for epoch in range(args.num_epochs):
+			optimizer.zero_grad()
+			loss, lambdas, num_violated, num_violated_smoothing, objective = relaxed_loss(epoch, u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = device, lambdas = lambdas)
+			print('\n Loss {} \n Objective {} \n Num Violated {} \n Num Violated Smoothing {}'.format(loss, objective, num_violated, num_violated_smoothing))
+			loss.backward()
+			optimizer.step()
+			#Box constraint
+			u.data = torch.maximum(torch.minimum(u, torch.ones_like(u)*args.u_max), torch.zeros_like(u))
+
+		print(u)
+
+		#To run:  python3 projected_gradient_mmort.py --lr 1e-6 --lambda_init 1e3 --num_epochs 10000
+		utils.save_obj(u.detach().cpu().numpy(), 'u_photon_pytorch')
+
+	if args.precomputed:
+		  u = torch.from_numpy(utils.load_obj('u_photon_pytorch', ''))
+		  u = u.to(device)
+		  u.requires_grad_()
+	####################
+	##DVC: Photons
+	####################
+	print('Setting up DVC data...')
+	#Setup input
+	oar_indices, dv_to_max_oar_ind_dict = generate_dose_volume_input_torch(u.detach().cpu().numpy(), np.array([N, 0]), data, Alpha, Beta, Gamma, Delta, photon_only = True, proton_only = False)
+
+	dose_deposition_dict_dv, constraint_dict_dv, radbio_dict_dv = create_coefficient_dicts(data_max_dose, device)
 	
+	for organ in dv_to_max_oar_ind_dict:
+		print('\n DVC organ {} with constr: {}'.format(organ, constraint_dict_dv[organ]))
+		print('\n Old len:', dose_deposition_dict_dv[organ].shape[0])
+		dose_deposition_dict_dv[organ] = dose_deposition_dict_dv[organ][dv_to_max_oar_ind_dict[organ]]
+		print('\n New len:', dose_deposition_dict_dv[organ].shape[0])
+
+	#Compute solution
+	print('Computing DV solution')
+	print('\nDose_deposition_dict:', dose_deposition_dict)
+	print('\nConstraint dict:', constraint_dict)
+	print('\nradbio_dict:', radbio_dict)
+	print('\nN:', N)
+	print('\nS shape:', S.shape)
+
+
+	#Setup optimization
+	print('\n Running optimization...')
+	#Uncomment this to setup an initial guess on u from scratch
+	# Rx = 81
+	# print(data['num_voxels'][0])
+	# LHS1 = data['Aphoton'][:np.squeeze(data['num_voxels'])[0]]
+	# RHS1 = np.array([Rx/N]*LHS1.shape[0])
+	# u = torch.Tensor(scipy.optimize.lsq_linear(LHS1, RHS1, bounds = (0, np.inf), tol=1e-4, lsmr_tol=1e-4, max_iter=100, verbose=1).x)
+	# u = u.to(device)
+	# u.requires_grad_()
+
 	optimizer = optim.SGD([u], lr=args.lr, momentum=0.9, nesterov = True)
 
 	lambdas = {}
 	for epoch in range(args.num_epochs):
 		optimizer.zero_grad()
-		loss, lambdas, num_violated, num_violated_smoothing, objective = relaxed_loss(epoch, u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = device, lambdas = lambdas)
+		loss, lambdas, num_violated, num_violated_smoothing, objective = relaxed_loss(epoch, u, N, dose_deposition_dict_dv, constraint_dict_dv, radbio_dict_dv, S, experiment, device = device, lambdas = lambdas)
 		print('\n Loss {} \n Objective {} \n Num Violated {} \n Num Violated Smoothing {}'.format(loss, objective, num_violated, num_violated_smoothing))
 		loss.backward()
 		optimizer.step()
@@ -196,4 +284,10 @@ if __name__ == '__main__':
 	print(u)
 
 	#To run:  python3 projected_gradient_mmort.py --lr 1e-6 --lambda_init 1e3 --num_epochs 10000
-	utils.save_obj(u.detach().cpu().numpy(), 'u_photon_pytorch', '')
+	utils.save_obj(u.detach().cpu().numpy(), 'u_photon_dv_pytorch')
+	#
+	#TODO:
+	#dvh
+	#multi-modality
+	#lagrange optimization
+	#IMRT
