@@ -114,6 +114,16 @@ def create_coefficient_dicts(data, device):
 			radbio_dict[organ_name] = Gamma[oar_number][0], Delta[oar_number][0]
 	return dose_deposition_dict, constraint_dict, radbio_dict
 
+def dv_adjust_coefficient_dicts(data, dose_deposition_dict, dv_to_max_oar_ind_dict, device):
+	"""So far only creates coefficients for the first modality"""
+	organ_names = [str(i[0]) for i in np.squeeze(data['Organ'])]
+	for organ_number, organ_name in enumerate(organ_names):
+		if organ_name in dv_to_max_oar_ind_dict:
+			print('\n Old len:', dose_deposition_dict[organ].shape[0])
+			dose_matrix = data['Aphoton'][organ_indices[organ_number]][dv_to_max_oar_ind_dict[organ]]
+			dose_deposition_dict[organ_name] = csr_matrix_to_coo_tensor(dose_matrix).to(device)
+			print('\n New len:', dose_deposition_dict[organ].shape[0])
+	return dose_deposition_dict
 
 def csr_matrix_to_coo_tensor(matrix):
 	coo = scipy.sparse.coo_matrix(matrix)
@@ -246,17 +256,18 @@ if __name__ == '__main__':
 
 	dose_deposition_dict_dv, constraint_dict_dv, radbio_dict_dv = create_coefficient_dicts(data_max_dose, device)
 	
-	for organ in dv_to_max_oar_ind_dict:
-		print('\n DVC organ {} with constr: {}'.format(organ, constraint_dict_dv[organ]))
-		print('\n Old len:', dose_deposition_dict_dv[organ].shape[0])
-		dose_deposition_dict_dv[organ] = dose_deposition_dict_dv[organ][torch.from_numpy(dv_to_max_oar_ind_dict[organ]).to(device)]
-		print('\n New len:', dose_deposition_dict_dv[organ].shape[0])
+	# for organ in dv_to_max_oar_ind_dict:
+	# 	print('\n DVC organ {} with constr: {}'.format(organ, constraint_dict_dv[organ]))
+	# 	print('\n Old len:', dose_deposition_dict_dv[organ].shape[0])
+	# 	dose_deposition_dict_dv[organ] = dose_deposition_dict_dv[organ][torch.from_numpy(dv_to_max_oar_ind_dict[organ]).to(device)]
+	# 	print('\n New len:', dose_deposition_dict_dv[organ].shape[0])
+	dose_deposition_dict_dv = dv_adjust_coefficient_dicts(data_max_dose, dose_deposition_dict_dv, dv_to_max_oar_ind_dict, device)
 
 	#Compute solution
 	print('Computing DV solution')
-	print('\nDose_deposition_dict:', dose_deposition_dict)
-	print('\nConstraint dict:', constraint_dict)
-	print('\nradbio_dict:', radbio_dict)
+	print('\nDose_deposition_dict:', dose_deposition_dict_dv)
+	print('\nConstraint dict:', constraint_dict_dv)
+	print('\nradbio_dict:', radbio_dict_dv)
 	print('\nN:', N)
 	print('\nS shape:', S.shape)
 
