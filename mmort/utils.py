@@ -225,9 +225,9 @@ def generate_dose_volume_input(T_list_mult_max, T_mult_max, H_mult_max, alpha_mu
 def generate_dose_volume_input_torch(u_mult, N, data, Alpha, Beta, Gamma, Delta, photon_only = False, proton_only = False):
 	"""Based on u_mult, add max-constrained additional OARs, note that this would not work with mean dose OARs
 	This probably would work with mean-dose OARs too, need to check that"""
-	dv_oar_indices = {}
+	dv_to_max_oar_ind_dict = {}
 	oar_indices = np.split(np.arange(data['Aphoton'].shape[0]), np.cumsum(np.squeeze(data['num_voxels'])[1:]))[:-1]
-	dv_to_max_oar_ind_dict = [str(i[0]) for i in np.squeeze(data['Organ'])[1:][data['OAR_constraint_types'] == 'dose_volume']]
+	dv_oar_names = [str(i[0]) for i in np.squeeze(data['Organ'])[1:][data['OAR_constraint_types'] == 'dose_volume']]
 	for i, name in enumerate(dv_oar_names):
 		if photon_only:
 			_, _, oar_BE, _, oar_photon_BE = evaluation.evaluation_function_photon(u_mult, N, data, name, Alpha, Beta, Gamma, Delta, 3000, resolution = 500)
