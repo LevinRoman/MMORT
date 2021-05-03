@@ -136,7 +136,8 @@ def relaxed_loss_lagrange(epoch, u, N, dose_deposition_dict, constraint_dict, ra
 	experiment.log_metric("Num violated smoothing", num_violated_smoothing.item(), step=epoch)
 	experiment.log_metric("Max violation smoothing", max_smoothing_violation.item(), step=epoch)
 	experiment.log_metric("Loss", loss.item(), step=epoch)
-	experiment.log_metric("Avg lambda", lambdas['smoothing'].max().item(), step=epoch)
+	experiment.log_metric("Avg lambda", np.mean([lambdas[constr].max().item() for constr in lambdas]), step=epoch)
+	experiment.log_metric('Avg u', u.mean().item(), step = epoch)
 	return loss, num_violated, num_violated_smoothing, objective
 
 def initialize_lambdas(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = 'cuda'):
