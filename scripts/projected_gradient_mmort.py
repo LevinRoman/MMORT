@@ -34,6 +34,8 @@ parser.add_argument('--precomputed', action='store_true', help='Use precomputed 
 parser.add_argument('--initial_guess_for_dv', action='store_true', help='use initial guess for dvc solution')
 parser.add_argument('--save_dir', default = 'save_dir', type = str)
 parser.add_argument('--optimizer', default = 'Adam', type = str, help='Which optimizer to use (SGD, Adam, LBFGS)')
+#Lagnragian optimization args
+parser.add_argument('--lagrange', action='store_true', help='use Lagrangian optimization: do alternating grad desc wrt u and ascent wrt lamda')
 def relaxed_loss(epoch, u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = 'cuda', lambdas = None):
 	num_violated = 0
 	alpha, beta = radbio_dict['Target'] #Linear and quadratic coefficients
@@ -86,7 +88,97 @@ def relaxed_loss(epoch, u, N, dose_deposition_dict, constraint_dict, radbio_dict
 	experiment.log_metric("Loss", loss.item(), step=epoch)
 	return loss, lambdas, num_violated, num_violated_smoothing, objective
 
+def relaxed_loss_lagrange(epoch, u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = 'cuda', lambdas = None):
+	num_violated = 0
+	alpha, beta = radbio_dict['Target'] #Linear and quadratic coefficients
+	T = dose_deposition_dict['Target']
+	tumor_dose = T@u
+	#tumor BE: division to compute average BE, to be on the same scale with max dose
+	loss = -N*(alpha*tumor_dose.sum() + beta*(tumor_dose**2).sum())/T.shape[0]
+	objective = loss.item()
+	experiment.log_metric("Objective", objective, step=epoch)
+	OAR_names = list(dose_deposition_dict.keys())[1:] #Not including Target
+	#Create penalties and add to the loss
+	for oar in OAR_names:
+		H = dose_deposition_dict[oar]
+		oar_dose = H@u
+		constraint_type, constraint_dose, constraint_N = constraint_dict[oar]
+		constraint_dose = constraint_dose/constraint_N #Dose per fraction
+		gamma, delta = radbio_dict[oar]
+		if constraint_type == 'max_dose':
+			max_constraint_BE = constraint_N*(gamma*constraint_dose + delta*constraint_dose**2)
+			max_constr = N*(gamma*oar_dose + delta*oar_dose**2)
+			num_violated += ((max_constr - max_constraint_BE)/max_constraint_BE > 0.05).sum()
+			if oar in lambdas:
+				loss += lambdas[oar]@(max_constr - max_constraint_BE)
+			else:
+				raise ValueError('Lambdas cannot be None for Lagrangian optimization')
+		if constraint_type == 'mean_dose':
+			#Mean constr BE across voxels:
+			mean_constraint_BE = constraint_N*(gamma*constraint_dose + delta*constraint_dose**2)
+			#Mean BE across voxels
+			mean_constr = N*(gamma*oar_dose.sum() + delta*(oar_dose**2).sum())/H.shape[0]
+			num_violated += ((mean_constr - mean_constraint_BE) > 0).sum()
+			if oar in lambdas:
+				loss += lambdas[oar]*(mean_constr - mean_constraint_BE)
+			else:
+				raise ValueError('Lambdas cannot be None for Lagrangian optimization')
+	#smoothing constraint:
+	experiment.log_metric("Num violated", num_violated, step=epoch)
+	smoothing_constr = S@u
+	num_violated_smoothing = (smoothing_constr > 0).sum()
+	max_smoothing_violation = (smoothing_constr[smoothing_constr > 0]).max()
+	if 'smoothing' in lambdas:
+		loss += lambdas['smoothing']@smoothing_constr
+	else:
+		raise ValueError('Lambdas cannot be None for Lagrangian optimization')
+	experiment.log_metric("Num violated smoothing", num_violated_smoothing.item(), step=epoch)
+	experiment.log_metric("Max violation smoothing", max_smoothing_violation.item(), step=epoch)
+	experiment.log_metric("Loss", loss.item(), step=epoch)
+	experiment.log_metric("Avg lambda", max([val.max() for val in lambdas.item().values()]), step=epoch)
+	return loss, num_violated, num_violated_smoothing, objective
 
+def initialize_lambdas(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = 'cuda'):
+	with torch.no_grad():
+		lambdas = {}
+		num_violated = 0
+		alpha, beta = radbio_dict['Target'] #Linear and quadratic coefficients
+		T = dose_deposition_dict['Target']
+		tumor_dose = T@u
+		#tumor BE: division to compute average BE, to be on the same scale with max dose
+		loss = -N*(alpha*tumor_dose.sum() + beta*(tumor_dose**2).sum())/T.shape[0]
+		objective = loss.item()
+		OAR_names = list(dose_deposition_dict.keys())[1:] #Not including Target
+		#Create penalties and add to the loss
+		for oar in OAR_names:
+			H = dose_deposition_dict[oar]
+			oar_dose = H@u
+			constraint_type, constraint_dose, constraint_N = constraint_dict[oar]
+			constraint_dose = constraint_dose/constraint_N #Dose per fraction
+			gamma, delta = radbio_dict[oar]
+			if constraint_type == 'max_dose':
+				max_constraint_BE = constraint_N*(gamma*constraint_dose + delta*constraint_dose**2)
+				max_constr = N*(gamma*oar_dose + delta*oar_dose**2)
+				num_violated += ((max_constr - max_constraint_BE)/max_constraint_BE > 0.05).sum()
+				
+				lambdas[oar] = torch.zeros_like(max_constr - max_constraint_BE).to(device)
+			
+			if constraint_type == 'mean_dose':
+				#Mean constr BE across voxels:
+				mean_constraint_BE = constraint_N*(gamma*constraint_dose + delta*constraint_dose**2)
+				#Mean BE across voxels
+				mean_constr = N*(gamma*oar_dose.sum() + delta*(oar_dose**2).sum())/H.shape[0]
+				num_violated += ((mean_constr - mean_constraint_BE) > 0).sum()
+				
+				lambdas[oar] = torch.zeros_like(mean_constr - mean_constraint_BE).to(device)
+				
+		#smoothing constraint:
+
+		smoothing_constr = S@u
+		
+		lambdas['smoothing'] = torch.zeros_like(smoothing_constr).to(device)
+	
+	return lambdas
 
 def create_coefficient_dicts(data, device):
 	"""So far only creates coefficients for the first modality"""
@@ -153,21 +245,6 @@ if __name__ == '__main__':
 	#########################
 	data_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'data', args.data_name))
 	data = scipy.io.loadmat(data_path)
-	# Alpha = np.array([0.35, 0.35])
-	# Beta = np.array([0.175, 0.175])
-	# Gamma = np.array([np.array([0.35, 0.35]),
-	# 				  np.array([0.35, 0.35]),
-	# 				  np.array([0.35, 0.35]),
-	# 				  np.array([0.35, 0.35]),
-	# 				  np.array([0.35, 0.35])               
-	# 				 ])
-	# Delta = np.array([np.array([0.07, 0.07]),
-	# 				  np.array([0.07, 0.07]),
-	# 				  np.array([0.175, 0.175]),
-	# 				  np.array([0.175, 0.175]),
-	# 				  np.array([0.175, 0.175])                
-	# 				 ])
-	# modality_names = np.array(['Aphoton', 'Aproton'])
 
 	###########################
 	#Experimental Setup Part
@@ -230,6 +307,8 @@ if __name__ == '__main__':
 		u = u.to(device)
 		u.requires_grad_()
 
+
+
 		if args.optimizer == 'SGD':
 			optimizer = optim.SGD([u], lr=args.lr, momentum=0.9, nesterov = True)
 		elif args.optimizer == 'Adam':
@@ -239,25 +318,65 @@ if __name__ == '__main__':
 		else:
 			raise ValueError('The optimizer option {} is not supported'.format(args.optimizer))
 
-		lambdas = {}
-		for epoch in range(args.num_epochs):
-			optimizer.zero_grad()
-			loss, lambdas, num_violated, num_violated_smoothing, objective = relaxed_loss(epoch, u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = device, lambdas = lambdas)
-			print('\n Loss {} \n Objective {} \n Num Violated {} \n Num Violated Smoothing {}'.format(loss, objective, num_violated, num_violated_smoothing))
-			loss.backward()
-			optimizer.step()
-			#Box constraint
-			u.data = torch.maximum(torch.minimum(u, torch.ones_like(u)*args.u_max), torch.zeros_like(u))
+		if not args.lagrange:
+			lambdas = {}
 
+		if args.lagrange:
+			lambdas = initialize_lambdas(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = 'cuda')
+			for constraint in lambdas:
+				lambdas[constraint].requires_grad_()
+			optimizer_lambdas = optim.Adam(lambdas, lr=args.lambda_lr)
+
+		if not args.lagrange:	
+			for epoch in range(args.num_epochs):
+				optimizer.zero_grad()
+				loss, lambdas, num_violated, num_violated_smoothing, objective = relaxed_loss(epoch, u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = device, lambdas = lambdas)
+				print('\n Loss {} \n Objective {} \n Num Violated {} \n Num Violated Smoothing {}'.format(loss, objective, num_violated, num_violated_smoothing))
+				loss.backward()
+				optimizer.step()
+				#Box constraint
+				u.data = torch.maximum(torch.minimum(u, torch.ones_like(u)*args.u_max), torch.zeros_like(u))
+
+		if args.lagrange:
+			for epoch in range(args.num_epochs):
+				#Update u:
+				print('\n u step')
+				optimizer.zero_grad()
+				loss, num_violated, num_violated_smoothing, objective = relaxed_loss_lagrange(epoch, u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = device, lambdas = lambdas)
+				print('\n Loss {} \n Objective {} \n Num Violated {} \n Num Violated Smoothing {}'.format(loss, objective, num_violated, num_violated_smoothing))
+				loss.backward()
+				optimizer.step()
+				#Box constraint
+				u.data = torch.maximum(torch.minimum(u, torch.ones_like(u)*args.u_max), torch.zeros_like(u))
+				
+				#Update lambdas:
+				print('\n lambdas step')		
+				optimizer_lambdas.zero_grad()
+				loss_lambdas, num_violated, num_violated_smoothing, objective = relaxed_loss_lagrange(epoch, u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = device, lambdas = lambdas)
+				loss_lambdas = (-1)*loss_lambdas
+				loss_lambdas.backward()
+				optimizer_lambdas.step()
+				#Box contraint (lambda >= 0)
+				for constraint in lambdas:
+					lambdas[constraint].data = torch.maximum(lambdas[constraint], torch.zeros_like(lambdas[constraint]))
 		print(u)
 
 		#To run:  python3 projected_gradient_mmort.py --lr 1e-6 --lambda_init 1e3 --num_epochs 10000
-		utils.save_obj(u.detach().cpu().numpy(), 'u_photon_pytorch')
+		if not args.lagrange:
+			utils.save_obj(u.detach().cpu().numpy(), 'u_photon_pytorch')
+		if args.lagrange:
+			utils.save_obj(u.detach().cpu().numpy(), 'u_photon_pytorch_lagrange')
 
 	if args.precomputed:
-		  u = torch.from_numpy(utils.load_obj('u_photon_pytorch', ''))
-		  u = u.to(device)
-		  u.requires_grad_()
+		if not args.lagrange:
+			u = torch.from_numpy(utils.load_obj('u_photon_pytorch', ''))
+			u = u.to(device)
+			u.requires_grad_()
+		if args.lagrange:
+			u = torch.from_numpy(utils.load_obj('u_photon_pytorch_lagrange', ''))
+			u = u.to(device)
+			u.requires_grad_()
+
 	####################
 	##DVC: Photons
 	####################
@@ -304,24 +423,58 @@ if __name__ == '__main__':
 	else:
 		raise ValueError('The optimizer option {} is not supported'.format(args.optimizer))
 
-	# lambdas = {dv_organ: torch.ones(dv_to_max_oar_ind_dict[dv_organ].shape[0]).to(device)*args.lambda_init/10 for dv_organ in dv_to_max_oar_ind_dict}#{}
-	lambdas = {}
-	for epoch in range(args.num_epochs):
-		optimizer.zero_grad()
-		loss, lambdas, num_violated, num_violated_smoothing, objective = relaxed_loss(epoch, u, N, dose_deposition_dict_dv, constraint_dict_dv, radbio_dict_dv, S, experiment, device = device, lambdas = lambdas)
-		print('\n Loss {} \n Objective {} \n Num Violated {} \n Num Violated Smoothing {}'.format(loss, objective, num_violated, num_violated_smoothing))
-		loss.backward()
-		optimizer.step()
-		#Box constraint
-		u.data = torch.maximum(torch.minimum(u, torch.ones_like(u)*args.u_max), torch.zeros_like(u))
+	if not args.lagrange:
+		lambdas = {}
 
+	if args.lagrange:
+		lambdas = initialize_lambdas(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = 'cuda')
+		for constraint in lambdas:
+			lambdas[constraint].requires_grad_()
+		optimizer_lambdas = optim.Adam(lambdas, lr=args.lambda_lr)
+
+	# lambdas = {dv_organ: torch.ones(dv_to_max_oar_ind_dict[dv_organ].shape[0]).to(device)*args.lambda_init/10 for dv_organ in dv_to_max_oar_ind_dict}#{}
+	if not args.lagrange:
+		for epoch in range(args.num_epochs):
+			optimizer.zero_grad()
+			loss, lambdas, num_violated, num_violated_smoothing, objective = relaxed_loss(epoch, u, N, dose_deposition_dict_dv, constraint_dict_dv, radbio_dict_dv, S, experiment, device = device, lambdas = lambdas)
+			print('\n Loss {} \n Objective {} \n Num Violated {} \n Num Violated Smoothing {}'.format(loss, objective, num_violated, num_violated_smoothing))
+			loss.backward()
+			optimizer.step()
+			#Box constraint
+			u.data = torch.maximum(torch.minimum(u, torch.ones_like(u)*args.u_max), torch.zeros_like(u))
+
+	if args.lagrange:
+		for epoch in range(args.num_epochs):
+			#Update u:
+			print('\n u step')
+			optimizer.zero_grad()
+			loss, num_violated, num_violated_smoothing, objective = relaxed_loss_lagrange(epoch, u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = device, lambdas = lambdas)
+			print('\n Loss {} \n Objective {} \n Num Violated {} \n Num Violated Smoothing {}'.format(loss, objective, num_violated, num_violated_smoothing))
+			loss.backward()
+			optimizer.step()
+			#Box constraint
+			u.data = torch.maximum(torch.minimum(u, torch.ones_like(u)*args.u_max), torch.zeros_like(u))
+			
+			#Update lambdas:
+			print('\n lambdas step')
+			optimizer_lambdas.zero_grad()
+			loss_lambdas, num_violated, num_violated_smoothing, objective = relaxed_loss_lagrange(epoch, u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = device, lambdas = lambdas)
+			loss_lambdas = (-1)*loss_lambdas
+			loss_lambdas.backward()
+			optimizer_lambdas.step()
+			#Box contraint (lambda >= 0)
+			for constraint in lambdas:
+				lambdas[constraint].data = torch.maximum(lambdas[constraint], torch.zeros_like(lambdas[constraint]))
 	print(u)
 
 	#To run:  python3 projected_gradient_mmort.py --lr 1e-6 --lambda_init 1e3 --num_epochs 10000
-	utils.save_obj(u.detach().cpu().numpy(), 'u_photon_dv_pytorch', args.save_dir)
+	if not args.lagrange:
+		utils.save_obj(u.detach().cpu().numpy(), 'u_photon_dv_pytorch', args.save_dir)
+	if args.lagrange:
+		utils.save_obj(u.detach().cpu().numpy(), 'u_photon_dv_pytorch_lagrange', args.save_dir)
 	#
 	#TODO:
-	#dvh
+	#dvh + 
 	#multi-modality
 	#lagrange optimization
 	#IMRT
