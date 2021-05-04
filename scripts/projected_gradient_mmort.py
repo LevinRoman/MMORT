@@ -140,6 +140,8 @@ def relaxed_loss_lagrange(epoch, u, lambdas_var, N, dose_deposition_dict, constr
 	experiment.log_metric("Max violation smoothing", max_smoothing_violation.item(), step=epoch)
 	experiment.log_metric("Loss", loss.item(), step=epoch)
 	experiment.log_metric("Avg lambda", np.mean([lambda_.mean().item() for lambda_ in lambdas_var]), step=epoch)
+	experiment.log_metric("Min lambda", np.min([lambda_.min().item() for lambda_ in lambdas_var]), step=epoch)
+	experiment.log_metric("Max lambda", np.max([lambda_.max().item() for lambda_ in lambdas_var]), step=epoch)
 	experiment.log_metric('Avg u', u.mean().item(), step = epoch)
 	return loss, num_violated, num_violated_smoothing, objective
 
