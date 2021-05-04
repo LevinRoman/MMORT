@@ -114,7 +114,6 @@ def relaxed_loss_lagrange(epoch, u, lambdas_var, N, dose_deposition_dict, constr
 			max_constr = N*(gamma*oar_dose + delta*oar_dose**2)
 			num_violated += ((max_constr - max_constraint_BE)/max_constraint_BE > 0.05).sum()
 			if oar in lambdas:
-				print('Current shapes: OAR {} lambdas {} lambdas_var {}'.format(oar, lambdas[oar].shape, lambdas_var[oar_num].shape))
 				loss += lambdas_var[oar_num]@(max_constr - max_constraint_BE)
 			else:
 				raise ValueError('Lambdas cannot be None for Lagrangian optimization')
@@ -470,6 +469,7 @@ if __name__ == '__main__':
 			print('\n lambdas step')
 			optimizer_lambdas.zero_grad()
 			loss_lambdas, num_violated, num_violated_smoothing, objective = relaxed_loss_lagrange(epoch, u, lambdas_var, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = device, lambdas = lambdas)
+			print('\n Loss {} \n Objective {} \n Num Violated {} \n Num Violated Smoothing {}'.format(loss, objective, num_violated, num_violated_smoothing))
 			loss_lambdas = (-1)*loss_lambdas
 			loss_lambdas.backward()
 			optimizer_lambdas.step()
