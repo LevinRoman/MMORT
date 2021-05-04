@@ -458,14 +458,15 @@ if __name__ == '__main__':
 	if args.lagrange:
 		for epoch in range(args.num_epochs):
 			#Update u:
-			# print('\n u step')
-			# optimizer.zero_grad()
-			# loss, num_violated, num_violated_smoothing, objective = relaxed_loss_lagrange(epoch, u, lambdas_var, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = device, lambdas = lambdas)
-			# print('\n Loss {} \n Objective {} \n Num Violated {} \n Num Violated Smoothing {}'.format(loss, objective, num_violated, num_violated_smoothing))
-			# loss.backward()
-			# optimizer.step()
-			# #Box constraint
-			# u.data = torch.maximum(torch.minimum(u, torch.ones_like(u)*args.u_max), torch.zeros_like(u))
+			print('\n u step')
+			optimizer.zero_grad()
+			loss, num_violated, num_violated_smoothing, objective = relaxed_loss_lagrange(epoch, u, lambdas_var, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = device, lambdas = lambdas)
+			print('\n Loss {} \n Objective {} \n Num Violated {} \n Num Violated Smoothing {}'.format(loss, objective, num_violated, num_violated_smoothing))
+			experiment.log_metric("Loss_u", loss.item(), step=epoch)
+			loss.backward()
+			optimizer.step()
+			#Box constraint
+			u.data = torch.maximum(torch.minimum(u, torch.ones_like(u)*args.u_max), torch.zeros_like(u))
 			
 			#Update lambdas:
 			print('\n lambdas step')
@@ -473,7 +474,7 @@ if __name__ == '__main__':
 			loss_lambdas, num_violated, num_violated_smoothing, objective = relaxed_loss_lagrange(epoch, u, lambdas_var, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = device, lambdas = lambdas)
 			print('\n Loss {} \n Objective {} \n Num Violated {} \n Num Violated Smoothing {}'.format(loss_lambdas, objective, num_violated, num_violated_smoothing))
 			loss_lambdas = (-1)*loss_lambdas
-			experiment.log_metric("L_lambdas", loss_lambdas.item(), step=epoch)
+			experiment.log_metric("Loss_l", loss_lambdas.item(), step=epoch)
 			loss_lambdas.backward()
 			optimizer_lambdas.step()
 			#Box contraint (lambda >= 0)
