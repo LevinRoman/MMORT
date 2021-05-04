@@ -435,7 +435,7 @@ if __name__ == '__main__':
 		lambdas, lambdas_var = initialize_lambdas(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = 'cuda')
 		# for constraint in lambdas:
 		# 	lambdas[constraint].requires_grad_()
-		optimizer_lambdas = optim.Adam(lambdas_var, lr=args.lambda_lr, momentum = 0.9)
+		optimizer_lambdas = optim.Adam(lambdas_var, lr=args.lambda_lr)
 
 	# lambdas = {dv_organ: torch.ones(dv_to_max_oar_ind_dict[dv_organ].shape[0]).to(device)*args.lambda_init/10 for dv_organ in dv_to_max_oar_ind_dict}#{}
 	if not args.lagrange:
