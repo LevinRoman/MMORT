@@ -183,7 +183,12 @@ def initialize_lambdas(u, N, dose_deposition_dict, constraint_dict, radbio_dict,
 		smoothing_constr = S@u
 		
 		lambdas['smoothing'] = torch.zeros_like(smoothing_constr).to(device)
-		lambdas_var = [lambdas[constr].requires_grad_() for constr in lambdas]
+	lambdas_var = [lambdas[constr].requires_grad_() for constr in lambdas]
+	print('\n Initializing Lambdas:')
+	for i, constr in enumerate(lambdas):
+		print('Lambdas:', lambdas[constr].shape)
+		print('Vars:', lambdas_var[i].shape)
+	raise ValueError('Stop')
 	return lambdas, lambdas_var
 
 def create_coefficient_dicts(data, device):
