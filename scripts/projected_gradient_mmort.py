@@ -438,7 +438,7 @@ if __name__ == '__main__':
 		lambdas = {}
 
 	if args.lagrange:
-		lambdas, lambdas_var = initialize_lambdas(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = 'cuda')
+		lambdas, lambdas_var = initialize_lambdas(u, N, dose_deposition_dict_dv, constraint_dict_dv, radbio_dict_dv, S, experiment, device = 'cuda')
 		# for constraint in lambdas:
 		# 	lambdas[constraint].requires_grad_()
 		optimizer_lambdas = optim.Adam(lambdas_var, lr=args.lambda_lr)
