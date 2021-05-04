@@ -460,7 +460,7 @@ if __name__ == '__main__':
 			#Update u:
 			print('\n u step')
 			optimizer.zero_grad()
-			loss, num_violated, num_violated_smoothing, objective = relaxed_loss_lagrange(epoch, u, lambdas_var, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = device, lambdas = lambdas)
+			loss, num_violated, num_violated_smoothing, objective = relaxed_loss_lagrange(epoch, u, lambdas_var, N, dose_deposition_dict_dv, constraint_dict_dv, radbio_dict_dv, S, experiment, device = device, lambdas = lambdas)
 			print('\n Loss {} \n Objective {} \n Num Violated {} \n Num Violated Smoothing {}'.format(loss, objective, num_violated, num_violated_smoothing))
 			experiment.log_metric("Loss_u", loss.item(), step=epoch)
 			loss.backward()
@@ -471,7 +471,7 @@ if __name__ == '__main__':
 			#Update lambdas:
 			print('\n lambdas step')
 			optimizer_lambdas.zero_grad()
-			loss_lambdas, num_violated, num_violated_smoothing, objective = relaxed_loss_lagrange(epoch, u, lambdas_var, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = device, lambdas = lambdas)
+			loss_lambdas, num_violated, num_violated_smoothing, objective = relaxed_loss_lagrange(epoch, u, lambdas_var, N, dose_deposition_dict_dv, constraint_dict_dv, radbio_dict_dv, S, experiment, device = device, lambdas = lambdas)
 			print('\n Loss {} \n Objective {} \n Num Violated {} \n Num Violated Smoothing {}'.format(loss_lambdas, objective, num_violated, num_violated_smoothing))
 			loss_lambdas = (-1)*loss_lambdas
 			experiment.log_metric("Loss_l", loss_lambdas.item(), step=epoch)
