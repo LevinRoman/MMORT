@@ -188,7 +188,7 @@ def initialize_lambdas(u, N, dose_deposition_dict, constraint_dict, radbio_dict,
 	for i, constr in enumerate(lambdas):
 		print('Lambdas:', lambdas[constr].shape)
 		print('Vars:', lambdas_var[i].shape)
-	raise ValueError('Stop')
+	# raise ValueError('Stop')
 	return lambdas, lambdas_var
 
 def create_coefficient_dicts(data, device):
