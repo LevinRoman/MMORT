@@ -40,6 +40,7 @@ parser.add_argument('--lambda_lr', default=1e-3, type=float, help='Lr for Adam o
 #N optimization args
 parser.add_argument('--optimize_N', action='store_true', help='Attempt N optimization')
 parser.add_argument('--tumor_double_time', default=10.0, type=float, help='Tumor doubling time')
+parser.add_argument('--N_max', default=50.0, type=float, help='Max fractionation')
 
 def relaxed_loss(epoch, u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = 'cuda', lambdas = None):
 	num_violated = 0
@@ -482,6 +483,8 @@ if __name__ == '__main__':
 			optimizer.step()
 			#Box constraint
 			u.data = torch.maximum(torch.minimum(u, torch.ones_like(u)*args.u_max), torch.zeros_like(u))
+			if args.optimize_N:
+				N = torch.maximum(torch.minimum(N, torch.ones_like(N)*args.N_max), torch.zeros_like(N))
 			
 			#Update lambdas:
 			print('\n lambdas step')
