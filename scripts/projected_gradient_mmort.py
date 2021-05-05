@@ -41,7 +41,7 @@ parser.add_argument('--lambda_lr', default=1e-3, type=float, help='Lr for Adam o
 parser.add_argument('--optimize_N', action='store_true', help='Attempt N optimization')
 parser.add_argument('--tumor_double_time', default=10.0, type=float, help='Tumor doubling time')
 parser.add_argument('--N_max', default=50.0, type=float, help='Max fractionation')
-
+parser.add_argument('--N_lr', default=0.1, type=float, help='Lr for Adam or SGD for N update')
 def relaxed_loss(epoch, u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = 'cuda', lambdas = None):
 	num_violated = 0
 	alpha, beta = radbio_dict['Target'] #Linear and quadratic coefficients
@@ -442,7 +442,7 @@ if __name__ == '__main__':
 	elif args.optimizer == 'Adam':
 		if args.optimize_N:
 			optimizer = optim.Adam([{'params': [u]}, 
-			{'params': [N], 'lr': 0.5}], lr=args.lr)
+			{'params': [N], 'lr': args.N_lr}], lr=args.lr)
 		else:
 			optimizer = optim.Adam([u], lr=args.lr)
 	elif args.optimizer == 'LBFGS':
