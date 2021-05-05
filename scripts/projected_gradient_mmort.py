@@ -511,3 +511,4 @@ if __name__ == '__main__':
 	#lagrange optimization
 	#IMRT
 	#N optimization is so far implemented only in the second half
+	#Run with faithfully computed init guess for dv
