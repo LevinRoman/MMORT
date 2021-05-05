@@ -483,7 +483,7 @@ if __name__ == '__main__':
 			u.data = torch.maximum(torch.minimum(u, torch.ones_like(u)*args.u_max), torch.zeros_like(u))
 			if args.optimize_N:
 				N.data = torch.maximum(torch.minimum(N, torch.ones_like(N)*args.N_max), torch.zeros_like(N))
-				experiment.log_metric("N", loss.item(), step=epoch)
+				experiment.log_metric("N", N.item(), step=epoch)
 			
 			#Update lambdas:
 			print('\n lambdas step')
