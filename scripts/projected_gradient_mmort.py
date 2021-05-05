@@ -26,7 +26,6 @@ import torch.optim as optim
 parser = argparse.ArgumentParser(description='MMORT')
 parser.add_argument('--config_experiment', default = 'Experiment_1', type = str, help = 'Which experiment to run (Options: Experiment_1, Experiment_2). See config file for details')
 parser.add_argument('--lr', default=1e-3, type=float, help='Lr for Adam or SGD')
-parser.add_argument('--lambda_lr', default=1e-3, type=float, help='Lr for Adam or SGD for Lambda lagrange update')
 parser.add_argument('--num_epochs', default=100, type=int, help='Number of epochs')
 parser.add_argument('--u_max', default=1000, type=float, help='Upper bound on u')
 parser.add_argument('--lambda_init', default=1e5, type=float, help='Initial value for lambda')
@@ -37,6 +36,11 @@ parser.add_argument('--save_dir', default = 'save_dir', type = str)
 parser.add_argument('--optimizer', default = 'Adam', type = str, help='Which optimizer to use (SGD, Adam, LBFGS)')
 #Lagnragian optimization args
 parser.add_argument('--lagrange', action='store_true', help='use Lagrangian optimization: do alternating grad desc wrt u and ascent wrt lamda')
+parser.add_argument('--lambda_lr', default=1e-3, type=float, help='Lr for Adam or SGD for Lambda lagrange update')
+#N optimization args
+parser.add_argument('--optimize_N', action='store_true', help='Attempt N optimization')
+parser.add_argument('--tumor_double_time', default=10.0, type=float, help='Tumor doubling time')
+
 def relaxed_loss(epoch, u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = 'cuda', lambdas = None):
 	num_violated = 0
 	alpha, beta = radbio_dict['Target'] #Linear and quadratic coefficients
@@ -89,7 +93,7 @@ def relaxed_loss(epoch, u, N, dose_deposition_dict, constraint_dict, radbio_dict
 	experiment.log_metric("Loss", loss.item(), step=epoch)
 	return loss, lambdas, num_violated, num_violated_smoothing, objective
 
-def relaxed_loss_lagrange(epoch, u, lambdas_var, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = 'cuda', lambdas = None):
+def relaxed_loss_lagrange(epoch, u, lambdas_var, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, args, device = 'cuda', lambdas = None):
 	"""
 	Lambdas_var is a list of lambda variable tensors correponding to the OAR_names
 	"""
@@ -143,6 +147,8 @@ def relaxed_loss_lagrange(epoch, u, lambdas_var, N, dose_deposition_dict, constr
 	experiment.log_metric("Min lambda", np.min([lambda_.min().item() for lambda_ in lambdas_var]), step=epoch)
 	experiment.log_metric("Max lambda", np.max([lambda_.max().item() for lambda_ in lambdas_var]), step=epoch)
 	experiment.log_metric('Avg u', u.mean().item(), step = epoch)
+	if args.optimize_N:
+		loss = loss + ((N-1)*np.log(2.0)/args.tumor_double_time)
 	return loss, num_violated, num_violated_smoothing, objective
 
 def initialize_lambdas(u, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = 'cuda'):
@@ -354,7 +360,7 @@ if __name__ == '__main__':
 				#Update u:
 				print('\n u step')
 				optimizer.zero_grad()
-				loss, num_violated, num_violated_smoothing, objective = relaxed_loss_lagrange(epoch, u, lambdas_var, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = device, lambdas = lambdas)
+				loss, num_violated, num_violated_smoothing, objective = relaxed_loss_lagrange(epoch, u, lambdas_var, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, args, device = device, lambdas = lambdas)
 				print('\n Loss {} \n Objective {} \n Num Violated {} \n Num Violated Smoothing {}'.format(loss, objective, num_violated, num_violated_smoothing))
 				loss.backward()
 				optimizer.step()
@@ -364,7 +370,7 @@ if __name__ == '__main__':
 				#Update lambdas:
 				print('\n lambdas step')		
 				optimizer_lambdas.zero_grad()
-				loss_lambdas, num_violated, num_violated_smoothing, objective = relaxed_loss_lagrange(epoch, u, lambdas_var, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, device = device, lambdas = lambdas)
+				loss_lambdas, num_violated, num_violated_smoothing, objective = relaxed_loss_lagrange(epoch, u, lambdas_var, N, dose_deposition_dict, constraint_dict, radbio_dict, S, experiment, args, device = device, lambdas = lambdas)
 				loss_lambdas = (-1)*loss_lambdas
 				loss_lambdas.backward()
 				optimizer_lambdas.step()
@@ -426,10 +432,17 @@ if __name__ == '__main__':
 		u = u.to(device)
 		u.requires_grad_()
 
+	if args.optimize_N:
+		N = torch.tensor(44.0)
+		N.requires_grad_()
+
 	if args.optimizer == 'SGD':
 		optimizer = optim.SGD([u], lr=args.lr, momentum=0.9, nesterov = True)
 	elif args.optimizer == 'Adam':
-		optimizer = optim.Adam([u], lr=args.lr)
+		if args.optimize_N:
+			optimizer = optim.Adam([u, N], lr=args.lr)
+		else:
+			optimizer = optim.Adam([u], lr=args.lr)
 	elif args.optimizer == 'LBFGS':
 		optimizer = optim.LBFGS([u])
 	else:
@@ -460,9 +473,11 @@ if __name__ == '__main__':
 			#Update u:
 			print('\n u step')
 			optimizer.zero_grad()
-			loss, num_violated, num_violated_smoothing, objective = relaxed_loss_lagrange(epoch, u, lambdas_var, N, dose_deposition_dict_dv, constraint_dict_dv, radbio_dict_dv, S, experiment, device = device, lambdas = lambdas)
+			loss, num_violated, num_violated_smoothing, objective = relaxed_loss_lagrange(epoch, u, lambdas_var, N, dose_deposition_dict_dv, constraint_dict_dv, radbio_dict_dv, S, experiment, args, device = device, lambdas = lambdas)
 			print('\n Loss {} \n Objective {} \n Num Violated {} \n Num Violated Smoothing {}'.format(loss, objective, num_violated, num_violated_smoothing))
 			experiment.log_metric("Loss_u", loss.item(), step=epoch)
+			if args.optimize_N:
+				experiment.log_metric("N", loss.item(), step=epoch)
 			loss.backward()
 			optimizer.step()
 			#Box constraint
@@ -471,7 +486,7 @@ if __name__ == '__main__':
 			#Update lambdas:
 			print('\n lambdas step')
 			optimizer_lambdas.zero_grad()
-			loss_lambdas, num_violated, num_violated_smoothing, objective = relaxed_loss_lagrange(epoch, u, lambdas_var, N, dose_deposition_dict_dv, constraint_dict_dv, radbio_dict_dv, S, experiment, device = device, lambdas = lambdas)
+			loss_lambdas, num_violated, num_violated_smoothing, objective = relaxed_loss_lagrange(epoch, u, lambdas_var, N, dose_deposition_dict_dv, constraint_dict_dv, radbio_dict_dv, S, experiment, args, device = device, lambdas = lambdas)
 			print('\n Loss {} \n Objective {} \n Num Violated {} \n Num Violated Smoothing {}'.format(loss_lambdas, objective, num_violated, num_violated_smoothing))
 			loss_lambdas = (-1)*loss_lambdas
 			experiment.log_metric("Loss_l", loss_lambdas.item(), step=epoch)
@@ -493,3 +508,4 @@ if __name__ == '__main__':
 	#multi-modality
 	#lagrange optimization
 	#IMRT
+	#N optimization is so far implemented only in the second half
