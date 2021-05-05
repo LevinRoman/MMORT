@@ -441,7 +441,8 @@ if __name__ == '__main__':
 		optimizer = optim.SGD([u], lr=args.lr, momentum=0.9, nesterov = True)
 	elif args.optimizer == 'Adam':
 		if args.optimize_N:
-			optimizer = optim.Adam([u, N], lr=args.lr)
+			optimizer = optim.Adam([{'params': [u]}, 
+			{'params': [N], 'lr': 0.5}], lr=args.lr)
 		else:
 			optimizer = optim.Adam([u], lr=args.lr)
 	elif args.optimizer == 'LBFGS':
