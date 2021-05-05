@@ -477,14 +477,13 @@ if __name__ == '__main__':
 			loss, num_violated, num_violated_smoothing, objective = relaxed_loss_lagrange(epoch, u, lambdas_var, N, dose_deposition_dict_dv, constraint_dict_dv, radbio_dict_dv, S, experiment, args, device = device, lambdas = lambdas)
 			print('\n Loss {} \n Objective {} \n Num Violated {} \n Num Violated Smoothing {}'.format(loss, objective, num_violated, num_violated_smoothing))
 			experiment.log_metric("Loss_u", loss.item(), step=epoch)
-			if args.optimize_N:
-				experiment.log_metric("N", loss.item(), step=epoch)
 			loss.backward()
 			optimizer.step()
 			#Box constraint
 			u.data = torch.maximum(torch.minimum(u, torch.ones_like(u)*args.u_max), torch.zeros_like(u))
 			if args.optimize_N:
 				N.data = torch.maximum(torch.minimum(N, torch.ones_like(N)*args.N_max), torch.zeros_like(N))
+				experiment.log_metric("N", loss.item(), step=epoch)
 			
 			#Update lambdas:
 			print('\n lambdas step')
