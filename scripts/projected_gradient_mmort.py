@@ -484,7 +484,7 @@ if __name__ == '__main__':
 			#Box constraint
 			u.data = torch.maximum(torch.minimum(u, torch.ones_like(u)*args.u_max), torch.zeros_like(u))
 			if args.optimize_N:
-				N = torch.maximum(torch.minimum(N, torch.ones_like(N)*args.N_max), torch.zeros_like(N))
+				N.data = torch.maximum(torch.minimum(N, torch.ones_like(N)*args.N_max), torch.zeros_like(N))
 			
 			#Update lambdas:
 			print('\n lambdas step')
